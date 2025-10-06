@@ -1,5 +1,5 @@
 import { PageHeader } from '@/components/page-header';
-import { ToolPlaceholder } from '@/components/tool-placeholder';
+import { LoremIpsumForm } from './lorem-ipsum-form';
 
 export default function LoremIpsumPage() {
   return (
@@ -8,7 +8,7 @@ export default function LoremIpsumPage() {
         title="Lorem Ipsum Generator"
         description="Generate placeholder text."
       />
-      <ToolPlaceholder />
+      <LoremIpsumForm />
     </>
   );
 }
