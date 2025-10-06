@@ -149,32 +149,31 @@ export function FontPairingTool() {
   });
 
   useEffect(() => {
-    // Combine all fonts that need to be loaded
-    const allFonts = [
+    // Combine all fonts that need to be loaded from pairings, manual selection, and the default list for the combobox
+    const allFonts = new Set([
       ...fontPairings.flatMap(p => [p.headlineFont, p.bodyFont]),
       manualHeadline,
       manualBody,
-    ].filter(Boolean);
-    
-    // De-duplicate fonts, also considering case-insensitivity
-    const lowercasedFontMap = new Map(allFonts.map(f => [f.toLowerCase(), f]));
-    const uniqueFonts = Array.from(lowercasedFontMap.values());
+      ...googleFonts
+    ].filter(Boolean));
 
+    const uniqueFonts = Array.from(allFonts);
 
     if (uniqueFonts.length > 0) {
-      const fontQuery = uniqueFonts.map(f => f.replace(/ /g, '+')).join('|');
+      // Create the font family query string for the Google Fonts API
+      const fontFamilies = uniqueFonts.map(font => `family=${font.replace(/ /g, '+')}:wght@400;700`).join('&');
       const linkId = 'dynamic-google-fonts';
       let link = document.getElementById(linkId) as HTMLLinkElement;
 
+      const newHref = `https://fonts.googleapis.com/css2?${fontFamilies}&display=swap`;
+      
       if (!link) {
         link = document.createElement('link');
         link.id = linkId;
         link.rel = 'stylesheet';
+        link.href = newHref;
         document.head.appendChild(link);
-      }
-      
-      const newHref = `https://fonts.googleapis.com/css2?family=${fontQuery}:wght@400;700&display=swap`;
-      if (link.href !== newHref) {
+      } else if (link.href !== newHref) {
         link.href = newHref;
       }
     }
