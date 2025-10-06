@@ -1,7 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
-import Head from 'next/head';
+import { useState, useRef, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { fontPairing } from '@/ai/flows/font-pairing';
@@ -15,7 +14,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Loader2, Wand2, Download, Printer, Image as ImageIcon } from 'lucide-react';
+import { Loader2, Wand2, Printer, Image as ImageIcon } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import html2canvas from 'html2canvas';
 
@@ -32,6 +31,27 @@ export function FontPairingTool() {
       style: 'modern and clean',
     },
   });
+
+  useEffect(() => {
+    if (fontPairings.length > 0) {
+      const fontQuery = fontPairings
+        .flatMap(p => [p.headlineFont, p.bodyFont])
+        .filter(Boolean)
+        .join('|')
+        .replace(/ /g, '+');
+
+      if (fontQuery) {
+        const link = document.createElement('link');
+        link.href = `https://fonts.googleapis.com/css?family=${fontQuery}&display=swap`;
+        link.rel = 'stylesheet';
+        document.head.appendChild(link);
+
+        return () => {
+          document.head.removeChild(link);
+        };
+      }
+    }
+  }, [fontPairings]);
 
   const onSubmit = async (values: FontPairingInput) => {
     setIsLoading(true);
@@ -51,8 +71,6 @@ export function FontPairingTool() {
     }
   };
   
-  const loadedFonts = fontPairings.flatMap(p => [p.headlineFont, p.bodyFont]).join('|').replace(/ /g, '+');
-
   const exportPNG = async (index: number) => {
     const element = printableRefs.current[index];
     if (!element) return;
@@ -101,14 +119,6 @@ export function FontPairingTool() {
 
   return (
     <div className="space-y-8">
-      {loadedFonts && (
-          <Head>
-            <link
-                rel="stylesheet"
-                href={`https://fonts.googleapis.com/css?family=${loadedFonts}&display=swap`}
-            />
-          </Head>
-      )}
       <Card>
         <CardContent className="p-4">
           <Form {...form}>
