@@ -23,6 +23,7 @@ import {
   Upload,
   Play,
   StopCircle,
+  Pause,
   FileJson,
   FileText,
   FileSpreadsheet,
@@ -72,6 +73,7 @@ export function TimeTracker() {
   const [currentTask, setCurrentTask] = useState('');
   const [timer, setTimer] = useState<number>(0);
   const [isActive, setIsActive] = useState<boolean>(false);
+  const [isPaused, setIsPaused] = useState<boolean>(false);
   const [startTime, setStartTime] = useState<Date | null>(null);
 
   const listRef = useRef<HTMLDivElement>(null);
@@ -89,43 +91,58 @@ export function TimeTracker() {
       return;
     }
     setIsActive(true);
+    setIsPaused(false);
     setStartTime(new Date());
-    intervalRef.current = setInterval(() => {
-      setTimer((prev) => prev + 1);
-    }, 1000);
   };
 
   const stopTimer = useCallback(() => {
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-    }
     setIsActive(false);
+    setIsPaused(false);
 
-    const newEntry: TimeEntry = {
-      id: `entry-${Date.now()}`,
-      description: currentTask,
-      startTime: startTime!.toISOString(),
-      endTime: new Date().toISOString(),
-      duration: formatDuration(timer),
-    };
+    if (startTime) {
+        const newEntry: TimeEntry = {
+          id: `entry-${Date.now()}`,
+          description: currentTask,
+          startTime: startTime.toISOString(),
+          endTime: new Date().toISOString(),
+          duration: formatDuration(timer),
+        };
 
-    setEntries((prev) => [newEntry, ...prev]);
+        setEntries((prev) => [newEntry, ...prev]);
+    }
+    
     setCurrentTask('');
     setTimer(0);
     setStartTime(null);
   }, [currentTask, startTime, timer]);
 
+  const pauseTimer = () => {
+    setIsPaused(true);
+  };
+
+  const resumeTimer = () => {
+    setIsPaused(false);
+  };
+  
   const deleteEntry = (id: string) => {
     setEntries(entries.filter((entry) => entry.id !== id));
   };
   
   useEffect(() => {
+    if (isActive && !isPaused) {
+      intervalRef.current = setInterval(() => {
+        setTimer((prev) => prev + 1);
+      }, 1000);
+    } else if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+    }
+
     return () => {
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
       }
     };
-  }, []);
+  }, [isActive, isPaused]);
 
   // --- Import / Export ---
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -204,10 +221,18 @@ export function TimeTracker() {
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Entries');
     XLSX.writeFile(workbook, 'time-tracker.xlsx');
   };
+  
   const exportPNG = async () => {
     if (!listRef.current) return;
     try {
-      const canvas = await html2canvas(listRef.current, { scale: 2 });
+      // Get the computed background color
+      const computedStyle = window.getComputedStyle(document.body);
+      const bgColor = computedStyle.backgroundColor;
+      
+      const canvas = await html2canvas(listRef.current, { 
+        scale: 2,
+        backgroundColor: bgColor,
+      });
       const link = document.createElement('a');
       link.download = 'time-tracker.png';
       link.href = canvas.toDataURL('image/png');
@@ -216,6 +241,7 @@ export function TimeTracker() {
       toast({ variant: 'destructive', title: 'Export Failed', description: 'Could not export as PNG.' });
     }
   };
+  
   const exportPDF = () => window.print();
 
   return (
@@ -247,14 +273,25 @@ export function TimeTracker() {
             <div className="text-2xl font-mono font-bold w-32 text-center bg-muted rounded-md p-2">
               {formatDuration(timer)}
             </div>
-            {isActive ? (
-              <Button onClick={stopTimer} size="lg" className="bg-red-600 hover:bg-red-700 w-32">
-                <StopCircle className="mr-2" /> Stop
-              </Button>
+            {!isActive ? (
+                <Button onClick={startTimer} size="lg" className="w-32">
+                    <Play className="mr-2" /> Start
+                </Button>
             ) : (
-              <Button onClick={startTimer} size="lg" className="w-32">
-                <Play className="mr-2" /> Start
-              </Button>
+                <div className="flex gap-2">
+                    {isPaused ? (
+                        <Button onClick={resumeTimer} size="lg" variant="outline">
+                            <Play className="mr-2" /> Resume
+                        </Button>
+                    ) : (
+                        <Button onClick={pauseTimer} size="lg" variant="outline">
+                            <Pause className="mr-2" /> Pause
+                        </Button>
+                    )}
+                    <Button onClick={stopTimer} size="lg" className="bg-red-600 hover:bg-red-700">
+                        <StopCircle className="mr-2" /> Stop
+                    </Button>
+                </div>
             )}
           </div>
         </CardContent>
