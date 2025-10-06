@@ -1,5 +1,5 @@
 import { PageHeader } from '@/components/page-header';
-import { ToolPlaceholder } from '@/components/tool-placeholder';
+import { QrCodeGeneratorForm } from './qr-code-generator-form';
 
 export default function QrCodeGeneratorPage() {
   return (
@@ -8,7 +8,7 @@ export default function QrCodeGeneratorPage() {
         title="QR Code Generator"
         description="Generate QR codes from text or URLs."
       />
-      <ToolPlaceholder />
+      <QrCodeGeneratorForm />
     </>
   );
 }
