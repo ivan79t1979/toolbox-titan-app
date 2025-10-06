@@ -1,14 +1,14 @@
 import { PageHeader } from '@/components/page-header';
-import { ToolPlaceholder } from '@/components/tool-placeholder';
+import { ColorPaletteExtractorForm } from './color-palette-extractor-form';
 
 export default function ColorPaletteExtractorPage() {
   return (
     <>
       <PageHeader
         title="Color Palette Extractor"
-        description="Extract colors from an image."
+        description="Upload an image to automatically extract its dominant color palette with AI."
       />
-      <ToolPlaceholder />
+      <ColorPaletteExtractorForm />
     </>
   );
 }
