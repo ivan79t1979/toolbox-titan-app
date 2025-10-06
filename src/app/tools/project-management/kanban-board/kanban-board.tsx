@@ -364,7 +364,7 @@ export function KanbanBoard() {
         </div>
       </div>
       
-      <div ref={boardRef} className="printable-board">
+      <div ref={boardRef} className="printable-board overflow-x-auto">
         <DndContext
             sensors={sensors}
             onDragStart={handleDragStart}
@@ -372,7 +372,7 @@ export function KanbanBoard() {
             onDragEnd={handleDragEnd}
             collisionDetection={closestCenter}
         >
-            <div className="grid auto-cols-fr grid-flow-col gap-4 overflow-x-auto">
+            <div className="flex gap-4">
                 <SortableContext items={columnsId} strategy={horizontalListSortingStrategy}>
                     {columns.map((col) => (
                     <KanbanColumn
