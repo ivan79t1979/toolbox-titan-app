@@ -4,8 +4,12 @@ import { useState, useRef } from 'react';
 import Head from 'next/head';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { fontPairing, FontPairingInputSchema, type FontPairingOutput } from '@/ai/flows/font-pairing';
-import type { FontPairingInput } from '@/ai/flows/font-pairing';
+import { fontPairing } from '@/ai/flows/font-pairing';
+import {
+  FontPairingInputSchema,
+  type FontPairingInput,
+  type FontPairingOutput,
+} from '@/ai/flows/font-pairing-types';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
