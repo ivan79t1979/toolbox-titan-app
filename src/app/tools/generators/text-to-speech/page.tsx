@@ -1,5 +1,5 @@
 import { PageHeader } from '@/components/page-header';
-import { ToolPlaceholder } from '@/components/tool-placeholder';
+import { TextToSpeechForm } from './text-to-speech-form';
 
 export default function TextToSpeechPage() {
   return (
@@ -8,7 +8,7 @@ export default function TextToSpeechPage() {
         title="Text to Speech"
         description="Convert text to spoken audio."
       />
-      <ToolPlaceholder />
+      <TextToSpeechForm />
     </>
   );
 }
