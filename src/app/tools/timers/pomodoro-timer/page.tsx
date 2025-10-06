@@ -1,14 +1,14 @@
 import { PageHeader } from '@/components/page-header';
-import { ToolPlaceholder } from '@/components/tool-placeholder';
+import { PomodoroTimer } from './pomodoro-timer';
 
 export default function PomodoroTimerPage() {
   return (
     <>
       <PageHeader
         title="Pomodoro Timer"
-        description="A timer for the Pomodoro Technique."
+        description="Boost your productivity with the Pomodoro Technique. Customize your work and break intervals."
       />
-      <ToolPlaceholder />
+      <PomodoroTimer />
     </>
   );
 }

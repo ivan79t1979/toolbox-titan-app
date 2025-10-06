@@ -198,7 +198,7 @@ export const toolCategories: ToolCategory[] = [
         title: 'Stopwatch',
         description: 'Measure elapsed time.',
         href: '/tools/timers/stopwatch',
-        icon: Timer,
+        icon: Hourglass,
       },
       {
         title: 'World Clock',
