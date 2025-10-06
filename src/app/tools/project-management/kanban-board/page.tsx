@@ -1,14 +1,14 @@
 import { PageHeader } from '@/components/page-header';
-import { ToolPlaceholder } from '@/components/tool-placeholder';
+import { KanbanBoard } from './kanban-board';
 
 export default function KanbanBoardPage() {
   return (
     <>
       <PageHeader
         title="Kanban Board"
-        description="Visual project management tool."
+        description="Organize your tasks with a drag-and-drop Kanban board. Import and export your data."
       />
-      <ToolPlaceholder />
+      <KanbanBoard />
     </>
   );
 }
