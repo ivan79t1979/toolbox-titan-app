@@ -64,23 +64,16 @@ type Task = {
   start: string; // ISO string
   end: string; // ISO string
   progress: number; // 0-100
+  color: string;
 };
 
 const defaultTasks: Task[] = [
-  { id: 'task-1', name: 'Requirement Analysis', start: new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString(), end: new Date(new Date().getFullYear(), new Date().getMonth(), 5).toISOString(), progress: 100 },
-  { id: 'task-2', name: 'UI/UX Design', start: new Date(new Date().getFullYear(), new Date().getMonth(), 3).toISOString(), end: new Date(new Date().getFullYear(), new Date().getMonth(), 10).toISOString(), progress: 80 },
-  { id: 'task-3', name: 'API Development', start: new Date(new Date().getFullYear(), new Date().getMonth(), 8).toISOString(), end: new Date(new Date().getFullYear(), new Date().getMonth(), 18).toISOString(), progress: 60 },
-  { id: 'task-4', name: 'Frontend Implementation', start: new Date(new Date().getFullYear(), new Date().getMonth(), 12).toISOString(), end: new Date(new Date().getFullYear(), new Date().getMonth(), 25).toISOString(), progress: 40 },
-  { id: 'task-5', name: 'Testing & QA', start: new Date(new Date().getFullYear(), new Date().getMonth(), 22).toISOString(), end: new Date(new Date().getFullYear(), new Date().getMonth(), 30).toISOString(), progress: 10 },
-  { id: 'task-6', name: 'Deployment', start: new Date(new Date().getFullYear(), new Date().getMonth(), 28).toISOString(), end: new Date(new Date().getFullYear(), new Date().getMonth(), 30).toISOString(), progress: 0 },
-];
-
-const taskColors = [
-  'hsl(var(--chart-1))',
-  'hsl(var(--chart-2))',
-  'hsl(var(--chart-3))',
-  'hsl(var(--chart-4))',
-  'hsl(var(--chart-5))',
+  { id: 'task-1', name: 'Requirement Analysis', start: new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString(), end: new Date(new Date().getFullYear(), new Date().getMonth(), 5).toISOString(), progress: 100, color: 'hsl(var(--chart-1))' },
+  { id: 'task-2', name: 'UI/UX Design', start: new Date(new Date().getFullYear(), new Date().getMonth(), 3).toISOString(), end: new Date(new Date().getFullYear(), new Date().getMonth(), 10).toISOString(), progress: 80, color: 'hsl(var(--chart-2))' },
+  { id: 'task-3', name: 'API Development', start: new Date(new Date().getFullYear(), new Date().getMonth(), 8).toISOString(), end: new Date(new Date().getFullYear(), new Date().getMonth(), 18).toISOString(), progress: 60, color: 'hsl(var(--chart-3))' },
+  { id: 'task-4', name: 'Frontend Implementation', start: new Date(new Date().getFullYear(), new Date().getMonth(), 12).toISOString(), end: new Date(new Date().getFullYear(), new Date().getMonth(), 25).toISOString(), progress: 40, color: 'hsl(var(--chart-4))' },
+  { id: 'task-5', name: 'Testing & QA', start: new Date(new Date().getFullYear(), new Date().getMonth(), 22).toISOString(), end: new Date(new Date().getFullYear(), new Date().getMonth(), 30).toISOString(), progress: 10, color: 'hsl(var(--chart-5))' },
+  { id: 'task-6', name: 'Deployment', start: new Date(new Date().getFullYear(), new Date().getMonth(), 28).toISOString(), end: new Date(new Date().getFullYear(), new Date().getMonth(), 30).toISOString(), progress: 0, color: 'hsl(var(--chart-1))' },
 ];
 
 const CustomTooltip = ({ active, payload }: any) => {
@@ -127,7 +120,7 @@ export function GanttChart() {
     const domainEnd = endOfMonth(addDays(maxDate, 1));
 
     const chartTasks = tasks
-      .map((task, index) => {
+      .map((task) => {
         const start = parseISO(task.start);
         const end = parseISO(task.end);
         const startOffset = differenceInDays(start, domainStart);
@@ -136,7 +129,6 @@ export function GanttChart() {
           ...task,
           range: [startOffset, startOffset + duration],
           name: task.name,
-          fill: taskColors[index % taskColors.length],
         };
       })
       .reverse(); // Reverse for correct Y-axis order in chart
@@ -174,6 +166,7 @@ export function GanttChart() {
       start: newStart.toISOString(),
       end: addDays(newStart, 4).toISOString(),
       progress: 0,
+      color: 'hsl(var(--chart-1))'
     };
     setTasks([...tasks, newTask]);
   };
@@ -407,7 +400,7 @@ export function GanttChart() {
                 isAnimationActive={false}
               >
                  {chartData.map((entry, index) => (
-                    <Cell key={`cell-progress-${index}`} fill={entry.fill} />
+                    <Cell key={`cell-progress-${index}`} fill={entry.color} />
                 ))}
               </Bar>
               <Bar
@@ -420,7 +413,7 @@ export function GanttChart() {
                 isAnimationActive={false}
               >
                  {chartData.map((entry, index) => (
-                    <Cell key={`cell-remaining-${index}`} fill={`${entry.fill}60`} />
+                    <Cell key={`cell-remaining-${index}`} fill={`${entry.color}60`} />
                 ))}
               </Bar>
             </BarChart>
@@ -440,6 +433,7 @@ export function GanttChart() {
                 <TableHead>Start Date</TableHead>
                 <TableHead>End Date</TableHead>
                 <TableHead>Progress (%)</TableHead>
+                <TableHead>Color</TableHead>
                 <TableHead></TableHead>
               </TableRow>
             </TableHeader>
@@ -513,6 +507,14 @@ export function GanttChart() {
                       className="w-20"
                       min={0}
                       max={100}
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <Input
+                        type="color"
+                        value={task.color}
+                        onChange={(e) => handleTaskChange(task.id, 'color', e.target.value)}
+                        className="h-8 w-10 p-1"
                     />
                   </TableCell>
                   <TableCell>
