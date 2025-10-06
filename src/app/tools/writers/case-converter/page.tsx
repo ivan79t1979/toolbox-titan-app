@@ -31,6 +31,7 @@ export default function CaseConverterPage() {
   };
 
   const handleCopy = () => {
+    if (!text) return;
     navigator.clipboard.writeText(text);
     toast({
       title: 'Copied to clipboard!',
@@ -66,6 +67,7 @@ export default function CaseConverterPage() {
               size="icon"
               onClick={handleCopy}
               disabled={!text}
+              aria-label="Copy text"
             >
               <Copy className="h-4 w-4" />
               <span className="sr-only">Copy</span>
@@ -75,6 +77,7 @@ export default function CaseConverterPage() {
               size="icon"
               onClick={handleClear}
               disabled={!text}
+              aria-label="Clear text"
             >
               <Trash2 className="h-4 w-4" />
               <span className="sr-only">Clear</span>
