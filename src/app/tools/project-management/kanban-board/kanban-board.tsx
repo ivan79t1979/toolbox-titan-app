@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useRef, useCallback } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import {
   DndContext,
   closestCenter,
@@ -15,7 +15,7 @@ import {
 import {
   SortableContext,
   arrayMove,
-  rectSortingStrategy,
+  horizontalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { createPortal } from 'react-dom';
 import { KanbanColumn, KanbanTaskCard } from './kanban-components';
@@ -51,16 +51,17 @@ const defaultCols: Column[] = [
 ];
 
 const defaultTasks: Task[] = [
-  { id: '1', columnId: 'todo', content: 'Brainstorm new feature ideas' },
-  { id: '2', columnId: 'todo', content: 'Design the user interface mockups' },
-  { id: '3', columnId: 'inprogress', content: 'Develop the authentication flow' },
+  { id: '1', columnId: 'todo', content: 'Brainstorm new feature ideas', priority: 'medium', dueDate: new Date(new Date().setDate(new Date().getDate() + 3)).toISOString() },
+  { id: '2', columnId: 'todo', content: 'Design the user interface mockups', priority: 'high' },
+  { id: '3', columnId: 'inprogress', content: 'Develop the authentication flow', priority: 'urgent', dueDate: new Date(new Date().setDate(new Date().getDate() + 1)).toISOString() },
   { id: '4', columnId: 'done', content: 'Set up the project repository' },
-  { id: '5', columnId: 'done', content: 'Deploy the landing page' },
+  { id: '5', columnId: 'done', content: 'Deploy the landing page', priority: 'low' },
 ];
 
 export function KanbanBoard() {
   const [columns, setColumns] = useState<Column[]>(defaultCols);
   const [tasks, setTasks] = useState<Task[]>(defaultTasks);
+  const [activeColumn, setActiveColumn] = useState<Column | null>(null);
   const [activeTask, setActiveTask] = useState<Task | null>(null);
   const [newColumnTitle, setNewColumnTitle] = useState('');
   
@@ -79,8 +80,13 @@ export function KanbanBoard() {
   );
 
   const handleDragStart = (event: DragStartEvent) => {
-    if (event.active.data.current?.type === 'Task') {
-      setActiveTask(event.active.data.current.task);
+    const { active } = event;
+    if (active.data.current?.type === 'Column') {
+      setActiveColumn(active.data.current.column);
+      return;
+    }
+    if (active.data.current?.type === 'Task') {
+      setActiveTask(active.data.current.task);
     }
   };
 
@@ -89,51 +95,45 @@ export function KanbanBoard() {
     if (!over || active.id === over.id) return;
 
     const isActiveATask = active.data.current?.type === 'Task';
+    if (!isActiveATask) return;
+
     const isOverATask = over.data.current?.type === 'Task';
     const isOverAColumn = over.data.current?.type === 'Column';
 
-    if (isActiveATask) {
-      setTasks((currentTasks) => {
-        const activeIndex = currentTasks.findIndex((t) => t.id === active.id);
-        const activeTask = currentTasks[activeIndex];
+    setTasks((currentTasks) => {
+      const activeIndex = currentTasks.findIndex((t) => t.id === active.id);
+      const activeTask = currentTasks[activeIndex];
 
-        if (isOverATask) {
-          const overIndex = currentTasks.findIndex((t) => t.id === over.id);
-          if (activeTask.columnId !== currentTasks[overIndex].columnId) {
-            currentTasks[activeIndex].columnId = currentTasks[overIndex].columnId;
-            return arrayMove(currentTasks, activeIndex, overIndex);
-          }
+      if (isOverATask) {
+        let overIndex = currentTasks.findIndex((t) => t.id === over.id);
+        if (activeTask.columnId !== currentTasks[overIndex].columnId) {
+          currentTasks[activeIndex].columnId = currentTasks[overIndex].columnId;
           return arrayMove(currentTasks, activeIndex, overIndex);
         }
+        return arrayMove(currentTasks, activeIndex, overIndex);
+      }
 
-        if (isOverAColumn) {
-          if (activeTask.columnId !== over.id) {
-            currentTasks[activeIndex].columnId = over.id as Id;
-            return arrayMove(currentTasks, activeIndex, activeIndex);
-          }
+      if (isOverAColumn) {
+        if (activeTask.columnId !== over.id) {
+          currentTasks[activeIndex].columnId = over.id as Id;
+          return arrayMove(currentTasks, activeIndex, activeIndex);
         }
-        return currentTasks;
-      });
-    }
+      }
+      return currentTasks;
+    });
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
+    setActiveColumn(null);
     setActiveTask(null);
     const { active, over } = event;
     if (!over || active.id === over.id) return;
 
-    // Handle column dragging
-    if (
-      active.data.current?.type === 'Column' &&
-      over.data.current?.type === 'Column'
-    ) {
+    const isActiveAColumn = active.data.current?.type === 'Column';
+    if (isActiveAColumn) {
       setColumns((currentColumns) => {
-        const activeColumnIndex = currentColumns.findIndex(
-          (c) => c.id === active.id
-        );
-        const overColumnIndex = currentColumns.findIndex(
-          (c) => c.id === over.id
-        );
+        const activeColumnIndex = currentColumns.findIndex(c => c.id === active.id);
+        const overColumnIndex = currentColumns.findIndex(c => c.id === over.id);
         return arrayMove(currentColumns, activeColumnIndex, overColumnIndex);
       });
     }
@@ -152,8 +152,8 @@ export function KanbanBoard() {
     setTasks(tasks.filter((t) => t.id !== taskId));
   };
   
-  const updateTaskContent = (taskId: Id, content: string) => {
-    setTasks(tasks.map(task => task.id === taskId ? {...task, content} : task));
+  const updateTask = (taskId: Id, updatedProperties: Partial<Task>) => {
+    setTasks(tasks.map(task => task.id === taskId ? {...task, ...updatedProperties} : task));
   };
 
   const addColumn = () => {
@@ -372,8 +372,8 @@ export function KanbanBoard() {
             onDragEnd={handleDragEnd}
             collisionDetection={closestCenter}
         >
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                <SortableContext items={columnsId} strategy={rectSortingStrategy}>
+            <div className="grid auto-cols-fr grid-flow-col gap-4 overflow-x-auto">
+                <SortableContext items={columnsId} strategy={horizontalListSortingStrategy}>
                     {columns.map((col) => (
                     <KanbanColumn
                         key={col.id}
@@ -382,7 +382,7 @@ export function KanbanBoard() {
                         updateColumnTitle={updateColumnTitle}
                         addTask={() => addTask(col.id)}
                         deleteTask={deleteTask}
-                        updateTaskContent={updateTaskContent}
+                        updateTask={updateTask}
                         tasks={tasks.filter((task) => task.columnId === col.id)}
                     />
                     ))}
@@ -390,9 +390,22 @@ export function KanbanBoard() {
             </div>
             {typeof document !== 'undefined' && createPortal(
                 <DragOverlay>
-                {activeTask && (
-                    <KanbanTaskCard task={activeTask} />
-                )}
+                    {activeColumn && (
+                        <KanbanColumn
+                            column={activeColumn}
+                            deleteColumn={deleteColumn}
+                            updateColumnTitle={updateColumnTitle}
+                            addTask={() => addTask(activeColumn.id)}
+                            deleteTask={deleteTask}
+                            updateTask={updateTask}
+                            tasks={tasks.filter(
+                                (task) => task.columnId === activeColumn.id
+                            )}
+                        />
+                    )}
+                    {activeTask && (
+                        <KanbanTaskCard task={activeTask} />
+                    )}
                 </DragOverlay>,
                 document.body
             )}
