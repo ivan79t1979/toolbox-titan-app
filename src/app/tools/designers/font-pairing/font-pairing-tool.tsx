@@ -5,11 +5,11 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { fontPairing } from '@/ai/flows/font-pairing';
 import {
-  FontPairingInputSchema,
   type FontPairingInput,
   type FontPairingOutput,
 } from '@/ai/flows/font-pairing-types';
 import { googleFonts } from '@/lib/google-fonts';
+import { FontPairingInputSchema } from '@/ai/flows/font-pairing-types';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -70,7 +70,11 @@ function FontCombobox({
     setOpen(false);
   };
   
-  const filteredFonts = googleFonts.filter(f => f.toLowerCase().includes(searchValue.toLowerCase()));
+  const filteredFonts = searchValue
+    ? googleFonts.filter(f => f.toLowerCase().includes(searchValue.toLowerCase()))
+    : googleFonts;
+
+  const showCustomOption = searchValue && !filteredFonts.some(f => f.toLowerCase() === searchValue.toLowerCase());
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -85,7 +89,7 @@ function FontCombobox({
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-full p-0">
+      <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
         <Command>
           <CommandInput
             placeholder="Search or type a Google Font..."
@@ -93,12 +97,12 @@ function FontCombobox({
             onValueChange={setSearchValue}
           />
           <CommandList>
-             {filteredFonts.length === 0 && searchValue.length > 0 && (
+            <CommandEmpty>No font found.</CommandEmpty>
+             {showCustomOption && (
                 <CommandItem onSelect={() => handleSelect(searchValue)}>
                     Use Font: "{searchValue}"
                 </CommandItem>
             )}
-            <CommandEmpty>No font found.</CommandEmpty>
             <CommandGroup>
               {filteredFonts.map((font) => (
                 <CommandItem
@@ -152,8 +156,11 @@ export function FontPairingTool() {
       manualBody,
     ].filter(Boolean);
     
-    // Also include all the default fonts for the combobox previews
-    const uniqueFonts = [...new Set([...allFonts, ...googleFonts])];
+    // De-duplicate fonts, also considering case-insensitivity
+    const uniqueFonts = [...new Set(allFonts.map(f => f.toLowerCase()))]
+      .map(lowerCaseFont => allFonts.find(f => f.toLowerCase() === lowerCaseFont))
+      .filter((f): f is string => !!f);
+
 
     if (uniqueFonts.length > 0) {
       const fontQuery = uniqueFonts.map(f => f.replace(/ /g, '+')).join('|');
@@ -167,7 +174,10 @@ export function FontPairingTool() {
         document.head.appendChild(link);
       }
       
-      link.href = `https://fonts.googleapis.com/css?family=${fontQuery}:400,700&display=swap`;
+      const newHref = `https://fonts.googleapis.com/css?family=${fontQuery}:400,700&display=swap`;
+      if (link.href !== newHref) {
+        link.href = newHref;
+      }
     }
   }, [fontPairings, manualHeadline, manualBody]);
 
