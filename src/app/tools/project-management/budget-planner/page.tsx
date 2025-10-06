@@ -1,14 +1,14 @@
 import { PageHeader } from '@/components/page-header';
-import { ToolPlaceholder } from '@/components/tool-placeholder';
+import { BudgetPlanner } from './budget-planner';
 
 export default function BudgetPlannerPage() {
   return (
     <>
       <PageHeader
         title="Budget Planner"
-        description="Track income, expenses, and budgets."
+        description="Track income, expenses, and visualize your financial health."
       />
-      <ToolPlaceholder />
+      <BudgetPlanner />
     </>
   );
 }
