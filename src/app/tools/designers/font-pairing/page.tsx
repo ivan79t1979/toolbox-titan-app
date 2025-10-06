@@ -1,14 +1,14 @@
 import { PageHeader } from '@/components/page-header';
-import { ToolPlaceholder } from '@/components/tool-placeholder';
+import { FontPairingTool } from './font-pairing-tool';
 
 export default function FontPairingPage() {
   return (
     <>
       <PageHeader
-        title="Font Pairing"
-        description="Find the perfect font pairing."
+        title="AI Font Pairing"
+        description="Discover beautiful font pairings from Google Fonts, suggested by AI."
       />
-      <ToolPlaceholder />
+      <FontPairingTool />
     </>
   );
 }
