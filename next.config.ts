@@ -30,6 +30,17 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  devIndicators: {
+    buildActivity: false,
+  },
+  // In a future version of Next.js, this will be required to be configured.
+  // We are enabling it now to avoid issues in the future.
+  experimental: {
+    allowedDevOrigins: [
+        'https://*.cloudworkstations.dev',
+        'https://*.firebase.studio',
+    ],
+  },
 };
 
 export default nextConfig;
