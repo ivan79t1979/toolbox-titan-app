@@ -1,5 +1,5 @@
 import { PageHeader } from '@/components/page-header';
-import { ToolPlaceholder } from '@/components/tool-placeholder';
+import { MilestoneTracker } from './milestone-tracker';
 
 export default function MilestoneTrackerPage() {
   return (
@@ -8,7 +8,7 @@ export default function MilestoneTrackerPage() {
         title="Milestone Tracker"
         description="Track project milestones and deadlines."
       />
-      <ToolPlaceholder />
+      <MilestoneTracker />
     </>
   );
 }
