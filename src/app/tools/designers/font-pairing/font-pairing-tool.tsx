@@ -62,6 +62,15 @@ function FontCombobox({
   onSelect: (font: string) => void;
 }) {
   const [open, setOpen] = useState(false);
+  const [searchValue, setSearchValue] = useState('');
+
+  const handleSelect = (fontValue: string) => {
+    onSelect(fontValue);
+    setSearchValue('');
+    setOpen(false);
+  };
+  
+  const filteredFonts = googleFonts.filter(f => f.toLowerCase().includes(searchValue.toLowerCase()));
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -80,24 +89,22 @@ function FontCombobox({
         <Command>
           <CommandInput
             placeholder="Search or type a Google Font..."
-            onValueChange={(search) => {
-              if (!googleFonts.find(f => f.toLowerCase() === search.toLowerCase())) {
-                 onSelect(search.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' '));
-              }
-            }}
+            value={searchValue}
+            onValueChange={setSearchValue}
           />
           <CommandList>
+             {filteredFonts.length === 0 && searchValue.length > 0 && (
+                <CommandItem onSelect={() => handleSelect(searchValue)}>
+                    Use Font: "{searchValue}"
+                </CommandItem>
+            )}
             <CommandEmpty>No font found.</CommandEmpty>
             <CommandGroup>
-              {googleFonts.map((font) => (
+              {filteredFonts.map((font) => (
                 <CommandItem
                   key={font}
                   value={font}
-                  onSelect={(currentValue) => {
-                    const fontValue = googleFonts.find(f => f.toLowerCase() === currentValue.toLowerCase()) || value;
-                    onSelect(fontValue);
-                    setOpen(false);
-                  }}
+                  onSelect={() => handleSelect(font)}
                 >
                   <Check
                     className={cn(
