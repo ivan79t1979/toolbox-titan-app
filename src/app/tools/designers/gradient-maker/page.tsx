@@ -1,11 +1,11 @@
 import { PageHeader } from '@/components/page-header';
-import { ToolPlaceholder } from '@/components/tool-placeholder';
+import { GradientMakerForm } from './gradient-maker-form';
 
 export default function GradientMakerPage() {
   return (
     <>
-      <PageHeader title="Gradient Maker" description="Create CSS gradients." />
-      <ToolPlaceholder />
+      <PageHeader title="Gradient Maker" description="Create beautiful CSS gradients with ease. Customize colors, types, and angles, then copy the code." />
+      <GradientMakerForm />
     </>
   );
 }
