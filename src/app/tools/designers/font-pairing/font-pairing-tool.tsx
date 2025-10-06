@@ -157,9 +157,8 @@ export function FontPairingTool() {
     ].filter(Boolean);
     
     // De-duplicate fonts, also considering case-insensitivity
-    const uniqueFonts = [...new Set(allFonts.map(f => f.toLowerCase()))]
-      .map(lowerCaseFont => allFonts.find(f => f.toLowerCase() === lowerCaseFont))
-      .filter((f): f is string => !!f);
+    const lowercasedFontMap = new Map(allFonts.map(f => [f.toLowerCase(), f]));
+    const uniqueFonts = Array.from(lowercasedFontMap.values());
 
 
     if (uniqueFonts.length > 0) {
@@ -174,7 +173,7 @@ export function FontPairingTool() {
         document.head.appendChild(link);
       }
       
-      const newHref = `https://fonts.googleapis.com/css?family=${fontQuery}:400,700&display=swap`;
+      const newHref = `https://fonts.googleapis.com/css2?family=${fontQuery}:wght@400;700&display=swap`;
       if (link.href !== newHref) {
         link.href = newHref;
       }
