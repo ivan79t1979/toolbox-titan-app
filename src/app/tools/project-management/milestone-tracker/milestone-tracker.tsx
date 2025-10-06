@@ -2,11 +2,23 @@
 
 import { useState, useMemo, useRef } from 'react';
 import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+import {
   Card,
   CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -52,6 +64,8 @@ import {
   CheckCircle2,
   XCircle,
   Loader,
+  GripVertical,
+  Trophy,
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
@@ -146,6 +160,67 @@ function MilestoneForm({ onSave, milestone }: { onSave: (data: Omit<Milestone, '
   );
 }
 
+function SortableMilestone({
+    milestone,
+    handleStatusChange,
+    openEditDialog,
+    handleDelete
+}: {
+    milestone: Milestone;
+    handleStatusChange: (id: string, status: MilestoneStatus) => void;
+    openEditDialog: (milestone: Milestone) => void;
+    handleDelete: (id: string) => void;
+}) {
+    const {
+        attributes,
+        listeners,
+        setNodeRef,
+        transform,
+        transition,
+        isDragging,
+    } = useSortable({ id: milestone.id });
+
+    const style = {
+        transform: CSS.Transform.toString(transform),
+        transition,
+        opacity: isDragging ? 0.5 : 1,
+    };
+    
+    const config = statusConfig[milestone.status];
+    const Icon = config.icon;
+
+    return (
+        <Card ref={setNodeRef} style={style} className="relative group/milestone">
+            <CardContent className="p-4 flex items-center gap-4">
+                 <Button variant="ghost" size="icon" {...attributes} {...listeners} className="cursor-grab no-print absolute left-0 top-1/2 -translate-y-1/2 -translate-x-full opacity-0 group-hover/milestone:opacity-100">
+                    <GripVertical className="h-5 w-5" />
+                </Button>
+                <div className={cn("flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center text-white", config.color)}>
+                    <Icon className={cn("w-6 h-6", milestone.status === 'in-progress' && 'animate-spin')}/>
+                </div>
+                <div className="flex-grow">
+                    <h3 className="font-semibold">{milestone.title}</h3>
+                    <p className="text-sm text-muted-foreground">Due: {format(parseISO(milestone.dueDate), 'PPP')}</p>
+                </div>
+                <div className="flex items-center gap-2 no-print">
+                    <Select value={milestone.status} onValueChange={(v: MilestoneStatus) => handleStatusChange(milestone.id, v)}>
+                        <SelectTrigger className="w-[140px]">
+                            <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {Object.entries(statusConfig).map(([key, config]) => (
+                                <SelectItem key={key} value={key}>{config.label}</SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                    <Button variant="ghost" size="icon" onClick={() => openEditDialog(milestone)}><Edit className="h-4 w-4" /></Button>
+                    <Button variant="ghost" size="icon" onClick={() => handleDelete(milestone.id)}><Trash2 className="h-4 w-4" /></Button>
+                </div>
+            </CardContent>
+        </Card>
+    );
+}
+
 export function MilestoneTracker() {
   const [milestones, setMilestones] = useState<Milestone[]>(defaultMilestones);
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -155,8 +230,16 @@ export function MilestoneTracker() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
+  const sensors = useSensors(useSensor(PointerSensor, {
+    activationConstraint: {
+      distance: 8,
+    },
+  }));
+
   const sortedMilestones = useMemo(() => {
-    return [...milestones].sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime());
+    // Keep user-defined order unless sorting by date is preferred. 
+    // For drag-and-drop, we use the `milestones` state directly.
+    return milestones;
   }, [milestones]);
   
   const handleSaveMilestone = (data: Omit<Milestone, 'id'> & { id?: string }) => {
@@ -193,6 +276,17 @@ export function MilestoneTracker() {
   
   const handleStatusChange = (id: string, status: MilestoneStatus) => {
     setMilestones(milestones.map(m => m.id === id ? {...m, status} : m));
+  };
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (over && active.id !== over.id) {
+        setMilestones((items) => {
+            const oldIndex = items.findIndex((item) => item.id === active.id);
+            const newIndex = items.findIndex((item) => item.id === over.id);
+            return arrayMove(items, oldIndex, newIndex);
+        });
+    }
   };
 
   const exportFile = (filename: string, content: string, mimeType: string) => {
@@ -317,39 +411,21 @@ export function MilestoneTracker() {
 
       <div ref={printableRef} className="printable-area space-y-4">
         {sortedMilestones.length > 0 ? (
-          <div className="space-y-4">
-            {sortedMilestones.map(milestone => {
-                const config = statusConfig[milestone.status];
-                const Icon = config.icon;
-                return (
-                    <Card key={milestone.id}>
-                        <CardContent className="p-4 flex items-center gap-4">
-                            <div className={cn("flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center text-white", config.color)}>
-                                <Icon className={cn("w-6 h-6", milestone.status === 'in-progress' && 'animate-spin')}/>
-                            </div>
-                            <div className="flex-grow">
-                                <h3 className="font-semibold">{milestone.title}</h3>
-                                <p className="text-sm text-muted-foreground">Due: {format(parseISO(milestone.dueDate), 'PPP')}</p>
-                            </div>
-                            <div className="flex items-center gap-2 no-print">
-                                <Select value={milestone.status} onValueChange={(v: MilestoneStatus) => handleStatusChange(milestone.id, v)}>
-                                    <SelectTrigger className="w-[140px]">
-                                        <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {Object.entries(statusConfig).map(([key, config]) => (
-                                            <SelectItem key={key} value={key}>{config.label}</SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                                <Button variant="ghost" size="icon" onClick={() => openEditDialog(milestone)}><Edit className="h-4 w-4" /></Button>
-                                <Button variant="ghost" size="icon" onClick={() => handleDelete(milestone.id)}><Trash2 className="h-4 w-4" /></Button>
-                            </div>
-                        </CardContent>
-                    </Card>
-                )
-            })}
-          </div>
+            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                <SortableContext items={sortedMilestones.map(m => m.id)} strategy={verticalListSortingStrategy}>
+                    <div className="space-y-4">
+                        {sortedMilestones.map(milestone => (
+                            <SortableMilestone
+                                key={milestone.id}
+                                milestone={milestone}
+                                handleStatusChange={handleStatusChange}
+                                openEditDialog={openEditDialog}
+                                handleDelete={handleDelete}
+                            />
+                        ))}
+                    </div>
+                </SortableContext>
+            </DndContext>
         ) : (
           <div className="flex flex-col items-center justify-center h-64 border-2 border-dashed rounded-lg">
             <Trophy className="w-12 h-12 text-muted-foreground" />
