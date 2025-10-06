@@ -23,6 +23,12 @@ export const ColorPaletteExtractorOutputSchema = z.object({
         hex: z
           .string()
           .describe('The hex code of the extracted color (e.g., "#RRGGBB").'),
+        rgb: z
+          .string()
+          .describe('The RGB value of the color (e.g., "rgb(255, 99, 71)").'),
+        hsl: z
+          .string()
+          .describe('The HSL value of the color (e.g., "hsl(9, 100%, 64%)").'),
         name: z.string().describe('A common, descriptive name for the color.'),
       })
     )

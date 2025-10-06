@@ -30,6 +30,22 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
+function ColorValueRow({ label, value, onCopy }: { label: string, value: string, onCopy: (value: string) => void }) {
+    return (
+        <div className="flex items-center justify-between">
+            <p><span className="font-semibold">{label}:</span> {value.toUpperCase()}</p>
+            <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => onCopy(value)}
+                className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity"
+            >
+                <Copy className="h-4 w-4" />
+            </Button>
+        </div>
+    )
+}
+
 export function ColorPaletteExtractorForm() {
   const [sourceImage, setSourceImage] = useState<string | null>(null);
   const [palette, setPalette] = useState<ColorPaletteExtractorOutput['colors'] | null>(null);
@@ -80,11 +96,11 @@ export function ColorPaletteExtractorForm() {
     }
   }
 
-  const handleCopy = (hex: string) => {
-    navigator.clipboard.writeText(hex);
+  const handleCopy = (text: string) => {
+    navigator.clipboard.writeText(text);
     toast({
       title: 'Copied to clipboard!',
-      description: `${hex} has been copied.`,
+      description: `${text} has been copied.`,
     });
   };
 
@@ -172,21 +188,17 @@ export function ColorPaletteExtractorForm() {
                     <Loader2 className="h-8 w-8 animate-spin text-primary" />
                     </div>
                 ) : palette ? (
-                    <div className="grid grid-cols-1 gap-2 h-full">
+                    <div className="flex flex-col gap-2 h-full">
                         {palette.map((color, index) => (
-                            <div key={index} className="group relative flex items-center justify-between gap-4 rounded-md p-3" style={{ backgroundColor: color.hex }}>
+                            <div key={index} className="group relative flex-grow flex items-center justify-between gap-4 rounded-md p-3 text-white" style={{ backgroundColor: color.hex }}>
                                 <div className={cn("font-mono text-sm mix-blend-difference")}>
-                                    <p className="font-semibold">{color.name}</p>
-                                    <p>{color.hex.toUpperCase()}</p>
+                                    <p className="font-bold text-lg">{color.name}</p>
+                                    <div className="mt-2 space-y-1">
+                                      <ColorValueRow label="HEX" value={color.hex} onCopy={handleCopy} />
+                                      <ColorValueRow label="RGB" value={color.rgb} onCopy={handleCopy} />
+                                      <ColorValueRow label="HSL" value={color.hsl} onCopy={handleCopy} />
+                                    </div>
                                 </div>
-                                <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() => handleCopy(color.hex)}
-                                    className="opacity-0 group-hover:opacity-100 transition-opacity mix-blend-difference"
-                                >
-                                    <Copy className="h-4 w-4" />
-                                </Button>
                             </div>
                         ))}
                     </div>
