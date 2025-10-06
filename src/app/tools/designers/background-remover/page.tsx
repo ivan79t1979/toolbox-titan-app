@@ -1,5 +1,5 @@
 import { PageHeader } from '@/components/page-header';
-import { ToolPlaceholder } from '@/components/tool-placeholder';
+import { BackgroundRemoverForm } from './background-remover-form';
 
 export default function BackgroundRemoverPage() {
   return (
@@ -8,7 +8,7 @@ export default function BackgroundRemoverPage() {
         title="Background Remover"
         description="Removes the background from an image."
       />
-      <ToolPlaceholder />
+      <BackgroundRemoverForm />
     </>
   );
 }
