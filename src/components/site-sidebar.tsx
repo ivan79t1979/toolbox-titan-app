@@ -33,12 +33,12 @@ export function SiteSidebar() {
       <SidebarContent>
         <SidebarMenu>
           <SidebarMenuItem>
-            <Link href="/" legacyBehavior passHref>
-              <SidebarMenuButton tooltip="Dashboard" isActive={pathname === '/'}>
+            <SidebarMenuButton asChild tooltip="Dashboard" isActive={pathname === '/'}>
+              <Link href="/">
                 <Home />
                 <span>Dashboard</span>
-              </SidebarMenuButton>
-            </Link>
+              </Link>
+            </SidebarMenuButton>
           </SidebarMenuItem>
           {toolCategories.map((category) => (
             <Collapsible key={category.name} asChild>
@@ -54,11 +54,9 @@ export function SiteSidebar() {
                   <SidebarMenuSub>
                     {category.tools.map((tool) => (
                       <li key={tool.href}>
-                        <Link href={tool.href} legacyBehavior passHref>
-                          <SidebarMenuSubButton isActive={pathname === tool.href}>
-                            {tool.title}
-                          </SidebarMenuSubButton>
-                        </Link>
+                        <SidebarMenuSubButton asChild isActive={pathname === tool.href}>
+                          <Link href={tool.href}>{tool.title}</Link>
+                        </SidebarMenuSubButton>
                       </li>
                     ))}
                   </SidebarMenuSub>
