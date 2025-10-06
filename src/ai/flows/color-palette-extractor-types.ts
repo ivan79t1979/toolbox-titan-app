@@ -6,6 +6,11 @@ export const ColorPaletteExtractorInputSchema = z.object({
     .describe(
       "A photo of the image to extract colors from, as a data URI that must include a MIME type and use Base64 encoding. Expected format: 'data:<mimetype>;base64,<encoded_data>'."
     ),
+  numberOfColors: z
+    .number()
+    .min(3)
+    .max(10)
+    .describe('The number of colors to extract from the image, between 3 and 10.'),
 });
 export type ColorPaletteExtractorInput = z.infer<
   typeof ColorPaletteExtractorInputSchema
@@ -17,13 +22,11 @@ export const ColorPaletteExtractorOutputSchema = z.object({
       z.object({
         hex: z
           .string()
-          .describe(
-            'The hex code of the extracted color (e.g., "#RRGGBB").'
-          ),
+          .describe('The hex code of the extracted color (e.g., "#RRGGBB").'),
         name: z.string().describe('A common, descriptive name for the color.'),
       })
     )
-    .describe('An array of 5-7 dominant colors extracted from the image.'),
+    .describe('An array of dominant colors extracted from the image.'),
 });
 export type ColorPaletteExtractorOutput = z.infer<
   typeof ColorPaletteExtractorOutputSchema

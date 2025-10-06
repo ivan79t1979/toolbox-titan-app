@@ -23,7 +23,7 @@ const prompt = ai.definePrompt({
   name: 'colorPaletteExtractorPrompt',
   input: {schema: ColorPaletteExtractorInputSchema},
   output: {schema: ColorPaletteExtractorOutputSchema},
-  prompt: `You are a color expert. Analyze the provided image and extract a palette of the 5-7 most dominant and representative colors.
+  prompt: `You are a color expert. Analyze the provided image and extract a palette of the {{numberOfColors}} most dominant and representative colors.
 
 For each color, provide its HEX code and a simple, common name for that color (e.g., "Deep Sky Blue", "Forest Green", "Warm Sand").
 

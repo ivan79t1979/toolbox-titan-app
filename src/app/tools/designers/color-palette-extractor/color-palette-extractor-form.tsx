@@ -21,9 +21,11 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Loader2, Pipette, Copy } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { Slider } from '@/components/ui/slider';
 
 const formSchema = z.object({
   image: z.any().refine((file) => file instanceof File, 'Please upload an image.'),
+  numberOfColors: z.number().min(3).max(10),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -36,6 +38,9 @@ export function ColorPaletteExtractorForm() {
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
+    defaultValues: {
+      numberOfColors: 5,
+    },
   });
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -58,7 +63,10 @@ export function ColorPaletteExtractorForm() {
     setPalette(null);
 
     try {
-      const result = await extractColorPalette({ photoDataUri: sourceImage });
+      const result = await extractColorPalette({
+        photoDataUri: sourceImage,
+        numberOfColors: values.numberOfColors,
+      });
       setPalette(result.colors);
     } catch (error) {
       console.error(error);
@@ -80,33 +88,57 @@ export function ColorPaletteExtractorForm() {
     });
   };
 
+  const numberOfColors = form.watch('numberOfColors');
+
   return (
     <div className="mx-auto max-w-4xl space-y-8">
       <Card>
         <CardContent className="p-4">
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-wrap items-end gap-4">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <div className="flex flex-wrap items-end gap-4">
+                <FormField
+                  control={form.control}
+                  name="image"
+                  render={() => (
+                    <FormItem className="flex-grow">
+                      <FormLabel>Image</FormLabel>
+                      <FormControl>
+                        <Input type="file" accept="image/*" onChange={handleFileChange} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <Button type="submit" disabled={isLoading || !sourceImage}>
+                  {isLoading ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <Pipette className="mr-2 h-4 w-4" />
+                  )}
+                  Extract Palette
+                </Button>
+              </div>
               <FormField
                 control={form.control}
-                name="image"
-                render={() => (
-                  <FormItem className="flex-grow">
-                    <FormLabel>Image</FormLabel>
+                name="numberOfColors"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      Number of Colors: <span className="font-bold">{numberOfColors}</span>
+                    </FormLabel>
                     <FormControl>
-                      <Input type="file" accept="image/*" onChange={handleFileChange} />
+                      <Slider
+                        value={[field.value]}
+                        onValueChange={(value) => field.onChange(value[0])}
+                        min={3}
+                        max={10}
+                        step={1}
+                      />
                     </FormControl>
-                    <FormMessage />
                   </FormItem>
                 )}
               />
-              <Button type="submit" disabled={isLoading || !sourceImage}>
-                {isLoading ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                ) : (
-                  <Pipette className="mr-2 h-4 w-4" />
-                )}
-                Extract Palette
-              </Button>
             </form>
           </Form>
         </CardContent>
