@@ -1,5 +1,5 @@
 import { PageHeader } from '@/components/page-header';
-import { ToolPlaceholder } from '@/components/tool-placeholder';
+import { TextDiffForm } from './text-diff-form';
 
 export default function TextDiffPage() {
   return (
@@ -8,7 +8,7 @@ export default function TextDiffPage() {
         title="Text Diff"
         description="Compare two texts and highlight differences."
       />
-      <ToolPlaceholder />
+      <TextDiffForm />
     </>
   );
 }
