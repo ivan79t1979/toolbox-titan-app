@@ -16,16 +16,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Loader2, Wand2, Printer, Image as ImageIcon, TextSelect } from 'lucide-react';
+import { Loader2, Wand2, Printer, Image as ImageIcon, TextSelect, ChevronsUpDown, Check } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import html2canvas from 'html2canvas';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
+import { cn } from '@/lib/utils';
 
 function FontPreview({
   headlineFont,
@@ -58,14 +54,67 @@ function FontPreview({
   );
 }
 
-const FontSelectItem = ({ font }: { font: string }) => {
-  return (
-    <SelectItem key={font} value={font}>
-      <span style={{ fontFamily: `'${font}', sans-serif` }}>{font}</span>
-    </SelectItem>
-  );
-};
+function FontCombobox({
+  value,
+  onSelect,
+}: {
+  value: string;
+  onSelect: (font: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
 
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          role="combobox"
+          aria-expanded={open}
+          className="w-full justify-between"
+        >
+          <span style={{ fontFamily: `'${value}', sans-serif` }}>{value}</span>
+          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-full p-0">
+        <Command>
+          <CommandInput
+            placeholder="Search or type a Google Font..."
+            onValueChange={(search) => {
+              if (!googleFonts.find(f => f.toLowerCase() === search.toLowerCase())) {
+                 onSelect(search.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' '));
+              }
+            }}
+          />
+          <CommandList>
+            <CommandEmpty>No font found.</CommandEmpty>
+            <CommandGroup>
+              {googleFonts.map((font) => (
+                <CommandItem
+                  key={font}
+                  value={font}
+                  onSelect={(currentValue) => {
+                    const fontValue = googleFonts.find(f => f.toLowerCase() === currentValue.toLowerCase()) || value;
+                    onSelect(fontValue);
+                    setOpen(false);
+                  }}
+                >
+                  <Check
+                    className={cn(
+                      'mr-2 h-4 w-4',
+                      value.toLowerCase() === font.toLowerCase() ? 'opacity-100' : 'opacity-0'
+                    )}
+                  />
+                  <span style={{ fontFamily: `'${font}', sans-serif` }}>{font}</span>
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
+  );
+}
 
 export function FontPairingTool() {
   const [fontPairings, setFontPairings] = useState<FontPairingOutput['pairings']>([]);
@@ -94,13 +143,13 @@ export function FontPairingTool() {
       ...fontPairings.flatMap(p => [p.headlineFont, p.bodyFont]),
       manualHeadline,
       manualBody,
-      ...googleFonts, // Preload all available fonts for the dropdown previews
     ].filter(Boolean);
     
-    const uniqueFonts = [...new Set(allFonts)];
+    // Also include all the default fonts for the combobox previews
+    const uniqueFonts = [...new Set([...allFonts, ...googleFonts])];
 
     if (uniqueFonts.length > 0) {
-      const fontQuery = uniqueFonts.join('|').replace(/ /g, '+');
+      const fontQuery = uniqueFonts.map(f => f.replace(/ /g, '+')).join('|');
       const linkId = 'dynamic-google-fonts';
       let link = document.getElementById(linkId) as HTMLLinkElement;
 
@@ -203,21 +252,11 @@ export function FontPairingTool() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                   <div className="space-y-2">
                       <Label>Headline Font</Label>
-                      <Select value={manualHeadline} onValueChange={setManualHeadline}>
-                          <SelectTrigger><SelectValue /></SelectTrigger>
-                          <SelectContent className="max-h-60">
-                              {googleFonts.map(font => <FontSelectItem key={font} font={font} />)}
-                          </SelectContent>
-                      </Select>
+                      <FontCombobox value={manualHeadline} onSelect={setManualHeadline} />
                   </div>
                    <div className="space-y-2">
                       <Label>Body Font</Label>
-                      <Select value={manualBody} onValueChange={setManualBody}>
-                          <SelectTrigger><SelectValue /></SelectTrigger>
-                           <SelectContent className="max-h-60">
-                              {googleFonts.map(font => <FontSelectItem key={font} font={font} />)}
-                          </SelectContent>
-                      </Select>
+                      <FontCombobox value={manualBody} onSelect={setManualBody} />
                   </div>
               </div>
               <div className="flex justify-end gap-2">
