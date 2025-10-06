@@ -548,7 +548,11 @@ export function GanttChart() {
                 strokeWidth={2}
                 label={{ value: 'Today', position: 'top', fill: 'hsl(var(--primary))' }}
               />
-              <Bar dataKey="range" stackId="a" fill="transparent" isAnimationActive={false} />
+              
+              {/* This is the transparent bar that defines the start offset */}
+              <Bar dataKey="range[0]" stackId="a" fill="transparent" isAnimationActive={false} />
+
+              {/* This is the main progress bar */}
               <Bar
                 dataKey={(data) => {
                   const duration = data.range[1] - data.range[0];
@@ -558,10 +562,12 @@ export function GanttChart() {
                 radius={[4, 4, 4, 4]}
                 isAnimationActive={false}
               >
-                 {chartData.map((entry) => (
-                    <Cell key={`cell-progress-${entry.id}`} fill={entry.color} />
+                {chartData.map((entry, index) => (
+                  <Cell key={`cell-progress-${index}`} fill={entry.color} />
                 ))}
               </Bar>
+
+              {/* This is the remaining portion of the bar */}
               <Bar
                 dataKey={(data) => {
                   const duration = data.range[1] - data.range[0];
@@ -571,8 +577,8 @@ export function GanttChart() {
                 radius={[4, 4, 4, 4]}
                 isAnimationActive={false}
               >
-                 {chartData.map((entry) => (
-                    <Cell key={`cell-remaining-${entry.id}`} fill={`${entry.color}60`} />
+                 {chartData.map((entry, index) => (
+                  <Cell key={`cell-remaining-${index}`} fill={`${entry.color}60`} />
                 ))}
               </Bar>
             </BarChart>
