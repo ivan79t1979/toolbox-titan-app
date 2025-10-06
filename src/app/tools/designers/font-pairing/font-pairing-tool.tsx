@@ -149,7 +149,7 @@ export function FontPairingTool() {
   });
 
   useEffect(() => {
-    // Combine all fonts that need to be loaded from pairings, manual selection, and the default list for the combobox
+    // Combine all fonts that need to be loaded
     const allFonts = new Set([
       ...fontPairings.flatMap(p => [p.headlineFont, p.bodyFont]),
       manualHeadline,
