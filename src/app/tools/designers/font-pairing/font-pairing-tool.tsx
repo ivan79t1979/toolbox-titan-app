@@ -23,17 +23,21 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Loader2, Wand2, Printer, Image as ImageIcon } from 'lucide-react';
+import { Loader2, Wand2, Printer, Image as ImageIcon, TextSelect } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import html2canvas from 'html2canvas';
 
 function FontPreview({
   headlineFont,
   bodyFont,
+  previewHeadline,
+  previewBody,
   printableRef,
 }: {
   headlineFont: string;
   bodyFont: string;
+  previewHeadline: string;
+  previewBody: string;
   printableRef?: React.Ref<HTMLDivElement>;
 }) {
   return (
@@ -42,27 +46,35 @@ function FontPreview({
         style={{ fontFamily: `'${headlineFont}', sans-serif` }}
         className="text-5xl font-bold"
       >
-        The quick brown fox jumps over the lazy dog.
+        {previewHeadline}
       </div>
       <div
         style={{ fontFamily: `'${bodyFont}', sans-serif` }}
         className="mt-6 text-lg"
       >
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod
-        tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim
-        veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea
-        commodo consequat. Duis aute irure dolor in reprehenderit in voluptate
-        velit esse cillum dolore eu fugiat nulla pariatur.
+        {previewBody}
       </div>
     </div>
   );
 }
+
+const FontSelectItem = ({ font }: { font: string }) => {
+  return (
+    <SelectItem key={font} value={font}>
+      <span style={{ fontFamily: `'${font}', sans-serif` }}>{font}</span>
+    </SelectItem>
+  );
+};
+
 
 export function FontPairingTool() {
   const [fontPairings, setFontPairings] = useState<FontPairingOutput['pairings']>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [manualHeadline, setManualHeadline] = useState('Roboto Slab');
   const [manualBody, setManualBody] = useState('Roboto');
+  const [previewHeadline, setPreviewHeadline] = useState('The quick brown fox jumps over the lazy dog.');
+  const [previewBody, setPreviewBody] = useState('Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.');
+
 
   const { toast } = useToast();
 
@@ -77,26 +89,29 @@ export function FontPairingTool() {
   });
 
   useEffect(() => {
+    // Combine all fonts that need to be loaded
     const allFonts = [
       ...fontPairings.flatMap(p => [p.headlineFont, p.bodyFont]),
       manualHeadline,
       manualBody,
+      ...googleFonts, // Preload all available fonts for the dropdown previews
     ].filter(Boolean);
     
     const uniqueFonts = [...new Set(allFonts)];
 
     if (uniqueFonts.length > 0) {
       const fontQuery = uniqueFonts.join('|').replace(/ /g, '+');
-      const existingLink = document.getElementById('dynamic-google-fonts');
+      const linkId = 'dynamic-google-fonts';
+      let link = document.getElementById(linkId) as HTMLLinkElement;
 
-      const link = (existingLink || document.createElement('link')) as HTMLLinkElement;
-      link.id = 'dynamic-google-fonts';
-      link.href = `https://fonts.googleapis.com/css?family=${fontQuery}&display=swap`;
-      link.rel = 'stylesheet';
-
-      if (!existingLink) {
+      if (!link) {
+        link = document.createElement('link');
+        link.id = linkId;
+        link.rel = 'stylesheet';
         document.head.appendChild(link);
       }
+      
+      link.href = `https://fonts.googleapis.com/css?family=${fontQuery}:400,700&display=swap`;
     }
   }, [fontPairings, manualHeadline, manualBody]);
 
@@ -165,6 +180,22 @@ export function FontPairingTool() {
     <div className="space-y-8">
       <Card>
           <CardHeader>
+              <CardTitle className="flex items-center gap-2"><TextSelect /> Custom Preview Text</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+              <div>
+                  <Label htmlFor="previewHeadline">Headline Text</Label>
+                  <Input id="previewHeadline" value={previewHeadline} onChange={(e) => setPreviewHeadline(e.target.value)} />
+              </div>
+              <div>
+                  <Label htmlFor="previewBody">Body Text</Label>
+                  <Input id="previewBody" value={previewBody} onChange={(e) => setPreviewBody(e.target.value)} />
+              </div>
+          </CardContent>
+      </Card>
+
+      <Card>
+          <CardHeader>
               <CardTitle>Manual Pairing</CardTitle>
               <CardDescription>Create your own font combination.</CardDescription>
           </CardHeader>
@@ -175,7 +206,7 @@ export function FontPairingTool() {
                       <Select value={manualHeadline} onValueChange={setManualHeadline}>
                           <SelectTrigger><SelectValue /></SelectTrigger>
                           <SelectContent className="max-h-60">
-                              {googleFonts.map(font => <SelectItem key={font} value={font}>{font}</SelectItem>)}
+                              {googleFonts.map(font => <FontSelectItem key={font} font={font} />)}
                           </SelectContent>
                       </Select>
                   </div>
@@ -184,7 +215,7 @@ export function FontPairingTool() {
                       <Select value={manualBody} onValueChange={setManualBody}>
                           <SelectTrigger><SelectValue /></SelectTrigger>
                            <SelectContent className="max-h-60">
-                              {googleFonts.map(font => <SelectItem key={font} value={font}>{font}</SelectItem>)}
+                              {googleFonts.map(font => <FontSelectItem key={font} font={font} />)}
                           </SelectContent>
                       </Select>
                   </div>
@@ -198,7 +229,13 @@ export function FontPairingTool() {
                   </Button>
               </div>
           </CardContent>
-          <FontPreview headlineFont={manualHeadline} bodyFont={manualBody} printableRef={manualPrintableRef} />
+          <FontPreview 
+            headlineFont={manualHeadline} 
+            bodyFont={manualBody} 
+            previewHeadline={previewHeadline}
+            previewBody={previewBody}
+            printableRef={manualPrintableRef} 
+          />
       </Card>
     
       <Card>
@@ -262,6 +299,8 @@ export function FontPairingTool() {
             <FontPreview 
                 headlineFont={pairing.headlineFont} 
                 bodyFont={pairing.bodyFont} 
+                previewHeadline={previewHeadline}
+                previewBody={previewBody}
                 printableRef={el => (printableRefs.current[index] = el)} 
             />
           </Card>
