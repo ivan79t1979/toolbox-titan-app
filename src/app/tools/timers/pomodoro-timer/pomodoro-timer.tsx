@@ -37,6 +37,7 @@ import {
   Coffee,
   BrainCircuit,
   Target,
+  Volume2,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
@@ -67,7 +68,6 @@ export function PomodoroTimer() {
   // Alarm state
   const [isTimeUp, setIsTimeUp] = useState(false);
   const alarmRef = useRef<HTMLAudioElement | null>(null);
-  const { toast } = useToast();
 
   const totalTime =
     (mode === 'work'
@@ -90,6 +90,11 @@ export function PomodoroTimer() {
       alarmRef.current.currentTime = 0;
     }
   }, []);
+  
+  const previewSound = () => {
+    const audio = new Audio(alarmSound);
+    audio.play().catch(error => console.error("Preview play failed", error));
+  }
 
   const switchMode = useCallback(
     (nextMode: TimerMode) => {
@@ -311,16 +316,21 @@ export function PomodoroTimer() {
             </div>
             <div className="space-y-2">
                 <Label>Alarm Sound</Label>
-                <Select value={alarmSound} onValueChange={setAlarmSound}>
-                    <SelectTrigger>
-                        <SelectValue placeholder="Select a sound" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="/sounds/alarm-bell.mp3">Alarm Bell</SelectItem>
-                        <SelectItem value="/sounds/digital-alarm.mp3">Digital Alarm</SelectItem>
-                        <SelectItem value="/sounds/kitchen-timer.mp3">Kitchen Timer</SelectItem>
-                    </SelectContent>
-                </Select>
+                <div className="flex items-center gap-2">
+                    <Select value={alarmSound} onValueChange={setAlarmSound}>
+                        <SelectTrigger>
+                            <SelectValue placeholder="Select a sound" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="/sounds/alarm-bell.mp3">Alarm Bell</SelectItem>
+                            <SelectItem value="/sounds/digital-alarm.mp3">Digital Alarm</SelectItem>
+                            <SelectItem value="/sounds/kitchen-timer.mp3">Kitchen Timer</SelectItem>
+                        </SelectContent>
+                    </Select>
+                    <Button variant="outline" size="icon" onClick={previewSound} aria-label="Preview sound">
+                        <Volume2 className="h-4 w-4" />
+                    </Button>
+                </div>
             </div>
           </div>
           <div className="flex items-center space-x-2">
