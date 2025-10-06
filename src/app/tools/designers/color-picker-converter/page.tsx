@@ -1,14 +1,14 @@
 import { PageHeader } from '@/components/page-header';
-import { ToolPlaceholder } from '@/components/tool-placeholder';
+import { ColorPickerConverterForm } from './color-picker-converter-form';
 
 export default function ColorPickerConverterPage() {
   return (
     <>
       <PageHeader
         title="Color Picker & Converter"
-        description="Pick and convert colors."
+        description="Pick a color and convert it to different formats like HEX, RGB, and HSL."
       />
-      <ToolPlaceholder />
+      <ColorPickerConverterForm />
     </>
   );
 }
