@@ -399,8 +399,8 @@ export function GanttChart() {
                 radius={[4, 4, 4, 4]}
                 isAnimationActive={false}
               >
-                 {chartData.map((entry, index) => (
-                    <Cell key={`cell-progress-${index}`} fill={entry.color} />
+                 {chartData.map((entry) => (
+                    <Cell key={`cell-progress-${entry.id}`} fill={entry.color} />
                 ))}
               </Bar>
               <Bar
@@ -412,8 +412,8 @@ export function GanttChart() {
                 radius={[4, 4, 4, 4]}
                 isAnimationActive={false}
               >
-                 {chartData.map((entry, index) => (
-                    <Cell key={`cell-remaining-${index}`} fill={`${entry.color}60`} />
+                 {chartData.map((entry) => (
+                    <Cell key={`cell-remaining-${entry.id}`} fill={`${entry.color}60`} />
                 ))}
               </Bar>
             </BarChart>
