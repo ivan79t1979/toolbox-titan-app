@@ -1,4 +1,3 @@
-// src/ai/flows/background-remover.ts
 'use server';
 /**
  * @fileOverview AI-powered background remover tool using image-to-image generation.
@@ -42,9 +41,6 @@ const removeBackgroundFlow = ai.defineFlow(
         {media: {url: input.photoDataUri}},
         {text: 'remove the background of this image and make the background transparent. Return only the image with the subject and transparent background.'},
       ],
-      config: {
-        responseModalities: ['TEXT', 'IMAGE'], // MUST provide both TEXT and IMAGE, IMAGE only won't work
-      },
     });
 
     if (!media) {
