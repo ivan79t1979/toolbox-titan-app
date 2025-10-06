@@ -29,6 +29,14 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Progress } from '@/components/ui/progress';
 import {
+  Table,
+  TableHeader,
+  TableRow,
+  TableHead,
+  TableBody,
+  TableCell,
+} from '@/components/ui/table';
+import {
   Play,
   Pause,
   RotateCcw,
@@ -38,12 +46,21 @@ import {
   BrainCircuit,
   Target,
   Volume2,
+  Trash2,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
+import { Textarea } from '@/components/ui/textarea';
 
 type TimerMode = 'work' | 'shortBreak' | 'longBreak';
 type AlarmSoundType = 'beep' | 'bell' | 'digital';
+
+type FinishedTask = {
+  id: string;
+  name: string;
+  description: string;
+  duration: string;
+};
 
 // Web Audio API sound generation
 let audioContext: AudioContext | null = null;
@@ -135,10 +152,11 @@ export function PomodoroTimer() {
   const [timeLeft, setTimeLeft] = useState(workTime * 60);
   const [isActive, setIsActive] = useState(false);
   const [task, setTask] = useState('');
+  const [taskDescription, setTaskDescription] = useState('');
 
   // Statistics
   const [sessions, setSessions] = useState(0);
-  const [completedTasks, setCompletedTasks] = useState(0);
+  const [finishedTasks, setFinishedTasks] = useState<FinishedTask[]>([]);
   const [focusMinutes, setFocusMinutes] = useState(0);
   const [breakMinutes, setBreakMinutes] = useState(0);
 
@@ -201,7 +219,13 @@ export function PomodoroTimer() {
       if (mode === 'work') {
         setSessions((prev) => prev + 1);
         if(task.trim()){
-            setCompletedTasks(prev => prev + 1)
+            const newFinishedTask: FinishedTask = {
+                id: `task-${Date.now()}`,
+                name: task,
+                description: taskDescription,
+                duration: formatTime(totalTime),
+            };
+            setFinishedTasks(prev => [newFinishedTask, ...prev]);
         }
         if ((sessions + 1) % longBreakInterval === 0) {
           switchMode('longBreak');
@@ -215,7 +239,7 @@ export function PomodoroTimer() {
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [isActive, timeLeft, mode, sessions, longBreakInterval, switchMode, playAlarm, task]);
+  }, [isActive, timeLeft, mode, sessions, longBreakInterval, switchMode, playAlarm, task, taskDescription, totalTime]);
 
   useEffect(() => {
     // Reset timer when settings change
@@ -248,6 +272,14 @@ export function PomodoroTimer() {
     const secs = seconds % 60;
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
+
+  const updateFinishedTask = (id: string, field: 'name' | 'description', value: string) => {
+    setFinishedTasks(prev => prev.map(t => t.id === id ? {...t, [field]: value} : t));
+  }
+
+  const deleteFinishedTask = (id: string) => {
+    setFinishedTasks(prev => prev.filter(t => t.id !== id));
+  }
 
   return (
     <div className="mx-auto max-w-4xl space-y-8">
@@ -286,13 +318,23 @@ export function PomodoroTimer() {
           <div className="text-8xl font-bold font-mono my-8">
             {formatTime(timeLeft)}
           </div>
-          <Input 
-            placeholder="What are you working on?"
-            value={task}
-            onChange={(e) => setTask(e.target.value)}
-            className="max-w-md mx-auto mb-8 text-center"
-            disabled={isActive}
-          />
+          <div className="max-w-md mx-auto mb-4 space-y-2">
+            <Input 
+              placeholder="What are you working on?"
+              value={task}
+              onChange={(e) => setTask(e.target.value)}
+              className="text-center text-lg"
+              disabled={isActive}
+            />
+            <Textarea
+              placeholder="Add a description... (optional)"
+              value={taskDescription}
+              onChange={(e) => setTaskDescription(e.target.value)}
+              className="text-center"
+              disabled={isActive}
+              rows={2}
+            />
+          </div>
           <div className="flex justify-center gap-4">
             <Button onClick={handleStartPause} size="lg" className="w-40 text-xl">
               {isActive ? <Pause className="mr-2"/> : <Play className="mr-2"/>}
@@ -313,7 +355,7 @@ export function PomodoroTimer() {
           </Card>
           <Card>
               <CardHeader><CardTitle className="flex items-center justify-center gap-2 text-base"><BookMarked/>Tasks</CardTitle></CardHeader>
-              <CardContent><p className="text-2xl font-bold">{completedTasks}</p></CardContent>
+              <CardContent><p className="text-2xl font-bold">{finishedTasks.length}</p></CardContent>
           </Card>
           <Card>
               <CardHeader><CardTitle className="flex items-center justify-center gap-2 text-base"><BrainCircuit/>Focus Mins</CardTitle></CardHeader>
@@ -324,6 +366,61 @@ export function PomodoroTimer() {
               <CardContent><p className="text-2xl font-bold">{Math.floor(breakMinutes)}</p></CardContent>
           </Card>
       </div>
+
+       <Card>
+        <CardHeader>
+          <CardTitle>Completed Tasks</CardTitle>
+          <CardDescription>A log of your accomplished tasks.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Task Name</TableHead>
+                <TableHead>Description</TableHead>
+                <TableHead className="text-right">Duration</TableHead>
+                <TableHead className="w-12"></TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {finishedTasks.length > 0 ? (
+                finishedTasks.map((t) => (
+                  <TableRow key={t.id}>
+                    <TableCell>
+                        <Input
+                            value={t.name}
+                            onChange={(e) => updateFinishedTask(t.id, 'name', e.target.value)}
+                            className="border-none p-0 h-auto"
+                        />
+                    </TableCell>
+                    <TableCell>
+                        <Textarea
+                            value={t.description}
+                            onChange={(e) => updateFinishedTask(t.id, 'description', e.target.value)}
+                            className="border-none p-0 h-auto resize-none"
+                            rows={1}
+                        />
+                    </TableCell>
+                    <TableCell className="text-right font-mono">{t.duration}</TableCell>
+                    <TableCell>
+                        <Button variant="ghost" size="icon" onClick={() => deleteFinishedTask(t.id)}>
+                            <Trash2 className="h-4 w-4"/>
+                        </Button>
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={4} className="h-24 text-center">
+                    Completed tasks will appear here.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+
 
       <Card>
         <CardHeader>
