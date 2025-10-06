@@ -43,6 +43,83 @@ import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 
 type TimerMode = 'work' | 'shortBreak' | 'longBreak';
+type AlarmSoundType = 'beep' | 'bell' | 'digital';
+
+// Web Audio API sound generation
+let audioContext: AudioContext | null = null;
+let alarmOscillator: OscillatorNode | null = null;
+
+const playTone = (soundType: AlarmSoundType, duration: number, isLoop: boolean) => {
+  if (!audioContext) {
+    try {
+      audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+    } catch (e) {
+      console.error("Web Audio API is not supported in this browser");
+      return;
+    }
+  }
+
+  // Stop any existing sound
+  if (alarmOscillator) {
+    alarmOscillator.stop();
+  }
+
+  const play = (time: number) => {
+    let osc: OscillatorNode | null = null;
+    switch (soundType) {
+        case 'bell':
+            osc = audioContext!.createOscillator();
+            const gain = audioContext!.createGain();
+            osc.connect(gain);
+            gain.connect(audioContext!.destination);
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(988, time);
+            gain.gain.setValueAtTime(1, time);
+            gain.gain.exponentialRampToValueAtTime(0.0001, time + 1);
+            osc.start(time);
+            osc.stop(time + 1);
+            break;
+        case 'digital':
+            osc = audioContext!.createOscillator();
+            osc.connect(audioContext!.destination);
+            osc.type = 'square';
+            osc.frequency.setValueAtTime(1200, time);
+            osc.start(time);
+            osc.stop(time + 0.1);
+            break;
+        case 'beep':
+        default:
+            osc = audioContext!.createOscillator();
+            osc.connect(audioContext!.destination);
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(880, time);
+            osc.start(time);
+            osc.stop(time + 0.2);
+            break;
+    }
+  }
+  
+  if (isLoop) {
+      const loop = () => {
+          play(audioContext!.currentTime);
+          alarmOscillator = audioContext!.createOscillator(); // a dummy one to be stoppable
+          alarmOscillator.onended = loop;
+          alarmOscillator.start(audioContext!.currentTime + 1.5); // Loop every 1.5s
+          alarmOscillator.stop(audioContext!.currentTime + 1.5);
+      }
+      loop();
+  } else {
+      play(audioContext!.currentTime);
+  }
+};
+
+const stopTone = () => {
+  if (alarmOscillator) {
+    alarmOscillator.onended = null;
+    alarmOscillator.stop();
+    alarmOscillator = null;
+  }
+};
 
 export function PomodoroTimer() {
   // Settings
@@ -51,7 +128,7 @@ export function PomodoroTimer() {
   const [longBreakTime, setLongBreakTime] = useState(15);
   const [longBreakInterval, setLongBreakInterval] = useState(4);
   const [autoStart, setAutoStart] = useState(false);
-  const [alarmSound, setAlarmSound] = useState('/sounds/alarm-bell.mp3');
+  const [alarmSound, setAlarmSound] = useState<AlarmSoundType>('bell');
 
   // Timer State
   const [mode, setMode] = useState<TimerMode>('work');
@@ -67,7 +144,6 @@ export function PomodoroTimer() {
 
   // Alarm state
   const [isTimeUp, setIsTimeUp] = useState(false);
-  const alarmRef = useRef<HTMLAudioElement | null>(null);
 
   const totalTime =
     (mode === 'work'
@@ -78,24 +154,15 @@ export function PomodoroTimer() {
   const progress = ((totalTime - timeLeft) / totalTime) * 100;
 
   const playAlarm = useCallback(() => {
-    if (alarmRef.current) {
-      alarmRef.current.loop = true;
-      alarmRef.current.play().catch(error => console.error("Audio play failed", error));
-    }
-  }, []);
+    playTone(alarmSound, 1, true);
+  }, [alarmSound]);
 
   const stopAlarm = useCallback(() => {
-    if (alarmRef.current) {
-      alarmRef.current.pause();
-      alarmRef.current.currentTime = 0;
-    }
+    stopTone();
   }, []);
   
   const previewSound = () => {
-    if (alarmRef.current) {
-      alarmRef.current.loop = false;
-      alarmRef.current.play().catch(error => console.error("Preview play failed", error));
-    }
+    playTone(alarmSound, 0.5, false);
   }
 
   const switchMode = useCallback(
@@ -184,7 +251,6 @@ export function PomodoroTimer() {
 
   return (
     <div className="mx-auto max-w-4xl space-y-8">
-      <audio ref={alarmRef} src={alarmSound} preload="auto"></audio>
       <Card
         className={cn(
           'transition-colors',
@@ -313,14 +379,14 @@ export function PomodoroTimer() {
             <div className="space-y-2">
                 <Label>Alarm Sound</Label>
                 <div className="flex items-center gap-2">
-                    <Select value={alarmSound} onValueChange={setAlarmSound}>
+                    <Select value={alarmSound} onValueChange={(v: AlarmSoundType) => setAlarmSound(v)}>
                         <SelectTrigger>
                             <SelectValue placeholder="Select a sound" />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="/sounds/alarm-bell.mp3">Alarm Bell</SelectItem>
-                            <SelectItem value="/sounds/digital-alarm.mp3">Digital Alarm</SelectItem>
-                            <SelectItem value="/sounds/kitchen-timer.mp3">Kitchen Timer</SelectItem>
+                            <SelectItem value="bell">Bell</SelectItem>
+                            <SelectItem value="digital">Digital</SelectItem>
+                            <SelectItem value="beep">Beep</SelectItem>
                         </SelectContent>
                     </Select>
                     <Button variant="outline" size="icon" onClick={previewSound} aria-label="Preview sound">
