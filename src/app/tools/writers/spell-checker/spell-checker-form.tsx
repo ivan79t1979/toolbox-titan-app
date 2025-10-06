@@ -3,12 +3,13 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { spellCheck } from '@/ai/flows/spell-checker';
 import {
-  spellCheck,
   SpellCheckInputSchema,
   type SpellCheckInput,
   type SpellCheckOutput,
-} from '@/ai/flows/spell-checker';
+} from '@/ai/flows/spell-checker-types';
+
 
 import { Button } from '@/components/ui/button';
 import {
