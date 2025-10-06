@@ -92,8 +92,10 @@ export function PomodoroTimer() {
   }, []);
   
   const previewSound = () => {
-    const audio = new Audio(alarmSound);
-    audio.play().catch(error => console.error("Preview play failed", error));
+    if (alarmRef.current) {
+      alarmRef.current.loop = false;
+      alarmRef.current.play().catch(error => console.error("Preview play failed", error));
+    }
   }
 
   const switchMode = useCallback(
@@ -154,13 +156,6 @@ export function PomodoroTimer() {
     setMode('work');
     setTimeLeft(workTime * 60);
   }, [workTime, shortBreakTime, longBreakTime]);
-  
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      alarmRef.current = new Audio(alarmSound);
-    }
-  }, [alarmSound]);
-
 
   const handleStartPause = () => {
     if (timeLeft === 0) return;
@@ -189,6 +184,7 @@ export function PomodoroTimer() {
 
   return (
     <div className="mx-auto max-w-4xl space-y-8">
+      <audio ref={alarmRef} src={alarmSound} preload="auto"></audio>
       <Card
         className={cn(
           'transition-colors',
