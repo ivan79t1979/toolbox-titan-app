@@ -1,5 +1,5 @@
 import { PageHeader } from '@/components/page-header';
-import { ToolPlaceholder } from '@/components/tool-placeholder';
+import { PasswordGeneratorForm } from './password-generator-form';
 
 export default function PasswordGeneratorPage() {
   return (
@@ -8,7 +8,7 @@ export default function PasswordGeneratorPage() {
         title="Password Generator"
         description="Generate secure passwords."
       />
-      <ToolPlaceholder />
+      <PasswordGeneratorForm />
     </>
   );
 }
