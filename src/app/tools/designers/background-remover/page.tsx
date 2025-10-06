@@ -1,0 +1,14 @@
+import { PageHeader } from '@/components/page-header';
+import { ToolPlaceholder } from '@/components/tool-placeholder';
+
+export default function BackgroundRemoverPage() {
+  return (
+    <>
+      <PageHeader
+        title="Background Remover"
+        description="Removes the background from an image."
+      />
+      <ToolPlaceholder />
+    </>
+  );
+}
