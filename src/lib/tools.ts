@@ -25,7 +25,6 @@ import {
   Binary,
   Timer,
   TimerOff,
-  Stopwatch as StopwatchIcon,
   Globe,
   Globe2,
   Percent,
@@ -199,7 +198,7 @@ export const toolCategories: ToolCategory[] = [
         title: 'Stopwatch',
         description: 'Measure elapsed time.',
         href: '/tools/timers/stopwatch',
-        icon: StopwatchIcon,
+        icon: Timer,
       },
       {
         title: 'World Clock',
