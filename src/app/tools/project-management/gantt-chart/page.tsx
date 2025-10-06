@@ -1,14 +1,14 @@
 import { PageHeader } from '@/components/page-header';
-import { ToolPlaceholder } from '@/components/tool-placeholder';
+import { GanttChart } from './gantt-chart';
 
 export default function GanttChartPage() {
   return (
     <>
       <PageHeader
         title="Gantt Chart"
-        description="Visualize project schedules."
+        description="Visualize your project timeline, manage tasks, and track progress with an interactive Gantt chart."
       />
-      <ToolPlaceholder />
+      <GanttChart />
     </>
   );
 }
