@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo, useRef, useCallback } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import {
   BarChart,
   Bar,
@@ -21,6 +21,21 @@ import {
   endOfMonth,
   eachDayOfInterval,
 } from 'date-fns';
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -42,6 +57,7 @@ import {
   Printer,
   Trash2,
   CalendarIcon,
+  GripVertical,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -57,6 +73,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import * as XLSX from 'xlsx';
 import html2canvas from 'html2canvas';
+import { cn } from '@/lib/utils';
 
 type Task = {
   id: string;
@@ -93,11 +110,142 @@ const CustomTooltip = ({ active, payload }: any) => {
   return null;
 };
 
+const SortableTaskRow = ({
+    task,
+    handleTaskChange,
+    deleteTask,
+}: {
+    task: Task;
+    handleTaskChange: (id: string, field: keyof Task, value: any) => void;
+    deleteTask: (id: string) => void;
+}) => {
+    const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
+        useSortable({ id: task.id });
+
+    const style = {
+        transform: CSS.Transform.toString(transform),
+        transition,
+        opacity: isDragging ? 0.5 : 1,
+        zIndex: isDragging ? 1 : 'auto',
+    };
+
+    return (
+        <TableRow ref={setNodeRef} style={style}>
+            <TableCell className="w-12">
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    {...attributes}
+                    {...listeners}
+                    className="cursor-grab"
+                >
+                    <GripVertical className="h-4 w-4" />
+                </Button>
+            </TableCell>
+            <TableCell>
+                <Input
+                    value={task.name}
+                    onChange={(e) =>
+                    handleTaskChange(task.id, 'name', e.target.value)
+                    }
+                    className="border-none"
+                />
+            </TableCell>
+            <TableCell>
+                <Popover>
+                    <PopoverTrigger asChild>
+                    <Button
+                        variant="outline"
+                        className="w-[150px] justify-start text-left font-normal"
+                    >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {format(parseISO(task.start), 'MMM d, yyyy')}
+                    </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0">
+                    <Calendar
+                        mode="single"
+                        selected={parseISO(task.start)}
+                        onSelect={(date) =>
+                        handleTaskChange(task.id, 'start', date?.toISOString())
+                        }
+                    />
+                    </PopoverContent>
+                </Popover>
+            </TableCell>
+            <TableCell>
+                <Popover>
+                    <PopoverTrigger asChild>
+                    <Button
+                        variant="outline"
+                        className="w-[150px] justify-start text-left font-normal"
+                    >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {format(parseISO(task.end), 'MMM d, yyyy')}
+                    </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0">
+                    <Calendar
+                        mode="single"
+                        selected={parseISO(task.end)}
+                        onSelect={(date) =>
+                        handleTaskChange(task.id, 'end', date?.toISOString())
+                        }
+                    />
+                    </PopoverContent>
+                </Popover>
+            </TableCell>
+            <TableCell>
+                <Input
+                    type="number"
+                    value={task.progress}
+                    onChange={(e) =>
+                    handleTaskChange(
+                        task.id,
+                        'progress',
+                        parseInt(e.target.value, 10)
+                    )
+                    }
+                    className="w-20"
+                    min={0}
+                    max={100}
+                />
+            </TableCell>
+            <TableCell>
+                <Input
+                    type="color"
+                    value={task.color}
+                    onChange={(e) => handleTaskChange(task.id, 'color', e.target.value)}
+                    className="h-8 w-10 p-1"
+                />
+            </TableCell>
+            <TableCell>
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => deleteTask(task.id)}
+                >
+                    <Trash2 className="h-4 w-4" />
+                </Button>
+            </TableCell>
+        </TableRow>
+    );
+};
+
+
 export function GanttChart() {
   const [tasks, setTasks] = useState<Task[]>(defaultTasks);
   const chartRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+  
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    })
+  );
 
   const { chartData, domain, ticks, monthStarts } = useMemo(() => {
     if (tasks.length === 0) {
@@ -166,13 +314,24 @@ export function GanttChart() {
       start: newStart.toISOString(),
       end: addDays(newStart, 4).toISOString(),
       progress: 0,
-      color: 'hsl(var(--chart-1))'
+      color: `hsl(${Math.floor(Math.random() * 360)}, 70%, 50%)`
     };
     setTasks([...tasks, newTask]);
   };
 
   const deleteTask = (id: string) => {
     setTasks(tasks.filter((task) => task.id !== id));
+  };
+  
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (over && active.id !== over.id) {
+      setTasks((items) => {
+        const oldIndex = items.findIndex((item) => item.id === active.id);
+        const newIndex = items.findIndex((item) => item.id === over.id);
+        return arrayMove(items, oldIndex, newIndex);
+      });
+    }
   };
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -426,110 +585,40 @@ export function GanttChart() {
           <CardTitle>Task List</CardTitle>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-1/3">Task Name</TableHead>
-                <TableHead>Start Date</TableHead>
-                <TableHead>End Date</TableHead>
-                <TableHead>Progress (%)</TableHead>
-                <TableHead>Color</TableHead>
-                <TableHead></TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {tasks.map((task) => (
-                <TableRow key={task.id}>
-                  <TableCell>
-                    <Input
-                      value={task.name}
-                      onChange={(e) =>
-                        handleTaskChange(task.id, 'name', e.target.value)
-                      }
-                      className="border-none"
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant="outline"
-                          className="w-[150px] justify-start text-left font-normal"
-                        >
-                          <CalendarIcon className="mr-2 h-4 w-4" />
-                          {format(parseISO(task.start), 'MMM d, yyyy')}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0">
-                        <Calendar
-                          mode="single"
-                          selected={parseISO(task.start)}
-                          onSelect={(date) =>
-                            handleTaskChange(task.id, 'start', date?.toISOString())
-                          }
-                        />
-                      </PopoverContent>
-                    </Popover>
-                  </TableCell>
-                  <TableCell>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant="outline"
-                          className="w-[150px] justify-start text-left font-normal"
-                        >
-                          <CalendarIcon className="mr-2 h-4 w-4" />
-                          {format(parseISO(task.end), 'MMM d, yyyy')}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0">
-                        <Calendar
-                          mode="single"
-                          selected={parseISO(task.end)}
-                          onSelect={(date) =>
-                            handleTaskChange(task.id, 'end', date?.toISOString())
-                          }
-                        />
-                      </PopoverContent>
-                    </Popover>
-                  </TableCell>
-                  <TableCell>
-                    <Input
-                      type="number"
-                      value={task.progress}
-                      onChange={(e) =>
-                        handleTaskChange(
-                          task.id,
-                          'progress',
-                          parseInt(e.target.value, 10)
-                        )
-                      }
-                      className="w-20"
-                      min={0}
-                      max={100}
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <Input
-                        type="color"
-                        value={task.color}
-                        onChange={(e) => handleTaskChange(task.id, 'color', e.target.value)}
-                        className="h-8 w-10 p-1"
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => deleteTask(task.id)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </TableCell>
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
+          >
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-12"></TableHead>
+                  <TableHead className="w-1/3">Task Name</TableHead>
+                  <TableHead>Start Date</TableHead>
+                  <TableHead>End Date</TableHead>
+                  <TableHead>Progress (%)</TableHead>
+                  <TableHead>Color</TableHead>
+                  <TableHead></TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                <SortableContext
+                  items={tasks}
+                  strategy={verticalListSortingStrategy}
+                >
+                  {tasks.map((task) => (
+                    <SortableTaskRow
+                      key={task.id}
+                      task={task}
+                      handleTaskChange={handleTaskChange}
+                      deleteTask={deleteTask}
+                    />
+                  ))}
+                </SortableContext>
+              </TableBody>
+            </Table>
+          </DndContext>
           <Button onClick={addTask} className="mt-4">
             <PlusCircle className="mr-2 h-4 w-4" />
             Add Task
