@@ -5,7 +5,8 @@ import Image from 'next/image';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { extractColorPalette, type ColorPaletteExtractorOutput } from '@/ai/flows/color-palette-extractor';
+import { extractColorPalette } from '@/ai/flows/color-palette-extractor';
+import type { ColorPaletteExtractorOutput } from '@/ai/flows/color-palette-extractor-types';
 import { Button } from '@/components/ui/button';
 import {
   Form,
