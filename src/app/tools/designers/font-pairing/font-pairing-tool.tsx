@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import Link from 'next/link';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { fontPairing } from '@/ai/flows/font-pairing';
@@ -16,7 +17,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Loader2, Wand2, Printer, Image as ImageIcon, TextSelect, ChevronsUpDown, Check } from 'lucide-react';
+import { Loader2, Wand2, Printer, Image as ImageIcon, TextSelect, ChevronsUpDown, Check, ExternalLink } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import html2canvas from 'html2canvas';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -264,7 +265,7 @@ export function FontPairingTool() {
               <CardDescription>Create your own font combination.</CardDescription>
           </CardHeader>
           <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                       <Label>Headline Font</Label>
                       <FontCombobox value={manualHeadline} onSelect={setManualHeadline} />
@@ -274,7 +275,13 @@ export function FontPairingTool() {
                       <FontCombobox value={manualBody} onSelect={setManualBody} />
                   </div>
               </div>
-              <div className="flex justify-end gap-2">
+              <Button asChild variant="link" className="px-0">
+                  <Link href="https://fonts.google.com/" target="_blank" rel="noopener noreferrer">
+                      Browse Google Fonts <ExternalLink className="ml-2 h-4 w-4" />
+                  </Link>
+              </Button>
+
+              <div className="flex justify-end gap-2 mt-4">
                   <Button variant="outline" size="sm" onClick={() => exportContent(manualPrintableRef.current, 'png', `manual-${manualHeadline.replace(/ /g, '-')}`)}>
                       <ImageIcon className="mr-2 h-4 w-4" /> PNG
                   </Button>
