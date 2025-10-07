@@ -1,14 +1,28 @@
 import { PageHeader } from '@/components/page-header';
-import { BackgroundRemoverForm } from './background-remover-form';
+
+declare global {
+  namespace JSX {
+    interface IntrinsicElements {
+      'gradio-app': React.DetailedHTMLProps<
+        React.HTMLAttributes<HTMLElement>,
+        HTMLElement
+      > & {
+        src?: string;
+      };
+    }
+  }
+}
 
 export default function BackgroundRemoverPage() {
   return (
     <>
       <PageHeader
         title="Background Remover"
-        description="Removes the background from an image."
+        description="Removes the background from an image using a custom model from Hugging Face."
       />
-      <BackgroundRemoverForm />
+      <div className="mt-8">
+        <gradio-app src="https://timemaster-removebg.hf.space"></gradio-app>
+      </div>
     </>
   );
 }

@@ -38,6 +38,10 @@ export default function RootLayout({
           type="module"
           src="https://gradio.s3-us-west-2.amazonaws.com/5.25.1/gradio.js"
         ></script>
+        <script
+          type="module"
+          src="https://gradio.s3-us-west-2.amazonaws.com/4.36.0/gradio.js"
+        ></script>
       </head>
       <body className="font-body antialiased">
         <ThemeProvider>
