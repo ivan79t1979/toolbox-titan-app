@@ -28,6 +28,7 @@ import {
   Trash2,
   Download,
   Image as ImageIcon,
+  Edit,
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { format, parseISO } from 'date-fns';
@@ -313,12 +314,14 @@ export function InvoiceGenerator() {
                     <div>
                         {logo ? (
                           <div className="relative w-40 h-20 mb-4">
-                            <Image src={logo} alt="Company Logo" layout="fill" objectFit="contain" />
+                            <Image src={logo} alt="Company Logo" layout="responsive" width={160} height={80} objectFit="contain" />
                           </div>
                         ) : (
                           <div className="w-40 h-20 mb-4" />
                         )}
-                        <pre className="text-sm font-sans whitespace-pre-wrap">{yourDetails}</pre>
+                        <div className="text-sm font-sans">
+                          {yourDetails.split('\n').map((line, i) => <div key={i}>{line}</div>)}
+                        </div>
                     </div>
                     <div className="text-right">
                         <h1 className="text-4xl font-bold font-headline mb-2">{labels.invoiceTitle}</h1>
@@ -328,7 +331,9 @@ export function InvoiceGenerator() {
                 <section className="flex justify-between mb-12">
                      <div>
                         <p className="text-gray-500 font-semibold">{labels.billTo}</p>
-                        <pre className="text-sm font-sans whitespace-pre-wrap">{clientDetails}</pre>
+                        <div className="text-sm font-sans">
+                           {clientDetails.split('\n').map((line, i) => <div key={i}>{line}</div>)}
+                        </div>
                     </div>
                     <div className="text-right">
                          <p className="text-gray-500 font-semibold">{labels.date}</p>
@@ -358,7 +363,7 @@ export function InvoiceGenerator() {
                         <TableBody>
                             {lineItems.map(item => (
                                 <TableRow key={item.id}>
-                                    <TableCell className="font-medium">{item.description}</TableCell>
+                                    <TableCell className="font-medium" style={{ whiteSpace: 'pre-wrap' }}>{item.description}</TableCell>
                                     <TableCell className="text-center">{item.quantity}</TableCell>
                                     <TableCell className="text-center">${item.rate.toFixed(2)}</TableCell>
                                     <TableCell className="text-right">${(item.quantity * item.rate).toFixed(2)}</TableCell>
@@ -383,7 +388,9 @@ export function InvoiceGenerator() {
                 </section>
                  <footer className="mt-12">
                     <p className="text-gray-500 font-semibold">{labels.notes}</p>
-                    <pre className="text-sm font-sans whitespace-pre-wrap">{notes}</pre>
+                    <div className="text-sm font-sans whitespace-pre-wrap">
+                      {notes.split('\n').map((line, i) => <div key={i}>{line}</div>)}
+                    </div>
                 </footer>
             </CardContent>
         </Card>
@@ -391,3 +398,5 @@ export function InvoiceGenerator() {
     </div>
   );
 }
+
+    
