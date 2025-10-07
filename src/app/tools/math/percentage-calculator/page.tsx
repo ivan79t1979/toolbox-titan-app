@@ -1,5 +1,5 @@
 import { PageHeader } from '@/components/page-header';
-import { ToolPlaceholder } from '@/components/tool-placeholder';
+import { PercentageCalculatorForm } from './percentage-calculator-form';
 
 export default function PercentageCalculatorPage() {
   return (
@@ -8,7 +8,7 @@ export default function PercentageCalculatorPage() {
         title="Percentage Calculator"
         description="All your percentage calculation needs."
       />
-      <ToolPlaceholder />
+      <PercentageCalculatorForm />
     </>
   );
 }
