@@ -1,14 +1,14 @@
 import { PageHeader } from '@/components/page-header';
-import { ToolPlaceholder } from '@/components/tool-placeholder';
+import { ImageResizerForm } from './image-resizer-form';
 
 export default function ImageResizerPage() {
   return (
     <>
       <PageHeader
         title="Image Resizer"
-        description="Resize images to your needs."
+        description="Easily resize images to your desired dimensions while maintaining aspect ratio."
       />
-      <ToolPlaceholder />
+      <ImageResizerForm />
     </>
   );
 }
