@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -14,16 +14,33 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Copy, RefreshCw } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { Checkbox } from '@/components/ui/checkbox';
 
 export function UuidGeneratorForm() {
   const [uuids, setUuids] = useState<string[]>([]);
   const [count, setCount] = useState(1);
+  const [includeHyphens, setIncludeHyphens] = useState(true);
+  const [isUppercase, setIsUppercase] = useState(false);
   const { toast } = useToast();
 
   const generateUuids = useCallback(() => {
-    const newUuids = Array.from({ length: count }, () => crypto.randomUUID());
+    const newUuids = Array.from({ length: count }, () => {
+      let uuid = crypto.randomUUID();
+      if (!includeHyphens) {
+        uuid = uuid.replace(/-/g, '');
+      }
+      if (isUppercase) {
+        uuid = uuid.toUpperCase();
+      }
+      return uuid;
+    });
     setUuids(newUuids);
-  }, [count]);
+  }, [count, includeHyphens, isUppercase]);
+
+  // Generate on initial load
+  useEffect(() => {
+    generateUuids();
+  }, [generateUuids]);
 
   const handleCopy = () => {
     if (uuids.length === 0) return;
@@ -60,6 +77,25 @@ export function UuidGeneratorForm() {
           <Button onClick={generateUuids} size="lg">
             <RefreshCw className="mr-2 h-5 w-5" /> Generate
           </Button>
+        </div>
+
+        <div className="flex flex-wrap gap-x-6 gap-y-2">
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="include-hyphens"
+              checked={includeHyphens}
+              onCheckedChange={(checked) => setIncludeHyphens(!!checked)}
+            />
+            <Label htmlFor="include-hyphens">Include Hyphens</Label>
+          </div>
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="uppercase"
+              checked={isUppercase}
+              onCheckedChange={(checked) => setIsUppercase(!!checked)}
+            />
+            <Label htmlFor="uppercase">Uppercase</Label>
+          </div>
         </div>
 
         {uuids.length > 0 && (
