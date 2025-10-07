@@ -165,6 +165,10 @@ export function InvoiceGenerator() {
       }
   }
 
+  const removeLogo = () => {
+    setLogo(null);
+  }
+
   const exportPDF = async () => {
     if (!invoiceRef.current) return;
     try {
@@ -203,7 +207,10 @@ export function InvoiceGenerator() {
                 </div>
                  <div className="space-y-2">
                     <Label htmlFor="logo-upload">Company Logo</Label>
-                    <Input id="logo-upload" type="file" accept="image/*" onChange={handleLogoUpload} />
+                    <div className="flex items-center gap-2">
+                      <Input id="logo-upload" type="file" accept="image/*" onChange={handleLogoUpload} className="flex-grow"/>
+                      {logo && <Button variant="ghost" size="icon" onClick={removeLogo}><Trash2 className="h-4 w-4"/></Button>}
+                    </div>
                  </div>
             </CardContent>
         </Card>
@@ -314,7 +321,7 @@ export function InvoiceGenerator() {
                     <div>
                         {logo ? (
                           <div className="relative w-40 h-20 mb-4">
-                            <Image src={logo} alt="Company Logo" layout="responsive" width={160} height={80} objectFit="contain" />
+                            <Image src={logo} alt="Company Logo" width={160} height={80} style={{ objectFit: 'contain' }} />
                           </div>
                         ) : (
                           <div className="w-40 h-20 mb-4" />
@@ -388,7 +395,7 @@ export function InvoiceGenerator() {
                 </section>
                  <footer className="mt-12">
                     <p className="text-gray-500 font-semibold">{labels.notes}</p>
-                    <div className="text-sm font-sans whitespace-pre-wrap">
+                    <div className="text-sm font-sans">
                       {notes.split('\n').map((line, i) => <div key={i}>{line}</div>)}
                     </div>
                 </footer>
