@@ -1,14 +1,14 @@
 import { PageHeader } from '@/components/page-header';
-import { ToolPlaceholder } from '@/components/tool-placeholder';
+import { HashGeneratorForm } from './hash-generator-form';
 
 export default function HashGeneratorPage() {
   return (
     <>
       <PageHeader
         title="Hash Generator"
-        description="Generate hashes from text."
+        description="Generate hashes from text using MD5, SHA-1, SHA-256, and SHA-512."
       />
-      <ToolPlaceholder />
+      <HashGeneratorForm />
     </>
   );
 }
