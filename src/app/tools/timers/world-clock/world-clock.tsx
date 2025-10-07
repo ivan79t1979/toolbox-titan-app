@@ -68,18 +68,22 @@ function ClockCard({ clock, onRemove }: { clock: Clock; onRemove: () => void }) 
   });
 
   const getOffset = () => {
+    try {
+        const formatter = new Intl.DateTimeFormat('en-US', { timeZone: clock.timezone, timeZoneName: 'shortOffset' });
+        const parts = formatter.formatToParts(new Date());
+        const offsetPart = parts.find(part => part.type === 'timeZoneName');
+        
+        if (offsetPart) return offsetPart.value;
+    } catch(e) {
+        // Invalid timezone will throw an error
+        return "Invalid Timezone"
+    }
+
+    // Fallback for environments that might not support `shortOffset` fully.
     const localOffset = -new Date().getTimezoneOffset() / 60;
     const cityDate = new Date(time.toLocaleString('en-US', { timeZone: clock.timezone }));
-    const cityOffset = -cityDate.getTimezoneOffset() / 60;
+    const cityOffset = isNaN(cityDate.getTime()) ? localOffset : -cityDate.getTimezoneOffset() / 60;
     const diff = cityOffset - localOffset;
-    
-    // This is a workaround because getTimezoneOffset is based on the system's locale settings, not the specified timezone string.
-    // A more robust solution uses Intl.DateTimeFormat parts.
-    const formatter = new Intl.DateTimeFormat('en-US', { timeZone: clock.timezone, timeZoneName: 'shortOffset' });
-    const parts = formatter.formatToParts(new Date());
-    const offsetPart = parts.find(part => part.type === 'timeZoneName');
-    
-    if (offsetPart) return offsetPart.value;
 
     return `UTC${diff >= 0 ? '+' : ''}${diff}`;
   };
@@ -109,18 +113,39 @@ function ClockCard({ clock, onRemove }: { clock: Clock; onRemove: () => void }) 
 export function WorldClock() {
   const [clocks, setClocks] = useState<Clock[]>(defaultClocks);
   const [open, setOpen] = useState(false);
+  const [searchValue, setSearchValue] = useState('');
 
-  const addClock = (timezoneIdentifier: string) => {
-    const newClock = timezones.find((tz) => tz.timezone === timezoneIdentifier);
-    if (newClock && !clocks.some(c => c.timezone === newClock.timezone)) {
-      setClocks([...clocks, newClock]);
+  const addClock = (timezoneIdentifier: string, city?: string, country?: string) => {
+    const existing = timezones.find((tz) => tz.timezone === timezoneIdentifier);
+    
+    if (existing && !clocks.some(c => c.timezone === existing.timezone)) {
+      setClocks([...clocks, existing]);
+    } else if (!existing) {
+        const newClock: Clock = {
+            city: city || timezoneIdentifier.split('/').pop()?.replace(/_/g, ' ') || 'Custom',
+            timezone: timezoneIdentifier,
+            country: country || timezoneIdentifier.split('/')[0].replace(/_/g, ' '),
+        }
+        if (!clocks.some(c => c.timezone === newClock.timezone)) {
+            setClocks([...clocks, newClock]);
+        }
     }
+    setSearchValue('');
     setOpen(false);
   };
 
   const removeClock = (timezone: string) => {
     setClocks(clocks.filter((c) => c.timezone !== timezone));
   };
+  
+  const filteredTimezones = searchValue
+    ? timezones.filter(tz => 
+        tz.city.toLowerCase().includes(searchValue.toLowerCase()) || 
+        tz.country.toLowerCase().includes(searchValue.toLowerCase())
+      )
+    : timezones;
+    
+  const showCustomOption = searchValue && !filteredTimezones.some(f => f.city.toLowerCase() === searchValue.toLowerCase());
 
   return (
     <div className="space-y-6">
@@ -133,15 +158,24 @@ export function WorldClock() {
         </PopoverTrigger>
         <PopoverContent className="w-[300px] p-0">
           <Command>
-            <CommandInput placeholder="Search for a city..." />
+            <CommandInput 
+                placeholder="Search for a city..."
+                value={searchValue}
+                onValueChange={setSearchValue}
+            />
             <CommandList>
               <CommandEmpty>No city found.</CommandEmpty>
+                {showCustomOption && (
+                    <CommandItem onSelect={() => addClock(searchValue, searchValue)}>
+                        Use city: "{searchValue}"
+                    </CommandItem>
+                )}
               <CommandGroup>
-                {timezones.map((tz) => (
+                {filteredTimezones.map((tz) => (
                   <CommandItem
                     key={tz.timezone}
                     value={`${tz.city}, ${tz.country}`}
-                    onSelect={() => addClock(tz.timezone)}
+                    onSelect={() => addClock(tz.timezone, tz.city, tz.country)}
                   >
                     {tz.city}, {tz.country}
                   </CommandItem>
