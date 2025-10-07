@@ -20,6 +20,7 @@ import { Loader2, Download, Scaling, Ratio } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const formSchema = z.object({
   image: z.any().refine((file) => file instanceof File, 'Please upload an image.'),
@@ -29,6 +30,21 @@ const formSchema = z.object({
 });
 
 type FormValues = z.infer<typeof formSchema>;
+
+const sizePresets = [
+  { label: 'Custom', width: 0, height: 0 },
+  { label: 'Instagram Post (1:1)', width: 1080, height: 1080 },
+  { label: 'Instagram Story (9:16)', width: 1080, height: 1920 },
+  { label: 'Instagram Portrait (4:5)', width: 1080, height: 1350 },
+  { label: 'Facebook Post (1.91:1)', width: 1200, height: 630 },
+  { label: 'Facebook Cover (Desktop)', width: 820, height: 312 },
+  { label: 'Twitter Post (16:9)', width: 1600, height: 900 },
+  { label: 'Twitter Header', width: 1500, height: 500 },
+  { label: 'Pinterest Pin (2:3)', width: 1000, height: 1500 },
+  { label: 'LinkedIn Post', width: 1200, height: 627 },
+  { label: 'Standard 4:3', width: 1024, height: 768 },
+  { label: 'Standard 16:9', width: 1920, height: 1080 },
+];
 
 export function ImageResizerForm() {
   const [originalImage, setOriginalImage] = useState<{ src: string; width: number; height: number } | null>(null);
@@ -71,15 +87,19 @@ export function ImageResizerForm() {
     
     const aspectRatio = originalImage.width / originalImage.height;
     
-    const widthChanged = watchedWidth !== Math.round(watchedHeight * aspectRatio);
-    const heightChanged = watchedHeight !== Math.round(watchedWidth / aspectRatio);
-    
+    // This logic prevents infinite loops by only acting on the field that was most recently changed.
     const lastChanged = form.formState.dirtyFields.width ? 'width' : form.formState.dirtyFields.height ? 'height' : null;
 
     if (lastChanged === 'width') {
-        form.setValue('height', Math.round(watchedWidth / aspectRatio), { shouldValidate: true });
+        const newHeight = Math.round(watchedWidth / aspectRatio);
+        if (newHeight !== watchedHeight) {
+            form.setValue('height', newHeight, { shouldValidate: true });
+        }
     } else if (lastChanged === 'height') {
-        form.setValue('width', Math.round(watchedHeight * aspectRatio), { shouldValidate: true });
+        const newWidth = Math.round(watchedHeight * aspectRatio);
+        if (newWidth !== watchedWidth) {
+            form.setValue('width', newWidth, { shouldValidate: true });
+        }
     }
   }, [watchedWidth, watchedHeight, watchedAspectRatio, originalImage, form]);
 
@@ -121,6 +141,14 @@ export function ImageResizerForm() {
       description: 'Your resized image is being downloaded.',
     });
   };
+  
+  const handlePresetChange = (value: string) => {
+    const preset = sizePresets.find(p => p.label === value);
+    if (preset && preset.width > 0) {
+        form.setValue('width', preset.width, { shouldValidate: true, shouldDirty: true });
+        form.setValue('height', preset.height, { shouldValidate: true, shouldDirty: true });
+    }
+  }
 
   return (
     <div className="mx-auto max-w-5xl">
@@ -143,6 +171,21 @@ export function ImageResizerForm() {
               />
               {originalImage && (
                 <>
+                 <div className="space-y-2">
+                    <Label>Common Sizes</Label>
+                    <Select onValueChange={handlePresetChange}>
+                        <SelectTrigger>
+                            <SelectValue placeholder="Select a preset size..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {sizePresets.map(preset => (
+                                <SelectItem key={preset.label} value={preset.label}>
+                                    {preset.label} {preset.width > 0 && `(${preset.width} x ${preset.height})`}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                 </div>
                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                      <FormField
                         control={form.control}
