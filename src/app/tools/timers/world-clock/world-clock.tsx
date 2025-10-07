@@ -46,12 +46,37 @@ const defaultClocks: Clock[] = [
 ];
 
 function ClockCard({ clock, onRemove }: { clock: Clock; onRemove: () => void }) {
-  const [time, setTime] = useState(new Date());
+  const [time, setTime] = useState<Date | null>(null);
 
   useEffect(() => {
+    // Set initial time on mount and then update every second
+    setTime(new Date());
     const timer = setInterval(() => setTime(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
+
+  if (!time) {
+    return (
+       <Card>
+        <CardHeader>
+            <div className="flex justify-between items-start">
+            <div>
+                <CardTitle>{clock.city}</CardTitle>
+                <CardDescription>{clock.country}</CardDescription>
+            </div>
+            <Button variant="ghost" size="icon" onClick={onRemove}>
+                <Trash2 className="h-4 w-4" />
+            </Button>
+            </div>
+        </CardHeader>
+        <CardContent>
+            <p className="text-4xl font-bold font-mono">--:--:--</p>
+            <p className="text-muted-foreground">Loading...</p>
+            <p className="text-sm text-muted-foreground mt-2">&nbsp;</p>
+        </CardContent>
+      </Card>
+    )
+  }
 
   const localTime = time.toLocaleTimeString('en-US', {
     timeZone: clock.timezone,
@@ -121,13 +146,21 @@ export function WorldClock() {
     if (existing && !clocks.some(c => c.timezone === existing.timezone)) {
       setClocks([...clocks, existing]);
     } else if (!existing) {
-        const newClock: Clock = {
-            city: city || timezoneIdentifier.split('/').pop()?.replace(/_/g, ' ') || 'Custom',
-            timezone: timezoneIdentifier,
-            country: country || timezoneIdentifier.split('/')[0].replace(/_/g, ' '),
-        }
-        if (!clocks.some(c => c.timezone === newClock.timezone)) {
-            setClocks([...clocks, newClock]);
+        try {
+            // Validate timezone before adding
+            new Intl.DateTimeFormat('en-US', { timeZone: timezoneIdentifier }).format();
+            const newClock: Clock = {
+                city: city || timezoneIdentifier.split('/').pop()?.replace(/_/g, ' ') || 'Custom',
+                timezone: timezoneIdentifier,
+                country: country || timezoneIdentifier.split('/')[0].replace(/_/g, ' '),
+            }
+            if (!clocks.some(c => c.timezone === newClock.timezone)) {
+                setClocks([...clocks, newClock]);
+            }
+        } catch (e) {
+            console.error("Invalid timezone provided:", timezoneIdentifier);
+            // Optionally, show a toast to the user
+            return; // Do not add invalid timezone
         }
     }
     setSearchValue('');
@@ -141,7 +174,8 @@ export function WorldClock() {
   const filteredTimezones = searchValue
     ? timezones.filter(tz => 
         tz.city.toLowerCase().includes(searchValue.toLowerCase()) || 
-        tz.country.toLowerCase().includes(searchValue.toLowerCase())
+        tz.country.toLowerCase().includes(searchValue.toLowerCase()) ||
+        tz.timezone.toLowerCase().includes(searchValue.toLowerCase())
       )
     : timezones;
     
@@ -159,15 +193,15 @@ export function WorldClock() {
         <PopoverContent className="w-[300px] p-0">
           <Command>
             <CommandInput 
-                placeholder="Search for a city..."
+                placeholder="Search city or timezone..."
                 value={searchValue}
                 onValueChange={setSearchValue}
             />
             <CommandList>
-              <CommandEmpty>No city found.</CommandEmpty>
+              <CommandEmpty>No city or timezone found.</CommandEmpty>
                 {showCustomOption && (
-                    <CommandItem onSelect={() => addClock(searchValue, searchValue)}>
-                        Use city: "{searchValue}"
+                    <CommandItem onSelect={() => addClock(searchValue)}>
+                        Use: "{searchValue}"
                     </CommandItem>
                 )}
               <CommandGroup>
