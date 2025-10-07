@@ -23,6 +23,7 @@ import { Loader2, Download, Scaling, Ratio, Upload, X, Archive } from 'lucide-re
 import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const formSchema = z.object({
   images: z.array(z.instanceof(File)).min(1, 'Please upload at least one image.'),
@@ -40,6 +41,21 @@ type ImageFile = {
   originalWidth: number;
   originalHeight: number;
 };
+
+const sizePresets = [
+  { label: 'Custom', width: 0, height: 0 },
+  { label: 'Instagram Post (1:1)', width: 1080, height: 1080 },
+  { label: 'Instagram Story (9:16)', width: 1080, height: 1920 },
+  { label: 'Instagram Portrait (4:5)', width: 1080, height: 1350 },
+  { label: 'Facebook Post (1.91:1)', width: 1200, height: 630 },
+  { label: 'Facebook Cover (Desktop)', width: 820, height: 312 },
+  { label: 'Twitter Post (16:9)', width: 1600, height: 900 },
+  { label: 'Twitter Header', width: 1500, height: 500 },
+  { label: 'Pinterest Pin (2:3)', width: 1000, height: 1500 },
+  { label: 'LinkedIn Post', width: 1200, height: 627 },
+  { label: 'Standard 4:3', width: 1024, height: 768 },
+  { label: 'Standard 16:9', width: 1920, height: 1080 },
+];
 
 export function BatchImageResizerForm() {
   const [imageFiles, setImageFiles] = useState<ImageFile[]>([]);
@@ -156,6 +172,14 @@ export function BatchImageResizerForm() {
     });
   };
 
+  const handlePresetChange = (value: string) => {
+    const preset = sizePresets.find(p => p.label === value);
+    if (preset && preset.width > 0) {
+        form.setValue('width', preset.width, { shouldValidate: true, shouldDirty: true });
+        form.setValue('height', preset.height, { shouldValidate: true, shouldDirty: true });
+    }
+  };
+
   return (
     <div className="mx-auto max-w-5xl space-y-6">
       <Card>
@@ -186,6 +210,21 @@ export function BatchImageResizerForm() {
               />
               {imageFiles.length > 0 && (
                 <>
+                 <div className="space-y-2">
+                    <Label>Common Sizes</Label>
+                    <Select onValueChange={handlePresetChange}>
+                        <SelectTrigger>
+                            <SelectValue placeholder="Select a preset size..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {sizePresets.map(preset => (
+                                <SelectItem key={preset.label} value={preset.label}>
+                                    {preset.label} {preset.width > 0 && `(${preset.width} x ${preset.height})`}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                 </div>
                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                      <FormField
                         control={form.control}
