@@ -34,6 +34,7 @@ import {
   Trophy,
   Users,
   Wallet,
+  ClipboardList,
 } from 'lucide-react';
 
 export type Tool = {
@@ -269,6 +270,12 @@ export const toolCategories: ToolCategory[] = [
         description: 'Track income, expenses, and budgets.',
         href: '/tools/project-management/budget-planner',
         icon: Wallet,
+      },
+      {
+        title: 'Daily Standup Helper',
+        description: 'Prepare and format daily standup updates.',
+        href: '/tools/project-management/daily-standup-helper',
+        icon: ClipboardList,
       },
     ],
   },
