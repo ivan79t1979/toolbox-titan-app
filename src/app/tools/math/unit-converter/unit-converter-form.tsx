@@ -43,7 +43,7 @@ const conversionData: ConversionCategory[] = [
     },
   },
   {
-    name: 'Mass',
+    name: 'Weight',
     units: [
       { name: 'Grams', symbol: 'g' },
       { name: 'Kilograms', symbol: 'kg' },
@@ -80,6 +80,19 @@ const conversionData: ConversionCategory[] = [
     ],
     conversions: {
       L: (v) => v, mL: (v) => v / 1000, gal: (v) => v * 3.78541, qt: (v) => v * 0.946353, pt: (v) => v * 0.473176, cup: (v) => v * 0.236588,
+    },
+  },
+   {
+    name: 'Time',
+    units: [
+      { name: 'Seconds', symbol: 's' },
+      { name: 'Minutes', symbol: 'min' },
+      { name: 'Hours', symbol: 'h' },
+      { name: 'Days', symbol: 'd' },
+      { name: 'Weeks', symbol: 'w' },
+    ],
+    conversions: {
+      s: (v) => v, min: (v) => v * 60, h: (v) => v * 3600, d: (v) => v * 86400, w: (v) => v * 604800,
     },
   },
   {
@@ -119,6 +132,43 @@ const conversionData: ConversionCategory[] = [
       conversions: {
           B: (v) => v, KB: (v) => v * 1024, MB: (v) => v * Math.pow(1024, 2), GB: (v) => v * Math.pow(1024, 3), TB: (v) => v * Math.pow(1024, 4),
       }
+  },
+  {
+    name: 'Energy',
+    units: [
+        { name: 'Joules', symbol: 'J' },
+        { name: 'Kilojoules', symbol: 'kJ' },
+        { name: 'Calories', symbol: 'cal' },
+        { name: 'Kilocalories', symbol: 'kcal' },
+        { name: 'Watt-hours', symbol: 'Wh' },
+    ],
+    conversions: {
+        J: (v) => v, kJ: (v) => v * 1000, cal: (v) => v * 4.184, kcal: (v) => v * 4184, Wh: (v) => v * 3600,
+    }
+  },
+  {
+    name: 'Pressure',
+    units: [
+        { name: 'Pascals', symbol: 'Pa' },
+        { name: 'Kilopascals', symbol: 'kPa' },
+        { name: 'Bars', symbol: 'bar' },
+        { name: 'PSI', symbol: 'psi' },
+        { name: 'Atmospheres', symbol: 'atm' },
+    ],
+    conversions: {
+        Pa: (v) => v, kPa: (v) => v * 1000, bar: (v) => v * 100000, psi: (v) => v * 6894.76, atm: (v) => v * 101325,
+    }
+  },
+  {
+    name: 'Angle',
+    units: [
+        { name: 'Degrees', symbol: 'deg' },
+        { name: 'Radians', symbol: 'rad' },
+        { name: 'Gradians', symbol: 'grad' },
+    ],
+    conversions: {
+        deg: (v) => v, rad: (v) => v * (180 / Math.PI), grad: (v) => v * 0.9,
+    }
   }
 ];
 
@@ -144,6 +194,17 @@ export function UnitConverterForm() {
         if (to === 'F') return (celsius * 9/5) + 32;
         if (to === 'K') return celsius + 273.15;
         return celsius;
+    }
+     // Special handling for Angle
+    if (cat.name === 'Angle') {
+      let degrees: number;
+      if (from === 'rad') degrees = value * (180 / Math.PI);
+      else if (from === 'grad') degrees = value * 0.9;
+      else degrees = value;
+
+      if (to === 'rad') return degrees * (Math.PI / 180);
+      if (to === 'grad') return degrees / 0.9;
+      return degrees;
     }
     
     const fromToBase = cat.conversions[from](value);
