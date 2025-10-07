@@ -87,7 +87,6 @@ export function ImageResizerForm() {
     
     const aspectRatio = originalImage.width / originalImage.height;
     
-    // This logic prevents infinite loops by only acting on the field that was most recently changed.
     const lastChanged = form.formState.dirtyFields.width ? 'width' : form.formState.dirtyFields.height ? 'height' : null;
 
     if (lastChanged === 'width') {
