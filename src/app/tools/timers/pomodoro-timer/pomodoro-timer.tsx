@@ -162,6 +162,7 @@ export function PomodoroTimer() {
 
   // Alarm state
   const [isTimeUp, setIsTimeUp] = useState(false);
+  const [finishedMode, setFinishedMode] = useState<TimerMode | null>(null);
 
   const totalTime =
     (mode === 'work'
@@ -213,6 +214,7 @@ export function PomodoroTimer() {
       }, 1000);
     } else if (timeLeft === 0 && isActive) {
       setIsActive(false);
+      setFinishedMode(mode);
       setIsTimeUp(true);
       playAlarm();
 
@@ -510,7 +512,7 @@ export function PomodoroTimer() {
           <AlertDialogHeader>
             <AlertDialogTitle>Time's Up!</AlertDialogTitle>
             <AlertDialogDescription>
-                {mode === 'work' ? "Great job! Time for a break." : "Break's over. Time to get back to it!"}
+                {finishedMode === 'work' ? "Great job! Time for a break." : "Break's over. Time to get back to it!"}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
