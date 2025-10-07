@@ -17,6 +17,7 @@ const TextToSpeechInputSchema = z.object({
   voice: z.string().optional().describe('The voice to use for the speech.'),
   rate: z.number().min(0.25).max(4.0).optional().describe('The speaking rate.'),
   pitch: z.number().min(-20.0).max(20.0).optional().describe('The speaking pitch.'),
+  volume: z.number().min(-20.0).max(20.0).optional().describe('The volume gain in dB.'),
 });
 export type TextToSpeechInput = z.infer<typeof TextToSpeechInputSchema>;
 
@@ -46,9 +47,10 @@ const textToSpeechFlow = ai.defineFlow(
           voiceConfig: {
             prebuiltVoiceConfig: {voiceName: input.voice || 'Algenib'},
           },
+          speakingRate: input.rate,
+          pitch: input.pitch,
+          volumeGainDb: input.volume,
         },
-        speakingRate: input.rate,
-        pitch: input.pitch,
       },
       prompt: input.text,
     });
