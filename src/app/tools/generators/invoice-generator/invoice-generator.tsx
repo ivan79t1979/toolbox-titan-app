@@ -51,6 +51,7 @@ type CustomField = {
 
 type Labels = {
     invoiceTitle: string;
+    billFrom: string;
     billTo: string;
     invoiceNumber: string;
     date: string;
@@ -81,6 +82,7 @@ export function InvoiceGenerator() {
 
   const [labels, setLabels] = useState<Labels>({
     invoiceTitle: 'INVOICE',
+    billFrom: 'Bill From',
     billTo: 'Bill To',
     invoiceNumber: 'Invoice #',
     date: 'Date',
@@ -318,20 +320,21 @@ export function InvoiceGenerator() {
         <Card className="shadow-lg">
             <CardContent ref={invoiceRef} className="p-8 bg-white text-black">
                 <header className="flex justify-between items-start mb-12">
-                    <div>
+                    <div className="flex-1">
                         {logo ? (
-                          <div className="relative w-40 h-20 mb-4">
-                            <Image src={logo} alt="Company Logo" width={160} height={80} style={{ objectFit: 'contain' }} />
+                          <div className="mb-4" style={{width: '160px', height: '80px'}}>
+                            <Image src={logo} alt="Company Logo" width={160} height={80} style={{ objectFit: 'contain', width: '100%', height: '100%' }} />
                           </div>
                         ) : (
                           <div className="w-40 h-20 mb-4" />
                         )}
+                        <p className="text-gray-500 font-semibold">{labels.billFrom}</p>
                         <div className="text-sm font-sans">
                           {yourDetails.split('\n').map((line, i) => <div key={i}>{line}</div>)}
                         </div>
                     </div>
-                    <div className="text-right">
-                        <h1 className="text-4xl font-bold font-headline mb-2">{labels.invoiceTitle}</h1>
+                    <div className="text-right flex-1">
+                        <h1 className="text-4xl font-bold font-headline mb-8">{labels.invoiceTitle}</h1>
                         <p>{labels.invoiceNumber} {invoiceMeta.number}</p>
                     </div>
                 </header>
@@ -405,5 +408,3 @@ export function InvoiceGenerator() {
     </div>
   );
 }
-
-    
