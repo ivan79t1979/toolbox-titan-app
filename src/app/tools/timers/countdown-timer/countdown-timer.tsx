@@ -27,8 +27,11 @@ import {
 type AlarmSoundType = 'beep' | 'bell' | 'digital';
 let audioContext: AudioContext | null = null;
 let alarmOscillator: OscillatorNode | null = null;
+let stopLoop: (() => void) | null = null;
 
 const playTone = (soundType: AlarmSoundType, isLoop: boolean) => {
+  if (typeof window === 'undefined') return;
+
   if (!audioContext) {
     try {
       audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
@@ -38,11 +41,7 @@ const playTone = (soundType: AlarmSoundType, isLoop: boolean) => {
     }
   }
 
-  if (alarmOscillator) {
-    alarmOscillator.onended = null;
-    alarmOscillator.stop();
-    alarmOscillator = null;
-  }
+  stopTone();
 
   const play = (time: number) => {
     let osc: OscillatorNode | null = null;
@@ -81,30 +80,28 @@ const playTone = (soundType: AlarmSoundType, isLoop: boolean) => {
   }
   
   if (isLoop) {
+    let loopTimeout: NodeJS.Timeout | null = null;
     const loop = () => {
-      const source = play(audioContext!.currentTime);
-      if (source) {
-        alarmOscillator = source;
-        alarmOscillator.onended = () => {
-          setTimeout(loop, 1000); // 1-second delay between sounds in a loop
-        };
-      }
+      play(audioContext!.currentTime);
+      loopTimeout = setTimeout(loop, 1000); 
     };
     loop();
+
+    stopLoop = () => {
+      if (loopTimeout) {
+        clearTimeout(loopTimeout);
+        loopTimeout = null;
+        stopLoop = null;
+      }
+    };
   } else {
     play(audioContext!.currentTime);
   }
 };
 
 const stopTone = () => {
-  if (alarmOscillator) {
-    alarmOscillator.onended = null;
-    try {
-      alarmOscillator.stop();
-    } catch (e) {
-      // Oscillator might already be stopped
-    }
-    alarmOscillator = null;
+  if (stopLoop) {
+    stopLoop();
   }
 };
 
@@ -272,7 +269,7 @@ export function CountdownTimer() {
         </CardContent>
       </Card>
 
-      <AlertDialog open={isTimeUp} onOpenChange={setIsTimeUp}>
+      <AlertDialog open={isTimeUp} onOpenChange={(open) => !open && handleTimeUpClose()}>
         <AlertDialogContent>
           <AlertDialogHeader className="items-center">
             <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
