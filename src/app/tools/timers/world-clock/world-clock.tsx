@@ -138,40 +138,55 @@ export function WorldClock() {
   const [open, setOpen] = useState(false);
   const [searchValue, setSearchValue] = useState('');
   const { toast } = useToast();
+  
+  const getOffsetString = (timezone: string): string => {
+    try {
+      const formatter = new Intl.DateTimeFormat("en-US", {
+        timeZone: timezone,
+        timeZoneName: "shortOffset",
+      });
+      const parts = formatter.formatToParts(new Date());
+      const offsetPart = parts.find((part) => part.type === "timeZoneName");
+      return offsetPart?.value || "";
+    } catch (e) {
+      return "";
+    }
+  };
+
 
   const addClock = (timezoneIdentifier: string) => {
-    const searchTerm = timezoneIdentifier.toLowerCase();
-    
-    let clockToAdd: Clock | null = null;
-    
-    // Find a match from the predefined list using the timezone identifier
-    const existing = timezones.find(
-      (tz) => tz.timezone.toLowerCase() === searchTerm
+    // Check if the user is selecting from the dropdown (using the full timezone)
+    // or trying a custom value.
+    const selectedTz = timezones.find(
+      (tz) => tz.timezone.toLowerCase() === timezoneIdentifier.toLowerCase() ||
+               tz.city.toLowerCase() === timezoneIdentifier.toLowerCase()
     );
+
+    let clockToAdd: Clock | null = selectedTz || null;
     
-    if (existing) {
-      clockToAdd = existing;
-    } else {
-      // If no exact match, try to use the value as a direct timezone identifier
-      try {
-        // Validate timezone
-        new Intl.DateTimeFormat('en-US', { timeZone: timezoneIdentifier }).format();
-        
-        const city = timezoneIdentifier.split('/').pop()?.replace(/_/g, ' ') || 'Custom';
-        const country = timezoneIdentifier.split('/')[0].replace(/_/g, ' ');
-        clockToAdd = {
-            city: city,
-            timezone: timezoneIdentifier,
-            country: country,
-        };
-      } catch (e) {
-        toast({
-          variant: 'destructive',
-          title: 'Invalid Timezone',
-          description: `Could not find a valid timezone for "${timezoneIdentifier}".`,
-        });
-      }
+    if (!clockToAdd) {
+        // Handle custom input
+        try {
+            // Validate timezone
+            new Intl.DateTimeFormat('en-US', { timeZone: timezoneIdentifier }).format();
+            
+            const city = timezoneIdentifier.split('/').pop()?.replace(/_/g, ' ') || 'Custom';
+            const country = timezoneIdentifier.split('/')[0].replace(/_/g, ' ');
+            clockToAdd = {
+                city: city,
+                timezone: timezoneIdentifier,
+                country: country,
+            };
+        } catch (e) {
+            toast({
+            variant: 'destructive',
+            title: 'Invalid Timezone',
+            description: `Could not find a valid timezone for "${timezoneIdentifier}".`,
+            });
+            return;
+        }
     }
+
 
     if (clockToAdd) {
         if (!clocks.some(c => c.timezone === clockToAdd!.timezone)) {
@@ -235,7 +250,7 @@ export function WorldClock() {
                     }}
                   >
                     <div className="flex flex-col">
-                      <span>{tz.city}, {tz.country}</span>
+                      <span>{tz.city}, {tz.country} <span className="text-muted-foreground">({getOffsetString(tz.timezone)})</span></span>
                       <span className="text-xs text-muted-foreground">{tz.timezone}</span>
                     </div>
                   </CommandItem>
