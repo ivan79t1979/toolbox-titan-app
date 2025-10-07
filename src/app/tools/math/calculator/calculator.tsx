@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
-import { ChevronUp, Divide, Equal, Minus, Percent, Plus, RotateCcw, X, Delete } from 'lucide-react';
+import { Divide, Equal, Minus, Percent, Plus, RotateCcw, X, Delete } from 'lucide-react';
 
 type Operator = '+' | '-' | '*' | '/';
 
@@ -14,6 +14,7 @@ export function Calculator() {
   const [previousInput, setPreviousInput] = useState<string | null>(null);
   const [operator, setOperator] = useState<Operator | null>(null);
   const [history, setHistory] = useState('');
+  const [memory, setMemory] = useState<number>(0);
 
   const handleNumberClick = (value: string) => {
     if (input === '0' || (previousInput && operator && previousInput === input)) {
@@ -116,6 +117,13 @@ export function Calculator() {
     setHistory(`${op}(${input})`);
     setInput(String(result));
   }
+  
+  const handleMemoryClear = () => setMemory(0);
+  const handleMemoryRecall = () => setInput(String(memory));
+  const handleMemoryStore = () => setMemory(parseFloat(input));
+  const handleMemoryAdd = () => setMemory((prev) => prev + parseFloat(input));
+  const handleMemorySubtract = () => setMemory((prev) => prev - parseFloat(input));
+
 
   const buttonStyle = "h-16 text-2xl";
   const operatorStyle = "bg-amber-500 hover:bg-amber-600 text-white";
@@ -123,6 +131,15 @@ export function Calculator() {
 
   const renderButtons = (isAdvanced: boolean) => (
     <div className={cn("grid gap-2", isAdvanced ? "grid-cols-5" : "grid-cols-4")}>
+      {isAdvanced && <div />}
+      <Button className={cn(buttonStyle, functionStyle)} onClick={handleMemoryClear}>MC</Button>
+      <Button className={cn(buttonStyle, functionStyle)} onClick={handleMemoryRecall}>MR</Button>
+      <Button className={cn(buttonStyle, functionStyle)} onClick={handleMemoryStore}>MS</Button>
+      <div className="grid grid-cols-2 gap-2">
+        <Button className={cn(buttonStyle, functionStyle, 'h-auto')} onClick={handleMemoryAdd}>M+</Button>
+        <Button className={cn(buttonStyle, functionStyle, 'h-auto')} onClick={handleMemorySubtract}>M-</Button>
+      </div>
+
       {isAdvanced && <Button className={cn(buttonStyle, functionStyle)} onClick={() => handleAdvancedOp('sin')}>sin</Button>}
       <Button className={cn(buttonStyle, functionStyle)} onClick={handlePercentage}>%</Button>
       <Button className={cn(buttonStyle, functionStyle)} onClick={handleClearEntry}>CE</Button>
@@ -168,7 +185,10 @@ export function Calculator() {
         <Card className="w-full max-w-sm lg:max-w-xl p-4">
             <CardContent className="p-0">
                 <div className="mb-4 text-right pr-4">
-                    <div className="text-muted-foreground h-6">{history}</div>
+                    <div className="text-muted-foreground h-6 flex items-center justify-end">
+                      {memory !== 0 && <span className="text-xs font-mono bg-muted px-1.5 py-0.5 rounded-sm">M</span>}
+                      <span className="ml-2">{history}</span>
+                    </div>
                     <div className="text-5xl font-bold break-all">{input}</div>
                 </div>
                 <Tabs defaultValue="simple" className="w-full">
