@@ -27,7 +27,6 @@ export default function BackgroundRemoverPage() {
     <>
       <PageHeader
         title="Background Remover"
-        description="Removes the background from an image using a custom model from Hugging Face."
       />
       <div className="mt-8">
         {isClient && (
