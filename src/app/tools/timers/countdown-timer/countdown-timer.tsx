@@ -5,8 +5,15 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Progress } from '@/components/ui/progress';
-import { Play, Pause, RotateCcw, Bell } from 'lucide-react';
+import { Play, Pause, RotateCcw, Bell, Volume2, Settings } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogContent,
@@ -17,6 +24,90 @@ import {
   AlertDialogAction,
 } from '@/components/ui/alert-dialog';
 
+type AlarmSoundType = 'beep' | 'bell' | 'digital';
+let audioContext: AudioContext | null = null;
+let alarmOscillator: OscillatorNode | null = null;
+
+const playTone = (soundType: AlarmSoundType, isLoop: boolean) => {
+  if (!audioContext) {
+    try {
+      audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+    } catch (e) {
+      console.error("Web Audio API is not supported in this browser");
+      return;
+    }
+  }
+
+  if (alarmOscillator) {
+    alarmOscillator.onended = null;
+    alarmOscillator.stop();
+    alarmOscillator = null;
+  }
+
+  const play = (time: number) => {
+    let osc: OscillatorNode | null = null;
+    switch (soundType) {
+      case 'bell':
+        osc = audioContext!.createOscillator();
+        const gain = audioContext!.createGain();
+        osc.connect(gain);
+        gain.connect(audioContext!.destination);
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(988, time);
+        gain.gain.setValueAtTime(1, time);
+        gain.gain.exponentialRampToValueAtTime(0.0001, time + 1);
+        osc.start(time);
+        osc.stop(time + 1);
+        break;
+      case 'digital':
+        osc = audioContext!.createOscillator();
+        osc.connect(audioContext!.destination);
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(1200, time);
+        osc.start(time);
+        osc.stop(time + 0.1);
+        break;
+      case 'beep':
+      default:
+        osc = audioContext!.createOscillator();
+        osc.connect(audioContext!.destination);
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(880, time);
+        osc.start(time);
+        osc.stop(time + 0.2);
+        break;
+    }
+    return osc;
+  }
+  
+  if (isLoop) {
+    const loop = () => {
+      const source = play(audioContext!.currentTime);
+      if (source) {
+        alarmOscillator = source;
+        alarmOscillator.onended = () => {
+          setTimeout(loop, 1000); // 1-second delay between sounds in a loop
+        };
+      }
+    };
+    loop();
+  } else {
+    play(audioContext!.currentTime);
+  }
+};
+
+const stopTone = () => {
+  if (alarmOscillator) {
+    alarmOscillator.onended = null;
+    try {
+      alarmOscillator.stop();
+    } catch (e) {
+      // Oscillator might already be stopped
+    }
+    alarmOscillator = null;
+  }
+};
+
 export function CountdownTimer() {
   const [initialDuration, setInitialDuration] = useState({
     years: 0, months: 0, weeks: 0, days: 0, hours: 0, minutes: 5, seconds: 0
@@ -25,6 +116,8 @@ export function CountdownTimer() {
   const [timeLeft, setTimeLeft] = useState(0);
   const [isActive, setIsActive] = useState(false);
   const [isTimeUp, setIsTimeUp] = useState(false);
+  const [alarmSound, setAlarmSound] = useState<AlarmSoundType>('bell');
+
 
   const calculateTotalSeconds = (duration: typeof initialDuration) => {
     return (
@@ -38,6 +131,11 @@ export function CountdownTimer() {
     );
   };
   
+  const playAlarm = useCallback(() => {
+    playTone(alarmSound, true);
+  }, [alarmSound]);
+
+
   useEffect(() => {
     const seconds = calculateTotalSeconds(initialDuration);
     setTotalSeconds(seconds);
@@ -58,7 +156,7 @@ export function CountdownTimer() {
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [isActive, timeLeft]);
+  }, [isActive, timeLeft, playAlarm]);
 
   const handleStartPause = () => {
     if (totalSeconds > 0) {
@@ -80,6 +178,15 @@ export function CountdownTimer() {
         }));
     }
   };
+  
+  const handleTimeUpClose = () => {
+    stopTone();
+    setIsTimeUp(false);
+  }
+
+  const previewSound = () => {
+    playTone(alarmSound, false);
+  }
 
   const displayedTime = useMemo(() => {
     const d = Math.floor(timeLeft / (3600 * 24));
@@ -90,20 +197,6 @@ export function CountdownTimer() {
   }, [timeLeft]);
 
   const progress = totalSeconds > 0 ? ((totalSeconds - timeLeft) / totalSeconds) * 100 : 0;
-  
-  const playAlarm = () => {
-    try {
-        const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-        const oscillator = audioContext.createOscillator();
-        oscillator.type = 'sine';
-        oscillator.frequency.setValueAtTime(880, audioContext.currentTime);
-        oscillator.connect(audioContext.destination);
-        oscillator.start();
-        oscillator.stop(audioContext.currentTime + 0.5);
-    } catch (e) {
-        console.error("Could not play alarm sound.", e);
-    }
-  };
 
   return (
     <div className="mx-auto max-w-4xl space-y-8">
@@ -152,6 +245,32 @@ export function CountdownTimer() {
             </div>
         </CardContent>
       </Card>
+      
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2"><Settings /> Settings</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-2 max-w-xs">
+            <Label>Alarm Sound</Label>
+            <div className="flex items-center gap-2">
+              <Select value={alarmSound} onValueChange={(v: AlarmSoundType) => setAlarmSound(v)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a sound" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="bell">Bell</SelectItem>
+                  <SelectItem value="digital">Digital</SelectItem>
+                  <SelectItem value="beep">Beep</SelectItem>
+                </SelectContent>
+              </Select>
+              <Button variant="outline" size="icon" onClick={previewSound} aria-label="Preview sound">
+                <Volume2 className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       <AlertDialog open={isTimeUp} onOpenChange={setIsTimeUp}>
         <AlertDialogContent>
@@ -165,7 +284,7 @@ export function CountdownTimer() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogAction onClick={() => setIsTimeUp(false)}>Close</AlertDialogAction>
+            <AlertDialogAction onClick={handleTimeUpClose}>Close</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
