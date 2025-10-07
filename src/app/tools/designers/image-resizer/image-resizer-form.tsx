@@ -16,7 +16,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
-import { Loader2, Download, Scaling, AspectRatio } from 'lucide-react';
+import { Loader2, Download, Scaling, Ratio } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import { Label } from '@/components/ui/label';
@@ -183,7 +183,7 @@ export function ImageResizerForm() {
                                 />
                             </FormControl>
                             <Label className="font-normal flex items-center gap-2">
-                                <AspectRatio className="h-4 w-4" /> Maintain Aspect Ratio
+                                <Ratio className="h-4 w-4" /> Maintain Aspect Ratio
                             </Label>
                         </FormItem>
                     )}
