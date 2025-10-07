@@ -142,36 +142,47 @@ export function WorldClock() {
   const [searchValue, setSearchValue] = useState('');
   const { toast } = useToast();
 
-  const addClock = (timezoneIdentifier: string, city?: string, country?: string) => {
+  const addClock = (value: string) => {
+    const searchTerm = value.toLowerCase();
+    
+    // First, try to find a match in the predefined list (city, country, or timezone)
     const existing = timezones.find(
-      (tz) => tz.timezone === timezoneIdentifier || tz.city.toLowerCase() === timezoneIdentifier.toLowerCase()
+      (tz) =>
+        tz.city.toLowerCase() === searchTerm ||
+        tz.timezone.toLowerCase() === searchTerm
     );
     
+    let clockToAdd: Clock | null = null;
+    
     if (existing) {
-      if (!clocks.some(c => c.timezone === existing.timezone)) {
-        setClocks([...clocks, existing]);
-      }
+      clockToAdd = existing;
     } else {
-        try {
-            // Validate timezone before adding
-            new Intl.DateTimeFormat('en-US', { timeZone: timezoneIdentifier }).format();
-            const newClock: Clock = {
-                city: city || timezoneIdentifier.split('/').pop()?.replace(/_/g, ' ') || 'Custom',
-                timezone: timezoneIdentifier,
-                country: country || timezoneIdentifier.split('/')[0].replace(/_/g, ' '),
-            }
-            if (!clocks.some(c => c.timezone === newClock.timezone)) {
-                setClocks([...clocks, newClock]);
-            }
-        } catch (e) {
-            toast({
-              variant: 'destructive',
-              title: 'Invalid Timezone',
-              description: `Could not find a valid timezone for "${timezoneIdentifier}".`,
-            });
-            return;
+      // If no exact match, try to use the value as a timezone identifier
+      try {
+        new Intl.DateTimeFormat('en-US', { timeZone: value }).format();
+        const city = value.split('/').pop()?.replace(/_/g, ' ') || 'Custom';
+        const country = value.split('/')[0].replace(/_/g, ' ');
+        clockToAdd = {
+            city: city,
+            timezone: value,
+            country: country,
+        };
+      } catch (e) {
+        // Invalid timezone, show error
+        toast({
+          variant: 'destructive',
+          title: 'Invalid Timezone',
+          description: `Could not find a valid timezone for "${value}".`,
+        });
+      }
+    }
+
+    if (clockToAdd) {
+        if (!clocks.some(c => c.timezone === clockToAdd!.timezone)) {
+            setClocks([...clocks, clockToAdd]);
         }
     }
+    
     setSearchValue('');
     setOpen(false);
   };
@@ -217,8 +228,12 @@ export function WorldClock() {
                 {filteredTimezones.map((tz) => (
                   <CommandItem
                     key={tz.timezone}
-                    value={`${tz.city}, ${tz.country}`}
-                    onSelect={() => addClock(tz.timezone, tz.city, tz.country)}
+                    value={tz.city}
+                    onSelect={(currentValue) => {
+                      // The `currentValue` from cmdk is the lowercase city name,
+                      // so we use the original tz object to add the clock.
+                      addClock(tz.timezone);
+                    }}
                   >
                     {tz.city}, {tz.country}
                   </CommandItem>
