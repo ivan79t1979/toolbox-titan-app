@@ -26,15 +26,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Slider } from '@/components/ui/slider';
-import { Label } from '@/components/ui/label';
 
 const formSchema = z.object({
   text: z.string().min(1, 'Please enter some text to convert to speech.'),
   voice: z.string(),
-  rate: z.number(),
-  pitch: z.number(),
-  volume: z.number(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -56,9 +51,6 @@ export function TextToSpeechForm() {
     defaultValues: {
       text: '',
       voice: 'Algenib',
-      rate: 1.0,
-      pitch: 0.0,
-      volume: 0.0,
     },
   });
 
@@ -79,10 +71,6 @@ export function TextToSpeechForm() {
       setIsLoading(false);
     }
   }
-
-  const rate = form.watch('rate');
-  const pitch = form.watch('pitch');
-  const volume = form.watch('volume');
 
   return (
     <div className="grid gap-8 lg:grid-cols-2">
@@ -129,69 +117,6 @@ export function TextToSpeechForm() {
                             </Select>
                             <FormMessage />
                         </FormItem>
-                        )}
-                    />
-                    <FormField
-                        control={form.control}
-                        name="rate"
-                        render={({ field }) => (
-                            <FormItem>
-                                <div className="flex justify-between">
-                                    <FormLabel>Speed</FormLabel>
-                                    <span className="text-sm font-mono">{rate.toFixed(2)}x</span>
-                                </div>
-                                <FormControl>
-                                    <Slider
-                                        value={[field.value]}
-                                        onValueChange={(value) => field.onChange(value[0])}
-                                        min={0.25}
-                                        max={4.0}
-                                        step={0.05}
-                                    />
-                                </FormControl>
-                            </FormItem>
-                        )}
-                    />
-                    <FormField
-                        control={form.control}
-                        name="pitch"
-                        render={({ field }) => (
-                            <FormItem>
-                               <div className="flex justify-between">
-                                    <FormLabel>Pitch</FormLabel>
-                                    <span className="text-sm font-mono">{pitch.toFixed(1)}</span>
-                                </div>
-                                <FormControl>
-                                    <Slider
-                                        value={[field.value]}
-                                        onValueChange={(value) => field.onChange(value[0])}
-                                        min={-20.0}
-                                        max={20.0}
-                                        step={0.5}
-                                    />
-                                </FormControl>
-                            </FormItem>
-                        )}
-                    />
-                     <FormField
-                        control={form.control}
-                        name="volume"
-                        render={({ field }) => (
-                            <FormItem>
-                               <div className="flex justify-between">
-                                    <FormLabel>Volume</FormLabel>
-                                    <span className="text-sm font-mono">{volume.toFixed(1)} dB</span>
-                                </div>
-                                <FormControl>
-                                    <Slider
-                                        value={[field.value]}
-                                        onValueChange={(value) => field.onChange(value[0])}
-                                        min={-20.0}
-                                        max={20.0}
-                                        step={0.5}
-                                    />
-                                </FormControl>
-                            </FormItem>
                         )}
                     />
                 </CardContent>
