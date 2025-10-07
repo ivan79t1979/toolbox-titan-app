@@ -1,5 +1,5 @@
 import { PageHeader } from '@/components/page-header';
-import { ToolPlaceholder } from '@/components/tool-placeholder';
+import { CountdownTimer } from './countdown-timer';
 
 export default function CountdownTimerPage() {
   return (
@@ -8,7 +8,7 @@ export default function CountdownTimerPage() {
         title="Countdown Timer"
         description="Count down from a specified time."
       />
-      <ToolPlaceholder />
+      <CountdownTimer />
     </>
   );
 }
