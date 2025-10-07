@@ -50,7 +50,8 @@ function ClockCard({ clock, onRemove }: { clock: Clock; onRemove: () => void }) 
   const [time, setTime] = useState<Date | null>(null);
 
   useEffect(() => {
-    setTime(new Date());
+    // Set initial time without waiting for interval
+    setTime(new Date()); 
     const timer = setInterval(() => setTime(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
@@ -92,23 +93,20 @@ function ClockCard({ clock, onRemove }: { clock: Clock; onRemove: () => void }) 
     day: 'numeric',
   });
 
-  const getOffset = () => {
+  const getOffsetInfo = () => {
     try {
         const formatter = new Intl.DateTimeFormat('en-US', { timeZone: clock.timezone, timeZoneName: 'shortOffset' });
         const parts = formatter.formatToParts(new Date());
         const offsetPart = parts.find(part => part.type === 'timeZoneName');
+        const offsetString = offsetPart ? offsetPart.value : '';
+
+        const dstFormatter = new Intl.DateTimeFormat('en-US', { timeZone: clock.timezone, timeZoneName: 'long' });
+        const isDST = dstFormatter.format(new Date()).includes('Daylight');
         
-        if (offsetPart) return offsetPart.value;
+        return `${offsetString}${isDST ? ' (DST)' : ''}`;
     } catch(e) {
         return "Invalid Timezone"
     }
-
-    const localOffset = -new Date().getTimezoneOffset() / 60;
-    const cityDate = new Date(time.toLocaleString('en-US', { timeZone: clock.timezone }));
-    const cityOffset = isNaN(cityDate.getTime()) ? localOffset : -cityDate.getTimezoneOffset() / 60;
-    const diff = cityOffset - localOffset;
-
-    return `UTC${diff >= 0 ? '+' : ''}${diff}`;
   };
 
   return (
@@ -127,7 +125,7 @@ function ClockCard({ clock, onRemove }: { clock: Clock; onRemove: () => void }) 
       <CardContent>
         <p className="text-4xl font-bold font-mono">{localTime}</p>
         <p className="text-muted-foreground">{localDate}</p>
-        <p className="text-sm text-muted-foreground mt-2">{getOffset()}</p>
+        <p className="text-sm text-muted-foreground mt-2">{getOffsetInfo()}</p>
       </CardContent>
     </Card>
   );
@@ -139,15 +137,19 @@ export function WorldClock() {
   const [searchValue, setSearchValue] = useState('');
   const { toast } = useToast();
   
-  const getOffsetString = (timezone: string): string => {
+  const getOffsetInfoString = (timezone: string): string => {
     try {
-      const formatter = new Intl.DateTimeFormat("en-US", {
+      const offsetFormatter = new Intl.DateTimeFormat("en-US", {
         timeZone: timezone,
         timeZoneName: "shortOffset",
       });
-      const parts = formatter.formatToParts(new Date());
-      const offsetPart = parts.find((part) => part.type === "timeZoneName");
-      return offsetPart?.value || "";
+      const offsetPart = offsetFormatter.formatToParts(new Date()).find((part) => part.type === "timeZoneName");
+      const offsetString = offsetPart?.value || "";
+
+      const dstFormatter = new Intl.DateTimeFormat('en-US', { timeZone: timezone, timeZoneName: 'long' });
+      const isDST = dstFormatter.format(new Date()).includes('Daylight');
+
+      return `${offsetString}${isDST ? ' DST' : ''}`;
     } catch (e) {
       return "";
     }
@@ -155,11 +157,10 @@ export function WorldClock() {
 
 
   const addClock = (timezoneIdentifier: string) => {
-    // Check if the user is selecting from the dropdown (using the full timezone)
-    // or trying a custom value.
+    const searchTerm = timezoneIdentifier.toLowerCase();
     const selectedTz = timezones.find(
-      (tz) => tz.timezone.toLowerCase() === timezoneIdentifier.toLowerCase() ||
-               tz.city.toLowerCase() === timezoneIdentifier.toLowerCase()
+      (tz) => tz.timezone.toLowerCase() === searchTerm ||
+               tz.city.toLowerCase() === searchTerm
     );
 
     let clockToAdd: Clock | null = selectedTz || null;
@@ -250,7 +251,7 @@ export function WorldClock() {
                     }}
                   >
                     <div className="flex flex-col">
-                      <span>{tz.city}, {tz.country} <span className="text-muted-foreground">({getOffsetString(tz.timezone)})</span></span>
+                      <span>{tz.city}, {tz.country} <span className="text-muted-foreground">({getOffsetInfoString(tz.timezone)})</span></span>
                       <span className="text-xs text-muted-foreground">{tz.timezone}</span>
                     </div>
                   </CommandItem>
