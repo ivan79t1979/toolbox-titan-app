@@ -14,7 +14,6 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-  CardDescription,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -84,7 +83,7 @@ export function DecisionMatrixTool() {
   ]);
 
   const { toast } = useToast();
-  const tableRef = useRef<HTMLDivElement>(null);
+  const printableRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const totals = useMemo(() => {
@@ -279,9 +278,9 @@ export function DecisionMatrixTool() {
   };
   
   const exportPNG = async () => {
-    if (!tableRef.current) return;
+    if (!printableRef.current) return;
     try {
-      const canvas = await html2canvas(tableRef.current, { scale: 2 });
+      const canvas = await html2canvas(printableRef.current, { scale: 2 });
       const link = document.createElement('a');
       link.download = 'decision-matrix.png';
       link.href = canvas.toDataURL('image/png');
@@ -292,9 +291,9 @@ export function DecisionMatrixTool() {
   };
 
   const exportPDF = async () => {
-    if (!tableRef.current) return;
+    if (!printableRef.current) return;
     try {
-      const canvas = await html2canvas(tableRef.current, { scale: 2 });
+      const canvas = await html2canvas(printableRef.current, { scale: 2 });
       const imgData = canvas.toDataURL('image/png');
       
       const pdf = new jsPDF({
@@ -318,6 +317,20 @@ export function DecisionMatrixTool() {
           .printable-area, .printable-area * { visibility: visible; }
           .printable-area { position: absolute; left: 0; top: 0; width: 100%; padding: 1rem; }
           .no-print { display: none !important; }
+          .print-input {
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            background-color: transparent !important;
+            border: none !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            display: inline !important;
+            width: auto !important;
+            color: inherit !important;
+            text-align: inherit !important;
+            font: inherit !important;
+          }
         }
       `}</style>
       <div className="flex flex-wrap items-center justify-between gap-2 no-print">
@@ -350,90 +363,92 @@ export function DecisionMatrixTool() {
         </div>
       </div>
       
-      <Card className="printable-area" ref={tableRef}>
-        <CardContent className="p-0">
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="min-w-[200px]">Criterion</TableHead>
-                  <TableHead className="text-center">Weight</TableHead>
-                  {options.map(opt => (
-                    <TableHead key={opt.id} className={cn("text-center min-w-[150px]", opt.id === bestOptionId && "bg-primary/10")}>
-                        <div className="flex items-center justify-center gap-2">
-                            <Input
-                                value={opt.name}
-                                onChange={e => updateOptionName(opt.id, e.target.value)}
-                                className="font-bold text-center border-none p-1 h-auto"
-                            />
-                            <Button variant="ghost" size="icon" className="h-6 w-6 no-print" onClick={() => removeOption(opt.id)}><Trash2 className="h-4 w-4"/></Button>
-                        </div>
-                    </TableHead>
-                  ))}
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {criteria.map(crit => (
-                  <TableRow key={crit.id}>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <Input
-                            value={crit.name}
-                            onChange={e => updateCriterionName(crit.id, e.target.value)}
-                            className="font-semibold border-none p-1 h-auto"
-                        />
-                        <Button variant="ghost" size="icon" className="h-6 w-6 no-print" onClick={() => removeCriterion(crit.id)}><Trash2 className="h-4 w-4"/></Button>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Input
-                        type="number"
-                        value={crit.weight}
-                        onChange={e => updateCriterionWeight(crit.id, parseInt(e.target.value, 10) || 0)}
-                        className="w-20 text-center mx-auto"
-                      />
-                    </TableCell>
-                    {options.map(opt => (
-                      <TableCell key={opt.id} className={cn(opt.id === bestOptionId && "bg-primary/5")}>
-                        <Input
-                          type="number"
-                          value={scores.find(s => s.optionId === opt.id && s.criterionId === crit.id)?.value || 0}
-                          onChange={e => updateScore(opt.id, crit.id, parseInt(e.target.value, 10) || 0)}
-                          className="w-20 text-center mx-auto"
-                        />
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                ))}
-                <TableRow className="bg-muted/50 font-bold">
-                    <TableCell>Total Score</TableCell>
-                    <TableCell></TableCell>
-                    {options.map(opt => (
-                        <TableCell key={opt.id} className={cn("text-center text-lg", opt.id === bestOptionId && "bg-primary/10 text-primary")}>
+      <div className="printable-area space-y-6" ref={printableRef}>
+          <Card>
+            <CardContent className="p-0">
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="min-w-[200px]">Criterion</TableHead>
+                      <TableHead className="text-center">Weight</TableHead>
+                      {options.map(opt => (
+                        <TableHead key={opt.id} className={cn("text-center min-w-[150px]", opt.id === bestOptionId && "bg-primary/10")}>
                             <div className="flex items-center justify-center gap-2">
-                                {totals.get(opt.id)}
-                                {opt.id === bestOptionId && <Star className="h-5 w-5" />}
+                                <Input
+                                    value={opt.name}
+                                    onChange={e => updateOptionName(opt.id, e.target.value)}
+                                    className="font-bold text-center border-none p-1 h-auto print-input"
+                                />
+                                <Button variant="ghost" size="icon" className="h-6 w-6 no-print" onClick={() => removeOption(opt.id)}><Trash2 className="h-4 w-4"/></Button>
                             </div>
+                        </TableHead>
+                      ))}
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {criteria.map(crit => (
+                      <TableRow key={crit.id}>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <Input
+                                value={crit.name}
+                                onChange={e => updateCriterionName(crit.id, e.target.value)}
+                                className="font-semibold border-none p-1 h-auto print-input"
+                            />
+                            <Button variant="ghost" size="icon" className="h-6 w-6 no-print" onClick={() => removeCriterion(crit.id)}><Trash2 className="h-4 w-4"/></Button>
+                          </div>
                         </TableCell>
+                        <TableCell>
+                          <Input
+                            type="number"
+                            value={crit.weight}
+                            onChange={e => updateCriterionWeight(crit.id, parseInt(e.target.value, 10) || 0)}
+                            className="w-20 text-center mx-auto print-input"
+                          />
+                        </TableCell>
+                        {options.map(opt => (
+                          <TableCell key={opt.id} className={cn("text-center", opt.id === bestOptionId && "bg-primary/5")}>
+                            <Input
+                              type="number"
+                              value={scores.find(s => s.optionId === opt.id && s.criterionId === crit.id)?.value || 0}
+                              onChange={e => updateScore(opt.id, crit.id, parseInt(e.target.value, 10) || 0)}
+                              className="w-20 text-center mx-auto print-input"
+                            />
+                          </TableCell>
+                        ))}
+                      </TableRow>
                     ))}
-                </TableRow>
-              </TableBody>
-            </Table>
-          </div>
-        </CardContent>
-      </Card>
-      
-      {bestOptionId && (
-        <Card className="max-w-md mx-auto no-print">
-            <CardHeader>
-                <CardTitle className="text-center">Recommended Choice</CardTitle>
-            </CardHeader>
-            <CardContent className="text-center">
-                <p className="text-2xl font-bold text-primary">{options.find(o => o.id === bestOptionId)?.name}</p>
-                <p className="text-muted-foreground">with a score of {totals.get(bestOptionId)}</p>
+                    <TableRow className="bg-muted/50 font-bold">
+                        <TableCell>Total Score</TableCell>
+                        <TableCell></TableCell>
+                        {options.map(opt => (
+                            <TableCell key={opt.id} className={cn("text-center text-lg", opt.id === bestOptionId && "bg-primary/10 text-primary")}>
+                                <div className="flex items-center justify-center gap-2">
+                                    {totals.get(opt.id)}
+                                    {opt.id === bestOptionId && <Star className="h-5 w-5" />}
+                                </div>
+                            </TableCell>
+                        ))}
+                    </TableRow>
+                  </TableBody>
+                </Table>
+              </div>
             </CardContent>
-        </Card>
-      )}
+          </Card>
+          
+          {bestOptionId && (
+            <Card className="max-w-md mx-auto print-only:border-none print-only:shadow-none">
+                <CardHeader>
+                    <CardTitle className="text-center">Recommended Choice</CardTitle>
+                </CardHeader>
+                <CardContent className="text-center">
+                    <p className="text-2xl font-bold text-primary">{options.find(o => o.id === bestOptionId)?.name}</p>
+                    <p className="text-muted-foreground">with a score of {totals.get(bestOptionId)}</p>
+                </CardContent>
+            </Card>
+          )}
+      </div>
 
     </div>
   );
