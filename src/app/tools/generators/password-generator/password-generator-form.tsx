@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -8,23 +8,29 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
+  CardFooter,
 } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Copy, RefreshCw } from 'lucide-react';
+import { Copy, RefreshCw, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { ScrollArea } from '@/components/ui/scroll-area';
+
+type PasswordEntry = {
+  id: string;
+  value: string;
+};
 
 export function PasswordGeneratorForm() {
-  const [password, setPassword] = useState('');
+  const [passwords, setPasswords] = useState<PasswordEntry[]>([]);
   const [length, setLength] = useState(16);
   const [includeUppercase, setIncludeUppercase] = useState(true);
   const [includeNumbers, setIncludeNumbers] = useState(true);
   const [includeSymbols, setIncludeSymbols] = useState(true);
   const { toast } = useToast();
 
-  const generatePassword = () => {
+  const generatePassword = useCallback(() => {
     const lowercaseChars = 'abcdefghijklmnopqrstuvwxyz';
     const uppercaseChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
     const numberChars = '0123456789';
@@ -35,71 +41,64 @@ export function PasswordGeneratorForm() {
     if (includeNumbers) charPool += numberChars;
     if (includeSymbols) charPool += symbolChars;
 
-    if(charPool === '') {
-        setPassword('');
-        return;
+    if (charPool === '') {
+      toast({
+        variant: 'destructive',
+        title: 'No character types selected',
+        description: 'Please select at least one character type to generate a password.',
+      });
+      return;
     }
 
-    let newPassword = '';
+    let newPasswordValue = '';
     for (let i = 0; i < length; i++) {
       const randomIndex = Math.floor(Math.random() * charPool.length);
-      newPassword += charPool[randomIndex];
+      newPasswordValue += charPool[randomIndex];
     }
-    setPassword(newPassword);
-  };
+    
+    const newPasswordEntry: PasswordEntry = {
+        id: `pw-${Date.now()}`,
+        value: newPasswordValue,
+    };
 
-  useEffect(() => {
-    generatePassword();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [length, includeUppercase, includeNumbers, includeSymbols]);
+    setPasswords(prev => [newPasswordEntry, ...prev]);
 
-  const handleCopy = () => {
-    if (!password) return;
-    navigator.clipboard.writeText(password);
+  }, [length, includeUppercase, includeNumbers, includeSymbols, toast]);
+
+  const handleCopy = (passwordValue: string) => {
+    navigator.clipboard.writeText(passwordValue);
     toast({
       title: 'Copied to clipboard!',
-      description: 'The password has been copied.',
     });
   };
 
+  const handleDelete = (passwordId: string) => {
+    setPasswords(passwords.filter(p => p.id !== passwordId));
+  }
+  
+  const handleCopyAll = () => {
+    if (passwords.length === 0) return;
+    const allPasswords = passwords.map(p => p.value).join('\n');
+    navigator.clipboard.writeText(allPasswords);
+    toast({
+      title: 'All passwords copied!',
+      description: `${passwords.length} passwords have been copied.`,
+    });
+  };
+
+  const handleDeleteAll = () => {
+    setPasswords([]);
+  }
+
   return (
-    <Card className="mx-auto max-w-lg">
+    <Card className="mx-auto max-w-2xl">
       <CardHeader>
-        <CardTitle>Your Secure Password</CardTitle>
+        <CardTitle>Password Generator</CardTitle>
         <CardDescription>
-          Customize and generate a new password below.
+          Customize the options and generate secure passwords.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        <div className="relative">
-          <Input
-            type="text"
-            readOnly
-            value={password}
-            className="pr-20 text-lg font-mono"
-            placeholder="Your password will appear here"
-          />
-          <div className="absolute inset-y-0 right-0 flex items-center pr-2">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={generatePassword}
-              aria-label="Generate new password"
-            >
-              <RefreshCw className="h-5 w-5" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleCopy}
-              disabled={!password}
-              aria-label="Copy password"
-            >
-              <Copy className="h-5 w-5" />
-            </Button>
-          </div>
-        </div>
-
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <Label htmlFor="length">Password Length</Label>
@@ -121,7 +120,7 @@ export function PasswordGeneratorForm() {
               checked={includeUppercase}
               onCheckedChange={(checked) => setIncludeUppercase(!!checked)}
             />
-            <Label htmlFor="uppercase">Uppercase</Label>
+            <Label htmlFor="uppercase">Uppercase (A-Z)</Label>
           </div>
           <div className="flex items-center space-x-2">
             <Checkbox
@@ -129,7 +128,7 @@ export function PasswordGeneratorForm() {
               checked={includeNumbers}
               onCheckedChange={(checked) => setIncludeNumbers(!!checked)}
             />
-            <Label htmlFor="numbers">Numbers</Label>
+            <Label htmlFor="numbers">Numbers (0-9)</Label>
           </div>
           <div className="flex items-center space-x-2">
             <Checkbox
@@ -137,9 +136,44 @@ export function PasswordGeneratorForm() {
               checked={includeSymbols}
               onCheckedChange={(checked) => setIncludeSymbols(!!checked)}
             />
-            <Label htmlFor="symbols">Symbols</Label>
+            <Label htmlFor="symbols">Symbols (!@#$...)</Label>
           </div>
         </div>
+        <Button onClick={generatePassword} className="w-full">
+          <RefreshCw className="mr-2 h-4 w-4" />
+          Generate New Password
+        </Button>
+      </CardContent>
+
+      <CardHeader className="border-t pt-6">
+        <div className="flex justify-between items-center">
+            <CardTitle>Generated Passwords ({passwords.length})</CardTitle>
+            {passwords.length > 0 && (
+                <div className="flex gap-2">
+                    <Button variant="outline" size="sm" onClick={handleCopyAll}><Copy className="mr-2 h-4 w-4" /> Copy All</Button>
+                    <Button variant="destructive" size="sm" onClick={handleDeleteAll}><Trash2 className="mr-2 h-4 w-4" /> Clear All</Button>
+                </div>
+            )}
+        </div>
+      </CardHeader>
+      <CardContent>
+         <ScrollArea className="h-64">
+            {passwords.length > 0 ? (
+                <div className="space-y-2">
+                    {passwords.map((p) => (
+                        <div key={p.id} className="flex items-center gap-2 rounded-md bg-muted/50 p-3 font-mono">
+                            <span className="flex-grow truncate">{p.value}</span>
+                            <Button variant="ghost" size="icon" onClick={() => handleCopy(p.value)}><Copy className="h-4 w-4" /></Button>
+                            <Button variant="ghost" size="icon" onClick={() => handleDelete(p.id)}><Trash2 className="h-4 w-4" /></Button>
+                        </div>
+                    ))}
+                </div>
+            ) : (
+                <div className="flex items-center justify-center h-full text-muted-foreground">
+                    Your generated passwords will appear here.
+                </div>
+            )}
+         </ScrollArea>
       </CardContent>
     </Card>
   );
