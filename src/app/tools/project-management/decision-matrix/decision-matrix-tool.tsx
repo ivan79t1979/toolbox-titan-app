@@ -312,25 +312,19 @@ export function DecisionMatrixTool() {
   return (
     <div className="space-y-6">
       <style>{`
-        @media print {
-          body * { visibility: hidden; }
-          .printable-area, .printable-area * { visibility: visible; }
-          .printable-area { position: absolute; left: 0; top: 0; width: 100%; padding: 1rem; }
-          .no-print { display: none !important; }
-          .print-input {
-            appearance: none;
-            -webkit-appearance: none;
-            -moz-appearance: none;
-            background-color: transparent !important;
-            border: none !important;
-            padding: 0 !important;
-            margin: 0 !important;
-            display: inline !important;
-            width: auto !important;
-            color: inherit !important;
-            text-align: inherit !important;
-            font: inherit !important;
-          }
+        .export-text {
+            visibility: hidden;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            white-space: nowrap;
+        }
+        .printable-area .export-text {
+            visibility: visible;
+        }
+        .printable-area .export-hide {
+            visibility: hidden;
         }
       `}</style>
       <div className="flex flex-wrap items-center justify-between gap-2 no-print">
@@ -375,11 +369,14 @@ export function DecisionMatrixTool() {
                       {options.map(opt => (
                         <TableHead key={opt.id} className={cn("text-center min-w-[150px]", opt.id === bestOptionId && "bg-primary/10")}>
                             <div className="flex items-center justify-center gap-2">
-                                <Input
-                                    value={opt.name}
-                                    onChange={e => updateOptionName(opt.id, e.target.value)}
-                                    className="font-bold text-center border-none p-1 h-auto print-input"
-                                />
+                                <div className="relative">
+                                    <Input
+                                        value={opt.name}
+                                        onChange={e => updateOptionName(opt.id, e.target.value)}
+                                        className="font-bold text-center border-none p-1 h-auto export-hide"
+                                    />
+                                    <span className="export-text font-bold">{opt.name}</span>
+                                </div>
                                 <Button variant="ghost" size="icon" className="h-6 w-6 no-print" onClick={() => removeOption(opt.id)}><Trash2 className="h-4 w-4"/></Button>
                             </div>
                         </TableHead>
@@ -391,30 +388,41 @@ export function DecisionMatrixTool() {
                       <TableRow key={crit.id}>
                         <TableCell>
                           <div className="flex items-center gap-2">
-                            <Input
-                                value={crit.name}
-                                onChange={e => updateCriterionName(crit.id, e.target.value)}
-                                className="font-semibold border-none p-1 h-auto print-input"
-                            />
+                            <div className="relative">
+                                <Input
+                                    value={crit.name}
+                                    onChange={e => updateCriterionName(crit.id, e.target.value)}
+                                    className="font-semibold border-none p-1 h-auto export-hide"
+                                />
+                                <span className="export-text font-semibold">{crit.name}</span>
+                            </div>
                             <Button variant="ghost" size="icon" className="h-6 w-6 no-print" onClick={() => removeCriterion(crit.id)}><Trash2 className="h-4 w-4"/></Button>
                           </div>
                         </TableCell>
                         <TableCell>
-                          <Input
-                            type="number"
-                            value={crit.weight}
-                            onChange={e => updateCriterionWeight(crit.id, parseInt(e.target.value, 10) || 0)}
-                            className="w-20 text-center mx-auto print-input"
-                          />
+                          <div className="relative w-20 mx-auto">
+                            <Input
+                                type="number"
+                                value={crit.weight}
+                                onChange={e => updateCriterionWeight(crit.id, parseInt(e.target.value, 10) || 0)}
+                                className="w-20 text-center mx-auto export-hide"
+                            />
+                             <span className="export-text">{crit.weight}</span>
+                          </div>
                         </TableCell>
                         {options.map(opt => (
                           <TableCell key={opt.id} className={cn("text-center", opt.id === bestOptionId && "bg-primary/5")}>
-                            <Input
-                              type="number"
-                              value={scores.find(s => s.optionId === opt.id && s.criterionId === crit.id)?.value || 0}
-                              onChange={e => updateScore(opt.id, crit.id, parseInt(e.target.value, 10) || 0)}
-                              className="w-20 text-center mx-auto print-input"
-                            />
+                            <div className="relative w-20 mx-auto">
+                                <Input
+                                type="number"
+                                value={scores.find(s => s.optionId === opt.id && s.criterionId === crit.id)?.value || 0}
+                                onChange={e => updateScore(opt.id, crit.id, parseInt(e.target.value, 10) || 0)}
+                                className="w-20 text-center mx-auto export-hide"
+                                />
+                                <span className="export-text">
+                                    {scores.find(s => s.optionId === opt.id && s.criterionId === crit.id)?.value || 0}
+                                </span>
+                            </div>
                           </TableCell>
                         ))}
                       </TableRow>
