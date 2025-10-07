@@ -35,10 +35,7 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 const voices = [
-  'Algenib', 'Achernar', 'Enif', 'Hadar', 'Izar', 'Mirfak', 'Regulus',
-  'en-US-Standard-A', 'en-US-Standard-B', 'en-US-Standard-C', 'en-US-Standard-D',
-  'en-GB-Standard-A', 'en-GB-Standard-B', 'en-GB-Standard-C', 'en-GB-Standard-D',
-  'en-AU-Standard-A', 'en-AU-Standard-B', 'en-AU-Standard-C', 'en-AU-Standard-D'
+  'achernar', 'achird', 'algenib', 'algieba', 'alnilam', 'aoede', 'autonoe', 'callirrhoe', 'charon', 'despina', 'enceladus', 'erinome', 'fenrir', 'gacrux', 'iapetus', 'kore', 'laomedeia', 'leda', 'orus', 'puck', 'pulcherrima', 'rasalgethi', 'sadachbia', 'sadaltager', 'schedar', 'sulafat', 'umbriel', 'vindemiatrix', 'zephyr', 'zubenelgenubi'
 ];
 
 export function TextToSpeechForm() {
@@ -50,7 +47,7 @@ export function TextToSpeechForm() {
     resolver: zodResolver(formSchema),
     defaultValues: {
       text: '',
-      voice: 'Algenib',
+      voice: 'algenib',
     },
   });
 
@@ -112,7 +109,7 @@ export function TextToSpeechForm() {
                                 </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                                {voices.map(v => <SelectItem key={v} value={v}>{v}</SelectItem>)}
+                                {voices.map(v => <SelectItem key={v} value={v}>{v.charAt(0).toUpperCase() + v.slice(1)}</SelectItem>)}
                             </SelectContent>
                             </Select>
                             <FormMessage />
