@@ -36,6 +36,7 @@ import {
   Wallet,
   ClipboardList,
   ListChecks,
+  Receipt,
 } from 'lucide-react';
 
 export type Tool = {
@@ -175,6 +176,12 @@ export const toolCategories: ToolCategory[] = [
         description: 'Encode and decode Base64.',
         href: '/tools/generators/base64-converter',
         icon: Binary,
+      },
+      {
+        title: 'Invoice Generator',
+        description: 'Create and download professional invoices.',
+        href: '/tools/generators/invoice-generator',
+        icon: Receipt,
       },
     ],
   },
