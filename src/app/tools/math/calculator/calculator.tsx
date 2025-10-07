@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
-import { ChevronUp, Divide, Equal, Minus, Percent, Plus, PlusMinus, RotateCcw, X, Delete } from 'lucide-react';
+import { ChevronUp, Divide, Equal, Minus, Percent, Plus, RotateCcw, X, Delete } from 'lucide-react';
 
 type Operator = '+' | '-' | '*' | '/';
 
@@ -154,7 +154,9 @@ export function Calculator() {
       <Button className={cn(buttonStyle, operatorStyle)} onClick={() => handleOperatorClick('+')}><Plus /></Button>
 
       {isAdvanced && <Button className={cn(buttonStyle, functionStyle)} onClick={() => handleAdvancedOp('pi')}>π</Button>}
-      <Button className={cn(buttonStyle)} onClick={handleToggleSign}><PlusMinus /></Button>
+      <Button className={cn(buttonStyle)} onClick={handleToggleSign}>
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line><line x1="5" y1="12" x2="12" y2="12"></line><line x1="5" y1="16" x2="19" y2="16"></line></svg>
+      </Button>
       <Button className={cn(buttonStyle)} onClick={() => handleNumberClick('0')}>0</Button>
       <Button className={cn(buttonStyle)} onClick={handleDecimalClick}>.</Button>
       <Button className={cn(buttonStyle, "bg-green-500 hover:bg-green-600 text-white")} onClick={handleEquals}><Equal /></Button>
