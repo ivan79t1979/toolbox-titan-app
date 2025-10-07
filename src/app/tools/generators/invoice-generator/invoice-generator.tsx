@@ -27,7 +27,12 @@ import {
   PlusCircle,
   Trash2,
   Download,
+  Upload,
+  FileJson,
+  FileText,
+  FileSpreadsheet,
   Image as ImageIcon,
+  Printer,
   Edit,
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -321,12 +326,10 @@ export function InvoiceGenerator() {
             <CardContent ref={invoiceRef} className="p-8 bg-white text-black">
                 <header className="flex justify-between items-start mb-12">
                     <div className="flex-1">
-                        {logo ? (
-                          <div className="mb-4" style={{width: '160px', height: '80px'}}>
-                            <Image src={logo} alt="Company Logo" width={160} height={80} style={{ objectFit: 'contain', width: '100%', height: '100%' }} />
+                        {logo && (
+                          <div className="mb-4 max-w-[160px]">
+                            <Image src={logo} alt="Company Logo" width={160} height={80} style={{ objectFit: 'contain', width: 'auto', height: 'auto' }} />
                           </div>
-                        ) : (
-                          <div className="w-40 h-20 mb-4" />
                         )}
                         <p className="text-gray-500 font-semibold">{labels.billFrom}</p>
                         <div className="text-sm font-sans">
