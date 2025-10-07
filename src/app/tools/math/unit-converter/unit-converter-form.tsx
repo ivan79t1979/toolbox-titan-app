@@ -160,6 +160,21 @@ const conversionData: ConversionCategory[] = [
     }
   },
   {
+    name: 'Power',
+    units: [
+        { name: 'Watts', symbol: 'W' },
+        { name: 'Kilowatts', symbol: 'kW' },
+        { name: 'Megawatts', symbol: 'MW' },
+        { name: 'Horsepower', symbol: 'hp' },
+    ],
+    conversions: {
+        W: (v) => v,
+        kW: (v) => v * 1000,
+        MW: (v) => v * 1e6,
+        hp: (v) => v * 745.7,
+    }
+  },
+  {
     name: 'Angle',
     units: [
         { name: 'Degrees', symbol: 'deg' },
