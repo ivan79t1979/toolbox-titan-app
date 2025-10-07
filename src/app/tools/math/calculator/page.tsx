@@ -1,5 +1,5 @@
 import { PageHeader } from '@/components/page-header';
-import { ToolPlaceholder } from '@/components/tool-placeholder';
+import { Calculator } from './calculator';
 
 export default function CalculatorPage() {
   return (
@@ -8,7 +8,7 @@ export default function CalculatorPage() {
         title="Simple & Advanced Calculator"
         description="From basic to scientific calculations."
       />
-      <ToolPlaceholder />
+      <Calculator />
     </>
   );
 }
