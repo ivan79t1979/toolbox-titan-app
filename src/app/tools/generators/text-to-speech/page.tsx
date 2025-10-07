@@ -1,6 +1,7 @@
 'use client';
 
 import { PageHeader } from '@/components/page-header';
+import { useTheme } from '@/components/theme-provider';
 import { useEffect, useState } from 'react';
 
 declare global {
@@ -20,6 +21,7 @@ const GRADIO_SCRIPT_URL = 'https://gradio.s3-us-west-2.amazonaws.com/4.36.0/grad
 
 export default function TextToSpeechPage() {
   const [isClient, setIsClient] = useState(false);
+  const { theme } = useTheme();
 
   useEffect(() => {
     const scriptId = 'gradio-script';
@@ -45,7 +47,7 @@ export default function TextToSpeechPage() {
       />
       <div className="mt-8">
         {isClient ? (
-          <gradio-app src="https://timemaster-multilingual-tts.hf.space"></gradio-app>
+          <gradio-app key={theme} src="https://timemaster-multilingual-tts.hf.space"></gradio-app>
         ) : (
           <div>Loading Tool...</div>
         )}
