@@ -32,6 +32,7 @@ import {
 } from '@/components/ui/popover';
 import { timezones } from './timezones';
 import { cn } from '@/lib/utils';
+import { useToast } from '@/hooks/use-toast';
 
 interface Clock {
   city: string;
@@ -139,13 +140,18 @@ export function WorldClock() {
   const [clocks, setClocks] = useState<Clock[]>(defaultClocks);
   const [open, setOpen] = useState(false);
   const [searchValue, setSearchValue] = useState('');
+  const { toast } = useToast();
 
   const addClock = (timezoneIdentifier: string, city?: string, country?: string) => {
-    const existing = timezones.find((tz) => tz.timezone === timezoneIdentifier);
+    const existing = timezones.find(
+      (tz) => tz.timezone === timezoneIdentifier || tz.city.toLowerCase() === timezoneIdentifier.toLowerCase()
+    );
     
-    if (existing && !clocks.some(c => c.timezone === existing.timezone)) {
-      setClocks([...clocks, existing]);
-    } else if (!existing) {
+    if (existing) {
+      if (!clocks.some(c => c.timezone === existing.timezone)) {
+        setClocks([...clocks, existing]);
+      }
+    } else {
         try {
             // Validate timezone before adding
             new Intl.DateTimeFormat('en-US', { timeZone: timezoneIdentifier }).format();
@@ -158,9 +164,12 @@ export function WorldClock() {
                 setClocks([...clocks, newClock]);
             }
         } catch (e) {
-            console.error("Invalid timezone provided:", timezoneIdentifier);
-            // Optionally, show a toast to the user
-            return; // Do not add invalid timezone
+            toast({
+              variant: 'destructive',
+              title: 'Invalid Timezone',
+              description: `Could not find a valid timezone for "${timezoneIdentifier}".`,
+            });
+            return;
         }
     }
     setSearchValue('');
