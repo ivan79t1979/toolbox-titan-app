@@ -1,4 +1,7 @@
+'use client';
+
 import { PageHeader } from '@/components/page-header';
+import { useEffect, useState } from 'react';
 
 declare global {
   namespace JSX {
@@ -14,6 +17,12 @@ declare global {
 }
 
 export default function BackgroundRemoverPage() {
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
   return (
     <>
       <PageHeader
@@ -21,7 +30,9 @@ export default function BackgroundRemoverPage() {
         description="Removes the background from an image using a custom model from Hugging Face."
       />
       <div className="mt-8">
-        <gradio-app src="https://timemaster-removebg.hf.space"></gradio-app>
+        {isClient && (
+          <gradio-app src="https://timemaster-removebg.hf.space"></gradio-app>
+        )}
       </div>
     </>
   );
