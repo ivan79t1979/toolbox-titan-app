@@ -1,5 +1,6 @@
 'use client';
 
+import * as React from 'react';
 import { useState, useMemo, useRef } from 'react';
 import {
   Card,
@@ -29,7 +30,7 @@ import {
   Image as ImageIcon,
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { format } from 'date-fns';
+import { format, parseISO } from 'date-fns';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import Image from 'next/image';
@@ -331,10 +332,10 @@ export function InvoiceGenerator() {
                     </div>
                     <div className="text-right">
                          <p className="text-gray-500 font-semibold">{labels.date}</p>
-                         <p>{invoiceMeta.date}</p>
+                         <p>{invoiceMeta.date ? format(parseISO(invoiceMeta.date), 'PPP') : ''}</p>
                          {invoiceMeta.dueDate && <>
                             <p className="text-gray-500 font-semibold mt-2">{labels.dueDate}</p>
-                            <p>{invoiceMeta.dueDate}</p>
+                            <p>{format(parseISO(invoiceMeta.dueDate), 'PPP')}</p>
                          </>}
                          {customFields.map(field => (
                            <React.Fragment key={field.id}>
