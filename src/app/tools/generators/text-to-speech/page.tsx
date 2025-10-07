@@ -16,11 +16,25 @@ declare global {
   }
 }
 
+const GRADIO_SCRIPT_URL = 'https://gradio.s3-us-west-2.amazonaws.com/4.36.0/gradio.js';
+
 export default function TextToSpeechPage() {
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
-    setIsClient(true);
+    const scriptId = 'gradio-script';
+    if (!document.getElementById(scriptId)) {
+        const script = document.createElement('script');
+        script.id = scriptId;
+        script.type = 'module';
+        script.src = GRADIO_SCRIPT_URL;
+        script.onload = () => {
+          setIsClient(true);
+        }
+        document.head.appendChild(script);
+    } else {
+        setIsClient(true);
+    }
   }, []);
 
   return (
@@ -30,8 +44,10 @@ export default function TextToSpeechPage() {
         description="Convert text to spoken audio using a custom model from Hugging Face."
       />
       <div className="mt-8">
-        {isClient && (
+        {isClient ? (
           <gradio-app src="https://timemaster-multilingual-tts.hf.space"></gradio-app>
+        ) : (
+          <div>Loading Tool...</div>
         )}
       </div>
     </>

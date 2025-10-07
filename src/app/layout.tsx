@@ -34,10 +34,6 @@ export default function RootLayout({
           href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Space+Grotesk:wght@500;700&family=Source+Code+Pro:wght@400;500;700&display=swap"
           rel="stylesheet"
         />
-        <script
-          type="module"
-          src="https://gradio.s3-us-west-2.amazonaws.com/4.36.0/gradio.js"
-        ></script>
       </head>
       <body className="font-body antialiased">
         <ThemeProvider>
