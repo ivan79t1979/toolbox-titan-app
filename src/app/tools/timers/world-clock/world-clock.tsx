@@ -50,7 +50,6 @@ function ClockCard({ clock, onRemove }: { clock: Clock; onRemove: () => void }) 
   const [time, setTime] = useState<Date | null>(null);
 
   useEffect(() => {
-    // Set initial time on mount and then update every second
     setTime(new Date());
     const timer = setInterval(() => setTime(new Date()), 1000);
     return () => clearInterval(timer);
@@ -101,11 +100,9 @@ function ClockCard({ clock, onRemove }: { clock: Clock; onRemove: () => void }) 
         
         if (offsetPart) return offsetPart.value;
     } catch(e) {
-        // Invalid timezone will throw an error
         return "Invalid Timezone"
     }
 
-    // Fallback for environments that might not support `shortOffset` fully.
     const localOffset = -new Date().getTimezoneOffset() / 60;
     const cityDate = new Date(time.toLocaleString('en-US', { timeZone: clock.timezone }));
     const cityOffset = isNaN(cityDate.getTime()) ? localOffset : -cityDate.getTimezoneOffset() / 60;
@@ -142,37 +139,36 @@ export function WorldClock() {
   const [searchValue, setSearchValue] = useState('');
   const { toast } = useToast();
 
-  const addClock = (value: string) => {
-    const searchTerm = value.toLowerCase();
-    
-    // First, try to find a match in the predefined list (city, country, or timezone)
-    const existing = timezones.find(
-      (tz) =>
-        tz.city.toLowerCase() === searchTerm ||
-        tz.timezone.toLowerCase() === searchTerm
-    );
+  const addClock = (timezoneIdentifier: string) => {
+    const searchTerm = timezoneIdentifier.toLowerCase();
     
     let clockToAdd: Clock | null = null;
+    
+    // Find a match from the predefined list using the timezone identifier
+    const existing = timezones.find(
+      (tz) => tz.timezone.toLowerCase() === searchTerm
+    );
     
     if (existing) {
       clockToAdd = existing;
     } else {
-      // If no exact match, try to use the value as a timezone identifier
+      // If no exact match, try to use the value as a direct timezone identifier
       try {
-        new Intl.DateTimeFormat('en-US', { timeZone: value }).format();
-        const city = value.split('/').pop()?.replace(/_/g, ' ') || 'Custom';
-        const country = value.split('/')[0].replace(/_/g, ' ');
+        // Validate timezone
+        new Intl.DateTimeFormat('en-US', { timeZone: timezoneIdentifier }).format();
+        
+        const city = timezoneIdentifier.split('/').pop()?.replace(/_/g, ' ') || 'Custom';
+        const country = timezoneIdentifier.split('/')[0].replace(/_/g, ' ');
         clockToAdd = {
             city: city,
-            timezone: value,
+            timezone: timezoneIdentifier,
             country: country,
         };
       } catch (e) {
-        // Invalid timezone, show error
         toast({
           variant: 'destructive',
           title: 'Invalid Timezone',
-          description: `Could not find a valid timezone for "${value}".`,
+          description: `Could not find a valid timezone for "${timezoneIdentifier}".`,
         });
       }
     }
@@ -180,6 +176,11 @@ export function WorldClock() {
     if (clockToAdd) {
         if (!clocks.some(c => c.timezone === clockToAdd!.timezone)) {
             setClocks([...clocks, clockToAdd]);
+        } else {
+            toast({
+                title: 'Timezone Already Added',
+                description: `${clockToAdd.city} is already in your list.`,
+            })
         }
     }
     
@@ -199,7 +200,7 @@ export function WorldClock() {
       )
     : timezones;
     
-  const showCustomOption = searchValue && !filteredTimezones.some(f => f.city.toLowerCase() === searchValue.toLowerCase());
+  const showCustomOption = searchValue && !filteredTimezones.some(f => f.timezone.toLowerCase() === searchValue.toLowerCase());
 
   return (
     <div className="space-y-6">
@@ -207,18 +208,18 @@ export function WorldClock() {
         <PopoverTrigger asChild>
           <Button>
             <PlusCircle className="mr-2 h-4 w-4" />
-            Add City
+            Add Time Zone
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-[300px] p-0">
+        <PopoverContent className="w-[350px] p-0">
           <Command>
             <CommandInput 
-                placeholder="Search city or timezone..."
+                placeholder="Search by city or timezone..."
                 value={searchValue}
                 onValueChange={setSearchValue}
             />
             <CommandList>
-              <CommandEmpty>No city or timezone found.</CommandEmpty>
+              <CommandEmpty>No timezone found.</CommandEmpty>
                 {showCustomOption && (
                     <CommandItem onSelect={() => addClock(searchValue)}>
                         Use: "{searchValue}"
@@ -228,14 +229,15 @@ export function WorldClock() {
                 {filteredTimezones.map((tz) => (
                   <CommandItem
                     key={tz.timezone}
-                    value={tz.city}
+                    value={tz.timezone}
                     onSelect={(currentValue) => {
-                      // The `currentValue` from cmdk is the lowercase city name,
-                      // so we use the original tz object to add the clock.
-                      addClock(tz.timezone);
+                      addClock(currentValue);
                     }}
                   >
-                    {tz.city}, {tz.country}
+                    <div className="flex flex-col">
+                      <span>{tz.city}, {tz.country}</span>
+                      <span className="text-xs text-muted-foreground">{tz.timezone}</span>
+                    </div>
                   </CommandItem>
                 ))}
               </CommandGroup>
@@ -259,7 +261,7 @@ export function WorldClock() {
           <Globe className="w-12 h-12 text-muted-foreground" />
           <p className="mt-4 text-muted-foreground">Your world clocks will appear here.</p>
           <p className="text-sm text-muted-foreground">
-            Click "Add City" to get started.
+            Click "Add Time Zone" to get started.
           </p>
         </div>
       )}
