@@ -1,9 +1,9 @@
 'use server';
 
 /**
- * @fileOverview Converts text to speech using the Gemini 2.5 Flash Preview TTS model.
+ * @fileOverview Converts text to speech using a Google AI model.
  *
- * - textToSpeech - A function that converts text to speech.
+ * - textToSpeech - A function that converts text to speech and returns audio data.
  * - TextToSpeechInput - The input type for the textToSpeech function.
  * - TextToSpeechOutput - The return type for the textToSpeech function.
  */
