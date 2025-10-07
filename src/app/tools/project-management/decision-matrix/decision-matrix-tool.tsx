@@ -42,6 +42,7 @@ import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import * as XLSX from 'xlsx';
 import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
 
 type Option = {
   id: string;
@@ -290,7 +291,24 @@ export function DecisionMatrixTool() {
     }
   };
 
-  const exportPDF = () => window.print();
+  const exportPDF = async () => {
+    if (!tableRef.current) return;
+    try {
+      const canvas = await html2canvas(tableRef.current, { scale: 2 });
+      const imgData = canvas.toDataURL('image/png');
+      
+      const pdf = new jsPDF({
+        orientation: canvas.width > canvas.height ? 'landscape' : 'portrait',
+        unit: 'px',
+        format: [canvas.width, canvas.height],
+      });
+      
+      pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
+      pdf.save('decision-matrix.pdf');
+    } catch (error) {
+      toast({ variant: 'destructive', title: 'Export Failed', description: 'Could not export as PDF.' });
+    }
+  };
 
   return (
     <div className="space-y-6">
