@@ -280,6 +280,9 @@ export function FontPairingTool() {
                       Browse Google Fonts <ExternalLink className="ml-2 h-4 w-4" />
                   </Link>
               </Button>
+               <p className="text-sm text-muted-foreground mt-1">
+                Just a friendly note: while we try our best, not all Google Fonts may display perfectly here. If a font doesn't look right, feel free to choose another!
+              </p>
 
               <div className="flex justify-end gap-2 mt-4">
                   <Button variant="outline" size="sm" onClick={() => exportContent(manualPrintableRef.current, 'png', `manual-${manualHeadline.replace(/ /g, '-')}`)}>
