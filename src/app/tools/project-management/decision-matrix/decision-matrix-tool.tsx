@@ -168,25 +168,72 @@ export function DecisionMatrixTool() {
     setScores(scores.filter(s => s.criterionId !== id));
   }
   
+  const downloadFile = (filename: string, content: BlobPart, mimeType: string) => {
+    const blob = new Blob([content], { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+  
   // --- Import/Export ---
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
     const reader = new FileReader();
+    const fileType = file.name.split('.').pop()?.toLowerCase();
+
     reader.onload = (e) => {
       try {
         const data = e.target?.result;
         if (!data) throw new Error('File could not be read.');
-        const matrixData: MatrixData = JSON.parse(data as string);
+        
+        if (fileType === 'json') {
+            const matrixData: MatrixData = JSON.parse(data as string);
+            if (!matrixData.options || !matrixData.criteria || !matrixData.scores) {
+              throw new Error('Invalid JSON structure for decision matrix.');
+            }
+            setOptions(matrixData.options);
+            setCriteria(matrixData.criteria);
+            setScores(matrixData.scores);
+        } else {
+            const workbook = fileType === 'xlsx' ? XLSX.read(data, { type: 'array' }) : XLSX.read(data, { type: 'string' });
+            const sheetName = workbook.SheetNames[0];
+            const sheet = workbook.Sheets[sheetName];
+            const sheetData: any[] = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+            
+            if (sheetData.length < 2) throw new Error("Spreadsheet must have at least a header and one criterion row.");
+            
+            const headerRow = sheetData[0];
+            const newOptions: Option[] = headerRow.slice(2).map((name: string, index: number) => ({ id: `opt${index}`, name }));
+            
+            const newCriteria: Criterion[] = [];
+            const newScores: Score[] = [];
 
-        if (!matrixData.options || !matrixData.criteria || !matrixData.scores) {
-          throw new Error('Invalid JSON structure for decision matrix.');
+            for (let i = 1; i < sheetData.length; i++) {
+                const row = sheetData[i];
+                const critId = `crit${i}`;
+                const critName = row[0];
+                const critWeight = parseInt(row[1], 10);
+                if (!critName || isNaN(critWeight)) continue;
+
+                newCriteria.push({ id: critId, name: critName, weight: critWeight });
+
+                newOptions.forEach((opt, optIndex) => {
+                    const scoreValue = parseInt(row[optIndex + 2], 10);
+                    if(!isNaN(scoreValue)){
+                        newScores.push({ optionId: opt.id, criterionId: critId, value: scoreValue });
+                    }
+                });
+            }
+            setOptions(newOptions);
+            setCriteria(newCriteria);
+            setScores(newScores);
         }
 
-        setOptions(matrixData.options);
-        setCriteria(matrixData.criteria);
-        setScores(matrixData.scores);
         toast({ title: 'Import Successful' });
       } catch (error: any) {
         toast({ variant: 'destructive', title: 'Import Failed', description: error.message });
@@ -194,20 +241,40 @@ export function DecisionMatrixTool() {
         if (fileInputRef.current) fileInputRef.current.value = '';
       }
     };
-    reader.readAsText(file);
+
+    if (fileType === 'xlsx') reader.readAsArrayBuffer(file);
+    else reader.readAsText(file);
   };
 
   const triggerFileUpload = () => fileInputRef.current?.click();
 
   const exportJSON = () => {
-    const data = JSON.stringify({ options, criteria, scores }, null, 2);
-    const blob = new Blob([data], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'decision-matrix.json';
-    a.click();
-    URL.revokeObjectURL(url);
+    downloadFile('decision-matrix.json', JSON.stringify({ options, criteria, scores }, null, 2), 'application/json');
+  };
+  
+  const exportToSheet = (fileType: 'csv' | 'xlsx') => {
+    const data = criteria.map(crit => {
+        const row: any = {
+            'Criterion': crit.name,
+            'Weight': crit.weight
+        };
+        options.forEach(opt => {
+            const score = scores.find(s => s.optionId === opt.id && s.criterionId === crit.id)?.value || 0;
+            row[opt.name] = score;
+        });
+        return row;
+    });
+
+    const worksheet = XLSX.utils.json_to_sheet(data);
+    
+    if (fileType === 'csv') {
+        const csv = XLSX.utils.sheet_to_csv(worksheet);
+        downloadFile('decision-matrix.csv', csv, 'text/csv');
+    } else {
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, 'Decision Matrix');
+        XLSX.writeFile(workbook, 'decision-matrix.xlsx');
+    }
   };
   
   const exportPNG = async () => {
@@ -246,7 +313,7 @@ export function DecisionMatrixTool() {
               <DropdownMenuContent>
                 <DropdownMenuLabel>Import from</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={triggerFileUpload}><FileJson className="mr-2 h-4 w-4" /> JSON</DropdownMenuItem>
+                <DropdownMenuItem onClick={triggerFileUpload}><FileJson className="mr-2 h-4 w-4" /> JSON / CSV / XLSX</DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
             <DropdownMenu>
@@ -255,11 +322,13 @@ export function DecisionMatrixTool() {
                 <DropdownMenuLabel>Export as</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={exportJSON}><FileJson className="mr-2 h-4 w-4" /> JSON</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => exportToSheet('csv')}><FileText className="mr-2 h-4 w-4" /> CSV</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => exportToSheet('xlsx')}><FileSpreadsheet className="mr-2 h-4 w-4" /> XLSX</DropdownMenuItem>
                 <DropdownMenuItem onClick={exportPNG}><ImageIcon className="mr-2 h-4 w-4" /> PNG</DropdownMenuItem>
                 <DropdownMenuItem onClick={exportPDF}><Printer className="mr-2 h-4 w-4" /> PDF</DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-            <input type="file" ref={fileInputRef} className="hidden" onChange={handleFileUpload} accept=".json" />
+            <input type="file" ref={fileInputRef} className="hidden" onChange={handleFileUpload} accept=".json,.csv,.xlsx" />
         </div>
       </div>
       
