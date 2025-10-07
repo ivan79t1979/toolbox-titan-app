@@ -1,5 +1,5 @@
 import { PageHeader } from '@/components/page-header';
-import { ToolPlaceholder } from '@/components/tool-placeholder';
+import { WorldClock } from './world-clock';
 
 export default function WorldClockPage() {
   return (
@@ -8,7 +8,7 @@ export default function WorldClockPage() {
         title="World Clock"
         description="Current time in different time zones."
       />
-      <ToolPlaceholder />
+      <WorldClock />
     </>
   );
 }
