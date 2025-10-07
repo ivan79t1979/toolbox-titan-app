@@ -72,6 +72,7 @@ import { cn } from '@/lib/utils';
 import { format, parseISO, isPast } from 'date-fns';
 import * as XLSX from 'xlsx';
 import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
 
 type MilestoneStatus = 'upcoming' | 'in-progress' | 'completed' | 'missed';
 
@@ -324,7 +325,22 @@ export function MilestoneTracker() {
       toast({ variant: 'destructive', title: 'Export Failed', description: 'Could not export as PNG.' });
     }
   };
-  const exportPDF = () => window.print();
+  const exportPDF = async () => {
+    if (!printableRef.current) return;
+    try {
+        const canvas = await html2canvas(printableRef.current, { scale: 2 });
+        const imgData = canvas.toDataURL('image/png');
+        const pdf = new jsPDF({
+            orientation: 'portrait',
+            unit: 'px',
+            format: [canvas.width, canvas.height]
+        });
+        pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
+        pdf.save('milestone-tracker.pdf');
+    } catch (error) {
+        toast({ variant: 'destructive', title: 'Export Failed', description: 'Could not export as PDF.' });
+    }
+  };
   const triggerFileUpload = () => fileInputRef.current?.click();
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {

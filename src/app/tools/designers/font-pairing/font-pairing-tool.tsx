@@ -20,6 +20,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Loader2, Wand2, Printer, Image as ImageIcon, TextSelect, ChevronsUpDown, Check, ExternalLink } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { cn } from '@/lib/utils';
@@ -201,43 +202,25 @@ export function FontPairingTool() {
   const exportContent = async (element: HTMLDivElement | null, format: 'png' | 'pdf', fileName: string) => {
     if (!element) return;
 
-    if (format === 'png') {
-        try {
-            const canvas = await html2canvas(element, { scale: 2 });
+    try {
+        const canvas = await html2canvas(element, { scale: 2 });
+        if (format === 'png') {
             const link = document.createElement('a');
             link.download = `${fileName}.png`;
             link.href = canvas.toDataURL('image/png');
             link.click();
-        } catch (error) {
-            toast({ variant: 'destructive', title: 'Export Failed', description: 'Could not export as PNG.' });
-        }
-    } else { // PDF
-        const printWindow = window.open('', '', 'height=600,width=800');
-        if (printWindow) {
-            printWindow.document.write('<html><head><title>Font Pairing</title>');
-            Array.from(document.styleSheets).forEach(sheet => {
-                try {
-                    if (sheet.href) {
-                        printWindow.document.write(`<link rel="stylesheet" href="${sheet.href}">`);
-                    } else if (sheet.cssRules) {
-                        const style = printWindow.document.createElement('style');
-                        style.textContent = Array.from(sheet.cssRules).map(rule => rule.cssText).join('');
-                        printWindow.document.head.appendChild(style);
-                    }
-                } catch (e) {
-                    console.warn("Can't read stylesheet", e);
-                }
+        } else { // PDF
+            const imgData = canvas.toDataURL('image/png');
+            const pdf = new jsPDF({
+                orientation: canvas.width > canvas.height ? 'landscape' : 'portrait',
+                unit: 'px',
+                format: [canvas.width, canvas.height],
             });
-            printWindow.document.write('</head><body class="p-8">');
-            printWindow.document.write(element.innerHTML);
-            printWindow.document.write('</body></html>');
-            printWindow.document.close();
-            printWindow.focus();
-            setTimeout(() => {
-                printWindow.print();
-                printWindow.close();
-            }, 250);
+            pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
+            pdf.save(`${fileName}.pdf`);
         }
+    } catch (error) {
+        toast({ variant: 'destructive', title: 'Export Failed', description: `Could not export as ${format.toUpperCase()}.` });
     }
   };
 

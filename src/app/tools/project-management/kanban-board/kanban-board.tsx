@@ -43,6 +43,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Id, Column, Task } from './kanban-types';
 import * as XLSX from 'xlsx';
 import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
 
 const defaultCols: Column[] = [
   { id: 'todo', title: 'To Do' },
@@ -300,9 +301,21 @@ export function KanbanBoard() {
     }
   };
 
-  const exportPDF = () => {
-    // This uses the browser's print-to-pdf functionality
-    window.print();
+  const exportPDF = async () => {
+    if (!boardRef.current) return;
+    try {
+        const canvas = await html2canvas(boardRef.current, { scale: 2 });
+        const imgData = canvas.toDataURL('image/png');
+        const pdf = new jsPDF({
+            orientation: 'landscape',
+            unit: 'px',
+            format: [canvas.width, canvas.height]
+        });
+        pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
+        pdf.save('kanban-board.pdf');
+    } catch (error) {
+        toast({ variant: 'destructive', title: 'Export Failed', description: 'Could not export as PDF.' });
+    }
   };
 
   return (

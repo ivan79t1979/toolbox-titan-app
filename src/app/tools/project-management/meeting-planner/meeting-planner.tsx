@@ -52,6 +52,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Label } from '@/components/ui/label';
 import * as XLSX from 'xlsx';
 import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
 
 type Meeting = {
   id: string;
@@ -259,7 +260,22 @@ export function MeetingPlanner() {
       toast({ variant: 'destructive', title: 'Export Failed', description: 'Could not export as PNG.' });
     }
   };
-  const exportPDF = () => window.print();
+  const exportPDF = async () => {
+    if (!listRef.current) return;
+    try {
+        const canvas = await html2canvas(listRef.current, { scale: 2 });
+        const imgData = canvas.toDataURL('image/png');
+        const pdf = new jsPDF({
+            orientation: 'portrait',
+            unit: 'px',
+            format: [canvas.width, canvas.height]
+        });
+        pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
+        pdf.save('meeting-planner.pdf');
+    } catch (error) {
+        toast({ variant: 'destructive', title: 'Export Failed', description: 'Could not export as PDF.' });
+    }
+  };
 
   return (
     <div className="space-y-6">
