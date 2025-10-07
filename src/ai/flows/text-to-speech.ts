@@ -46,9 +46,9 @@ const textToSpeechFlow = ai.defineFlow(
           voiceConfig: {
             prebuiltVoiceConfig: {voiceName: input.voice || 'Algenib'},
           },
-          speakingRate: input.rate,
-          pitch: input.pitch,
         },
+        speakingRate: input.rate,
+        pitch: input.pitch,
       },
       prompt: input.text,
     });
