@@ -35,6 +35,7 @@ import {
   Users,
   Wallet,
   ClipboardList,
+  ListChecks,
 } from 'lucide-react';
 
 export type Tool = {
@@ -276,6 +277,12 @@ export const toolCategories: ToolCategory[] = [
         description: 'Prepare and format daily standup updates.',
         href: '/tools/project-management/daily-standup-helper',
         icon: ClipboardList,
+      },
+      {
+        title: 'Decision Matrix',
+        description: 'Evaluate options based on weighted criteria.',
+        href: '/tools/project-management/decision-matrix',
+        icon: ListChecks,
       },
     ],
   },
