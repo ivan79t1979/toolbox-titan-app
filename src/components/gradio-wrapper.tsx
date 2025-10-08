@@ -17,21 +17,24 @@ declare global {
   }
 }
 
-export function GradioWrapper({ src }: { src: string }) {
+export function GradioWrapper({ appSrc, scriptSrc }: { appSrc: string, scriptSrc: string }) {
   const { theme } = useTheme();
   const [isScriptLoaded, setIsScriptLoaded] = useState(false);
 
   useEffect(() => {
-    const scriptId = 'gradio-script';
+    const scriptId = `gradio-script-${scriptSrc}`;
     if (document.getElementById(scriptId)) {
       setIsScriptLoaded(true);
       return;
     }
 
+    // Clean up any old script versions
+    document.querySelectorAll('script[id^="gradio-script-"]').forEach(el => el.remove());
+
     const script = document.createElement('script');
     script.id = scriptId;
     script.type = 'module';
-    script.src = 'https://gradio.s3-us-west-2.amazonaws.com/5.25.1/gradio.js';
+    script.src = scriptSrc;
     script.onload = () => {
       setIsScriptLoaded(true);
     };
@@ -48,7 +51,7 @@ export function GradioWrapper({ src }: { src: string }) {
         // To be safe, we check before removing.
       }
     };
-  }, []);
+  }, [scriptSrc]);
 
   const effectiveTheme =
     theme === 'system' && typeof window !== 'undefined'
@@ -63,7 +66,7 @@ export function GradioWrapper({ src }: { src: string }) {
 
   return (
     <gradio-app
-      src={src}
+      src={appSrc}
       theme={effectiveTheme === 'dark' ? 'dark' : 'light'}
     ></gradio-app>
   );
