@@ -1,7 +1,15 @@
 'use client';
 
 import { PageHeader } from '@/components/page-header';
-import { GradioWrapper } from '@/components/gradio-wrapper';
+import dynamic from 'next/dynamic';
+
+const GradioWrapper = dynamic(
+  () => import('@/components/gradio-wrapper').then((mod) => mod.GradioWrapper),
+  {
+    ssr: false,
+    loading: () => <p>Loading...</p>,
+  }
+);
 
 export default function TextToSpeechPage() {
   return (
