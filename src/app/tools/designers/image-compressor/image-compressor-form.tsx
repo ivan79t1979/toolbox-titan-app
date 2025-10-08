@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import Image from 'next/image';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -111,6 +111,16 @@ export function ImageCompressorForm() {
     },
     [toast]
   );
+  
+  const qualityValue = form.watch('quality');
+  const imageFile = form.watch('image');
+
+  useEffect(() => {
+    if (imageFile instanceof File) {
+      compressImage(imageFile, qualityValue);
+    }
+  }, [qualityValue, imageFile, compressImage]);
+
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -132,8 +142,7 @@ export function ImageCompressorForm() {
           name: file.name,
         });
         setCompressed(null);
-        // Trigger initial compression
-        compressImage(file, form.getValues('quality'));
+        // Initial compression is handled by the useEffect
       };
       reader.readAsDataURL(file);
     }
