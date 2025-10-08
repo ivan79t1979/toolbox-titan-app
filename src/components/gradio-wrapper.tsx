@@ -12,8 +12,9 @@ declare global {
         React.HTMLAttributes<HTMLElement>,
         HTMLElement
       > & {
+        key?: string;
         src?: string;
-        theme?: 'light' | 'dark';
+        theme_mode?: 'light' | 'dark';
       };
     }
   }
@@ -49,7 +50,7 @@ export function GradioWrapper({ src }: { src: string }) {
         src="https://gradio.s3-us-west-2.amazonaws.com/4.36.0/gradio.js"
         strategy="lazyOnload"
       />
-      <gradio-app src={src} theme={effectiveTheme}></gradio-app>
+      <gradio-app key={effectiveTheme} src={src} theme_mode={effectiveTheme}></gradio-app>
     </>
   );
 }
