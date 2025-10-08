@@ -6,7 +6,10 @@ import dynamic from 'next/dynamic';
 
 const GradioWrapper = dynamic(
   () => import('@/components/gradio-wrapper').then((mod) => mod.GradioWrapper),
-  { ssr: false }
+  { 
+    ssr: false,
+    loading: () => <p>Loading tool...</p>
+  }
 );
 
 export default function BackgroundRemoverPage() {

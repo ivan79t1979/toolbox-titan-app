@@ -2,7 +2,6 @@
 'use client';
 
 import { useTheme } from '@/components/theme-provider';
-import Script from 'next/script';
 import { useEffect, useState } from 'react';
 
 declare global {
@@ -12,7 +11,6 @@ declare global {
         React.HTMLAttributes<HTMLElement>,
         HTMLElement
       > & {
-        key?: string;
         src?: string;
         theme_mode?: 'light' | 'dark';
       };
@@ -22,35 +20,48 @@ declare global {
 
 export function GradioWrapper({ src }: { src: string }) {
   const { theme } = useTheme();
-  const [effectiveTheme, setEffectiveTheme] = useState<'light' | 'dark'>('light');
+  const [isScriptLoaded, setIsScriptLoaded] = useState(false);
+
+  const effectiveTheme = theme === 'system' 
+    ? (typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+    : theme;
 
   useEffect(() => {
-    const getSystemTheme = () =>
-      window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-    const currentTheme = theme === 'system' ? getSystemTheme() : theme || 'light';
-    setEffectiveTheme(currentTheme);
+    if (document.querySelector('script[src*="gradio.js"]')) {
+      setIsScriptLoaded(true);
+      return;
+    }
 
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    const handleChange = () => {
-      if (theme === 'system') {
-        setEffectiveTheme(getSystemTheme());
-      }
+    const script = document.createElement('script');
+    script.type = 'module';
+    script.src = 'https://gradio.s3-us-west-2.amazonaws.com/4.36.0/gradio.js';
+    script.async = true;
+    script.onload = () => {
+      setIsScriptLoaded(true);
     };
-    mediaQuery.addEventListener('change', handleChange);
+    script.onerror = () => {
+      console.error('Gradio script failed to load.');
+    };
+
+    document.head.appendChild(script);
 
     return () => {
-      mediaQuery.removeEventListener('change', handleChange);
+      // Optional: Cleanup script if component unmounts
+      const existingScript = document.querySelector('script[src*="gradio.js"]');
+      if (existingScript) {
+        document.head.removeChild(existingScript);
+      }
     };
-  }, [theme]);
+  }, []);
+
+  if (!isScriptLoaded) {
+    return <div>Loading Tool...</div>;
+  }
 
   return (
-    <>
-      <Script
-        type="module"
-        src="https://gradio.s3-us-west-2.amazonaws.com/4.36.0/gradio.js"
-        strategy="lazyOnload"
-      />
-      <gradio-app key={effectiveTheme} src={src} theme_mode={effectiveTheme}></gradio-app>
-    </>
+    <gradio-app
+      src={src}
+      theme_mode={effectiveTheme}
+    ></gradio-app>
   );
 }
