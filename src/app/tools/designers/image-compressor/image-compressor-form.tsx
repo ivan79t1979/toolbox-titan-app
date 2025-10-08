@@ -25,6 +25,7 @@ import { Loader2, Download, Upload, Percent, FileSymlink, Wand2 } from 'lucide-r
 import { Slider } from '@/components/ui/slider';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import Link from 'next/link';
 
 const formSchema = z.object({
   image: z.any().refine((file) => file instanceof File, 'Please upload an image.'),
@@ -287,6 +288,23 @@ function ImagePreview({
   reduction?: number;
   onDownload?: () => void;
 }) {
+  const content = (
+    <div className="aspect-video relative bg-muted/30 rounded-md flex items-center justify-center">
+      {isLoading ? (
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      ) : src ? (
+        <Image
+          src={src}
+          alt={`${title} preview`}
+          fill
+          className="object-contain rounded-md"
+        />
+      ) : (
+        <FileSymlink className="w-12 h-12 text-muted-foreground" />
+      )}
+    </div>
+  );
+
   return (
     <Card>
       <CardHeader className="flex-row items-center justify-between">
@@ -308,20 +326,13 @@ function ImagePreview({
         )}
       </CardHeader>
       <CardContent>
-        <div className="aspect-video relative bg-muted/30 rounded-md flex items-center justify-center">
-          {isLoading ? (
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          ) : src ? (
-            <Image
-              src={src}
-              alt={`${title} preview`}
-              fill
-              className="object-contain rounded-md"
-            />
-          ) : (
-            <FileSymlink className="w-12 h-12 text-muted-foreground" />
-          )}
-        </div>
+        {title === 'Compressed' && src ? (
+          <Link href={src} target="_blank" rel="noopener noreferrer">
+            {content}
+          </Link>
+        ) : (
+          content
+        )}
         {onDownload && (
           <Button
             onClick={onDownload}
