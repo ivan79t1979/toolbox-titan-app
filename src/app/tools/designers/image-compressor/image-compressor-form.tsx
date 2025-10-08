@@ -76,9 +76,10 @@ export function ImageCompressorForm() {
         const ctx = canvas.getContext('2d');
         if (ctx) {
           ctx.drawImage(img, 0, 0);
-          // For PNG, quality is not directly supported, so we just redraw.
-          // For JPEG, we can specify quality.
           const isJpeg = file.type === 'image/jpeg';
+          const mimeType = isJpeg ? 'image/jpeg' : 'image/png';
+          const qualityArg = isJpeg ? quality : undefined;
+          
           canvas.toBlob((blob) => {
             if (blob) {
               const compressedSrc = URL.createObjectURL(blob);
@@ -86,15 +87,20 @@ export function ImageCompressorForm() {
             }
             setIsLoading(false);
             resolve();
-          }, isJpeg ? 'image/jpeg' : 'image/png', isJpeg ? quality : undefined);
+          }, mimeType, qualityArg);
         } else {
             setIsLoading(false);
             resolve();
         }
       };
+      img.onerror = () => {
+        setIsLoading(false);
+        toast({ variant: 'destructive', title: 'Image load error', description: 'Could not load the selected image file.'});
+        resolve();
+      };
       img.src = URL.createObjectURL(file);
     });
-  }, []);
+  }, [toast]);
 
   useEffect(() => {
     const imageFile = form.getValues('image');
