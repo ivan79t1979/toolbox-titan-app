@@ -99,6 +99,12 @@ export const toolCategories: ToolCategory[] = [
         href: '/tools/writers/readability-analyzer',
         icon: Scan,
       },
+      {
+        title: 'Text Summarizer',
+        description: 'Summarize long text into key points.',
+        href: '/tools/writers/text-summarizer',
+        icon: Text,
+      },
     ],
   },
   {

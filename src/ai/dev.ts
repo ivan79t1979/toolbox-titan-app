@@ -7,3 +7,4 @@ import '@/ai/flows/spell-checker.ts';
 import '@/ai/flows/color-palette-extractor.ts';
 import '@/ai/flows/font-pairing.ts';
 import '@/ai/flows/font-pairing-types.ts';
+import '@/ai/flows/text-summarizer.ts';
