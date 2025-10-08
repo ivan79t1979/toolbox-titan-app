@@ -41,6 +41,7 @@ import {
   Shapes,
   PanelBottom,
   Minimize,
+  Database,
 } from 'lucide-react';
 
 export type Tool = {
@@ -222,6 +223,12 @@ export const toolCategories: ToolCategory[] = [
         description: 'Create and download professional invoices.',
         href: '/tools/generators/invoice-generator',
         icon: Receipt,
+      },
+      {
+        title: 'Dataset Generator',
+        description: 'Generate structured data with AI.',
+        href: '/tools/generators/dataset-generator',
+        icon: Database,
       },
     ],
   },

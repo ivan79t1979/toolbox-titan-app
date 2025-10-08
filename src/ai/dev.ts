@@ -10,3 +10,4 @@ import '@/ai/flows/font-pairing-types.ts';
 import '@/ai/flows/text-summarizer.ts';
 import '@/ai/flows/rhyme-finder.ts';
 import '@/ai/flows/rhyme-finder-types.ts';
+import '@/ai/flows/dataset-generator.ts';
