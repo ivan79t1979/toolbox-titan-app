@@ -31,7 +31,7 @@ export function GradioWrapper({ src }: { src:string }) {
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const getSystemTheme = () => window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-      setEffectiveTheme(theme === 'system' ? getSystemTheme() : theme);
+      setEffectiveTheme(theme === 'system' ? getSystemTheme() : theme || 'light');
 
       if (theme === 'system') {
         const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
@@ -47,7 +47,7 @@ export function GradioWrapper({ src }: { src:string }) {
     <>
       <Script
         type="module"
-        src="https://gradio.s3-us-west-2.amazonaws.com/4.36.0/gradio.js"
+        src="https://gradio.s3-us-west-2.amazonaws.com/5.25.1/gradio.js"
         strategy="lazyOnload"
       />
       {isClient && <gradio-app src={src} theme={effectiveTheme}></gradio-app>}
