@@ -1,8 +1,6 @@
 'use client';
 
 import { useTheme } from '@/components/theme-provider';
-import Script from 'next/script';
-import { useState, useEffect } from 'react';
 
 declare global {
   namespace JSX {
@@ -12,7 +10,7 @@ declare global {
         HTMLElement
       > & {
         src?: string;
-        theme_mode?: 'light' | 'dark';
+        theme?: 'light' | 'dark';
       };
     }
   }
@@ -20,19 +18,6 @@ declare global {
 
 export function GradioWrapper({ src }: { src: string }) {
   const { theme } = useTheme();
-  const [isScriptLoaded, setIsScriptLoaded] = useState(false);
-
-  useEffect(() => {
-    const script = document.createElement('script');
-    script.type = 'module';
-    script.src = 'https://gradio.s3-us-west-2.amazonaws.com/4.36.0/gradio.js';
-    script.onload = () => setIsScriptLoaded(true);
-    document.head.appendChild(script);
-
-    return () => {
-      document.head.removeChild(script);
-    };
-  }, []);
 
   const effectiveTheme =
     theme === 'system' && typeof window !== 'undefined'
@@ -42,13 +27,9 @@ export function GradioWrapper({ src }: { src: string }) {
       : theme;
 
   return (
-    <>
-      {isScriptLoaded && (
-        <gradio-app
-          src={src}
-          theme_mode={effectiveTheme === 'dark' ? 'dark' : 'light'}
-        ></gradio-app>
-      )}
-    </>
+    <gradio-app
+      src={src}
+      theme={effectiveTheme === 'dark' ? 'dark' : 'light'}
+    ></gradio-app>
   );
 }
