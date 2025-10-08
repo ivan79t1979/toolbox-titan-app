@@ -2,7 +2,7 @@
 
 import { PageHeader } from '@/components/page-header';
 import { useTheme } from '@/components/theme-provider';
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 
 declare global {
   namespace JSX {
@@ -12,34 +12,39 @@ declare global {
         HTMLElement
       > & {
         src?: string;
+        theme?: 'light' | 'dark';
       };
     }
   }
 }
 
 export default function TextToSpeechPage() {
-  const gradioContainerRef = useRef<HTMLDivElement>(null);
   const { theme } = useTheme();
 
   useEffect(() => {
+    const scriptId = 'gradio-script';
+    if (document.getElementById(scriptId)) {
+      return;
+    }
+
     const script = document.createElement('script');
+    script.id = scriptId;
     script.type = 'module';
     script.src = 'https://gradio.s3-us-west-2.amazonaws.com/4.36.0/gradio.js';
     script.async = true;
-
-    // Clear previous script if it exists
-    if (gradioContainerRef.current) {
-      gradioContainerRef.current.innerHTML = '';
-      gradioContainerRef.current.appendChild(script);
-    }
+    document.body.appendChild(script);
 
     return () => {
-      // Cleanup on unmount
-      if (gradioContainerRef.current) {
-        gradioContainerRef.current.innerHTML = '';
+      const existingScript = document.getElementById(scriptId);
+      if (existingScript) {
+        // It's generally not recommended to remove scripts.
       }
     };
-  }, [theme]); // Re-run when theme changes
+  }, []);
+
+  const effectiveTheme = theme === 'system' 
+    ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') 
+    : theme;
 
   return (
     <>
@@ -47,8 +52,11 @@ export default function TextToSpeechPage() {
         title="Text to Speech"
         description="Convert text to spoken audio using a custom model from Hugging Face."
       />
-      <div ref={gradioContainerRef} className="mt-8">
-        <gradio-app src="https://timemaster-multilingual-tts.hf.space"></gradio-app>
+      <div className="mt-8">
+        <gradio-app
+          src="https://timemaster-multilingual-tts.hf.space"
+          theme={effectiveTheme}
+        ></gradio-app>
       </div>
     </>
   );
