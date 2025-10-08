@@ -1,12 +1,7 @@
 'use client';
 
 import { PageHeader } from '@/components/page-header';
-import dynamic from 'next/dynamic';
-
-const GradioWrapper = dynamic(
-  () => import('@/components/gradio-wrapper').then((mod) => mod.GradioWrapper),
-  { ssr: false }
-);
+import { GradioWrapper } from '@/components/gradio-wrapper';
 
 
 export default function BackgroundRemoverPage() {
