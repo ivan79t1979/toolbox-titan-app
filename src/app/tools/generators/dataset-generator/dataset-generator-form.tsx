@@ -4,6 +4,8 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { saveAs } from 'file-saver';
+import * as XLSX from 'xlsx';
 import { generateDataset } from '@/ai/flows/dataset-generator';
 import type { DatasetGeneratorInput } from '@/ai/flows/dataset-generator-types';
 
@@ -26,7 +28,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Wand2, Loader2, Copy } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Wand2, Loader2, Copy, Download, FileJson, FileText, FileSpreadsheet } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 const formSchema = z.object({
@@ -75,6 +83,47 @@ export function DatasetGeneratorForm() {
     toast({
       title: 'Copied to clipboard!',
     });
+  };
+  
+  const handleExport = (exportFormat: 'json' | 'csv' | 'xlsx') => {
+    if (!generatedData) return;
+
+    const currentFormat = form.getValues('format');
+    
+    if (exportFormat === 'json') {
+      if (currentFormat === 'json') {
+        const blob = new Blob([generatedData], { type: 'application/json;charset=utf-8' });
+        saveAs(blob, 'dataset.json');
+      } else { // CSV to JSON
+        const workbook = XLSX.read(generatedData, { type: 'string' });
+        const sheetName = workbook.SheetNames[0];
+        const json = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
+        const blob = new Blob([JSON.stringify(json, null, 2)], { type: 'application/json;charset=utf-8' });
+        saveAs(blob, 'dataset.json');
+      }
+    } else if (exportFormat === 'csv') {
+      if (currentFormat === 'csv') {
+         const blob = new Blob([generatedData], { type: 'text/csv;charset=utf-8' });
+        saveAs(blob, 'dataset.csv');
+      } else { // JSON to CSV
+        const json = JSON.parse(generatedData);
+        const worksheet = XLSX.utils.json_to_sheet(json);
+        const csv = XLSX.utils.sheet_to_csv(worksheet);
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+        saveAs(blob, 'dataset.csv');
+      }
+    } else if (exportFormat === 'xlsx') {
+       let worksheet: XLSX.WorkSheet;
+       if (currentFormat === 'json') {
+           worksheet = XLSX.utils.json_to_sheet(JSON.parse(generatedData));
+       } else { // CSV
+           const workbook = XLSX.read(generatedData, { type: 'string' });
+           worksheet = workbook.Sheets[workbook.SheetNames[0]];
+       }
+       const workbook = XLSX.utils.book_new();
+       XLSX.utils.book_append_sheet(workbook, worksheet, 'Dataset');
+       XLSX.writeFile(workbook, 'dataset.xlsx');
+    }
   };
 
   return (
@@ -158,14 +207,29 @@ export function DatasetGeneratorForm() {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Generated Data</CardTitle>
+          <div className="flex items-center gap-2">
            <Button
             variant="ghost"
             size="icon"
             onClick={handleCopy}
             disabled={!generatedData || isLoading}
+            aria-label="Copy"
           >
             <Copy className="h-4 w-4" />
           </Button>
+           <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" disabled={!generatedData || isLoading} aria-label="Download">
+                <Download className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuItem onClick={() => handleExport('json')}><FileJson className="mr-2 h-4 w-4" /> as JSON</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleExport('csv')}><FileText className="mr-2 h-4 w-4" /> as CSV</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleExport('xlsx')}><FileSpreadsheet className="mr-2 h-4 w-4" /> as XLSX</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          </div>
         </CardHeader>
         <CardContent>
           <div className="relative h-full min-h-[300px] rounded-md border bg-muted/30">
