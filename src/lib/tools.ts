@@ -38,6 +38,7 @@ import {
   ListChecks,
   Receipt,
   Music,
+  Shapes,
 } from 'lucide-react';
 
 export type Tool = {
@@ -153,6 +154,12 @@ export const toolCategories: ToolCategory[] = [
         description: 'Find the perfect font pairing.',
         href: '/tools/designers/font-pairing',
         icon: Type,
+      },
+      {
+        title: 'SVG Shape Generator',
+        description: 'Create and customize basic SVG shapes.',
+        href: '/tools/designers/svg-shape-generator',
+        icon: Shapes,
       },
     ],
   },
