@@ -37,6 +37,7 @@ import {
   ClipboardList,
   ListChecks,
   Receipt,
+  Music,
 } from 'lucide-react';
 
 export type Tool = {
@@ -104,6 +105,12 @@ export const toolCategories: ToolCategory[] = [
         description: 'Summarize long text into key points.',
         href: '/tools/writers/text-summarizer',
         icon: Text,
+      },
+      {
+        title: 'Rhyme Finder',
+        description: 'Find words that rhyme.',
+        href: '/tools/writers/rhyme-finder',
+        icon: Music,
       },
     ],
   },
