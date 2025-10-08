@@ -39,6 +39,7 @@ import {
   Receipt,
   Music,
   Shapes,
+  PanelBottom,
 } from 'lucide-react';
 
 export type Tool = {
@@ -160,6 +161,12 @@ export const toolCategories: ToolCategory[] = [
         description: 'Create and customize basic SVG shapes.',
         href: '/tools/designers/svg-shape-generator',
         icon: Shapes,
+      },
+      {
+        title: 'CSS Shadow Generator',
+        description: 'Create and customize box-shadow effects.',
+        href: '/tools/designers/css-shadow-generator',
+        icon: PanelBottom,
       },
     ],
   },
