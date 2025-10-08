@@ -106,13 +106,30 @@ export function CssShadowGeneratorForm() {
 }
 
 function SliderControl({ label, value, setValue, min, max }: { label: string, value: number, setValue: (val: number) => void, min: number, max: number }) {
-    return (
-        <div className="space-y-2">
-            <div className="flex justify-between items-center">
-                <Label>{label}</Label>
-                <span className="font-mono text-sm">{value}px</span>
-            </div>
-            <Slider value={[value]} onValueChange={([v]) => setValue(v)} min={min} max={max} />
-        </div>
-    )
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const numValue = parseInt(e.target.value, 10);
+    if (!isNaN(numValue)) {
+      setValue(numValue);
+    }
+  };
+    
+  return (
+      <div className="space-y-2">
+          <div className="flex justify-between items-center">
+              <Label>{label}</Label>
+              <div className="flex items-center gap-2">
+                <Input 
+                  type="number"
+                  value={value}
+                  onChange={handleInputChange}
+                  min={min}
+                  max={max}
+                  className="w-20 h-8 text-center"
+                />
+                <span className="font-mono text-sm text-muted-foreground">px</span>
+              </div>
+          </div>
+          <Slider value={[value]} onValueChange={([v]) => setValue(v)} min={min} max={max} />
+      </div>
+  )
 }
