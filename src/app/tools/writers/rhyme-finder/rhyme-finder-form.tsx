@@ -3,7 +3,8 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { findRhymes, RhymeFinderInputSchema, type RhymeFinderInput, type RhymeFinderOutput } from '@/ai/flows/rhyme-finder';
+import { findRhymes } from '@/ai/flows/rhyme-finder';
+import { RhymeFinderInputSchema, type RhymeFinderInput } from '@/ai/flows/rhyme-finder-types';
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';

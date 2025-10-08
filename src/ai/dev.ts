@@ -9,3 +9,4 @@ import '@/ai/flows/font-pairing.ts';
 import '@/ai/flows/font-pairing-types.ts';
 import '@/ai/flows/text-summarizer.ts';
 import '@/ai/flows/rhyme-finder.ts';
+import '@/ai/flows/rhyme-finder-types.ts';
