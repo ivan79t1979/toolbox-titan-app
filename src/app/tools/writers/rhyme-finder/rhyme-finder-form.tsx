@@ -51,6 +51,16 @@ export function RhymeFinderForm() {
     });
   };
 
+  const handleCopyAll = () => {
+    if (rhymes.length === 0) return;
+    const allRhymes = rhymes.join('\n');
+    navigator.clipboard.writeText(allRhymes);
+    toast({
+      title: 'All rhymes copied!',
+      description: `${rhymes.length} words have been copied to your clipboard.`,
+    });
+  };
+
   return (
     <div className="mx-auto max-w-2xl space-y-8">
       <Card>
@@ -81,7 +91,15 @@ export function RhymeFinderForm() {
       
       <Card>
         <CardHeader>
-          <CardTitle>Rhyming Words</CardTitle>
+          <div className="flex justify-between items-center">
+            <CardTitle>Rhyming Words</CardTitle>
+            {rhymes.length > 0 && (
+              <Button variant="outline" size="sm" onClick={handleCopyAll}>
+                <Copy className="mr-2 h-4 w-4" />
+                Copy All
+              </Button>
+            )}
+          </div>
         </CardHeader>
         <CardContent>
           <div className="min-h-[200px] rounded-md border bg-muted/30 p-4">
@@ -95,7 +113,7 @@ export function RhymeFinderForm() {
                   <Badge
                     key={index}
                     variant="outline"
-                    className="cursor-pointer text-base hover:bg-primary/10"
+                    className="cursor-pointer text-base hover:bg-primary/10 group"
                     onClick={() => handleCopy(rhyme)}
                   >
                     {rhyme}
