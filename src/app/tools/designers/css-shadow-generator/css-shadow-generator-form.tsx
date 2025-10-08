@@ -34,6 +34,8 @@ export function CssShadowGeneratorForm() {
   const [color, setColor] = useState('#000000');
   const [opacity, setOpacity] = useState(0.5);
   const [inset, setInset] = useState(false);
+  const [boxColor, setBoxColor] = useState('#FFFFFF');
+  const [previewBgColor, setPreviewBgColor] = useState('#F1F5F9');
   const { toast } = useToast();
 
   const shadowCss = useMemo(() => {
@@ -78,14 +80,34 @@ export function CssShadowGeneratorForm() {
                 </div>
             </CardContent>
         </Card>
+        <Card>
+            <CardContent className="p-4 space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                        <Label htmlFor="boxColor">Box Color</Label>
+                        <Input id="boxColor" type="color" value={boxColor} onChange={(e) => setBoxColor(e.target.value)} className="h-10 w-full p-1"/>
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="previewBgColor">Background Color</Label>
+                        <Input id="previewBgColor" type="color" value={previewBgColor} onChange={(e) => setPreviewBgColor(e.target.value)} className="h-10 w-full p-1"/>
+                    </div>
+                </div>
+            </CardContent>
+        </Card>
       </div>
       <div className="space-y-4">
         <Card>
             <CardHeader><CardTitle>Preview</CardTitle></CardHeader>
-            <CardContent className="flex items-center justify-center p-8 bg-muted/30 rounded-md min-h-[300px]">
+            <CardContent 
+                className="flex items-center justify-center p-8 rounded-md min-h-[300px] transition-colors"
+                style={{ backgroundColor: previewBgColor }}
+            >
                 <div
-                    className="w-48 h-48 bg-background rounded-lg transition-all duration-200"
-                    style={{ boxShadow: shadowCss }}
+                    className="w-48 h-48 rounded-lg transition-all duration-200"
+                    style={{ 
+                        boxShadow: shadowCss,
+                        backgroundColor: boxColor 
+                    }}
                 />
             </CardContent>
         </Card>
