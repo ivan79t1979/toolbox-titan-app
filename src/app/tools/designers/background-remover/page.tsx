@@ -21,14 +21,18 @@ declare global {
 
 export default function BackgroundRemoverPage() {
   const { theme } = useTheme();
-  const [effectiveTheme, setEffectiveTheme] = useState<'light' | 'dark'>('light');
+  const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
-    const newTheme = theme === 'system' 
-      ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') 
-      : theme;
-    setEffectiveTheme(newTheme);
-  }, [theme]);
+    setIsClient(true);
+  }, []);
+
+  const getEffectiveTheme = () => {
+    if (theme === 'system') {
+      return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+    return theme;
+  };
 
   return (
     <>
@@ -42,10 +46,12 @@ export default function BackgroundRemoverPage() {
         strategy="afterInteractive"
       />
       <div className="mt-8">
-        <gradio-app
-          src="https://timemaster-removebg.hf.space"
-          theme={effectiveTheme}
-        ></gradio-app>
+        {isClient && (
+          <gradio-app
+            src="https://timemaster-removebg.hf.space"
+            theme={getEffectiveTheme()}
+          ></gradio-app>
+        )}
       </div>
     </>
   );
