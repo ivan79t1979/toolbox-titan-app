@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useTheme } from '@/components/theme-provider';
@@ -18,33 +19,38 @@ declare global {
   }
 }
 
-export function GradioWrapper({ src }: { src: string }) {
+export function GradioWrapper({ src }: { src:string }) {
   const { theme } = useTheme();
   const [isClient, setIsClient] = useState(false);
+  const [effectiveTheme, setEffectiveTheme] = useState<'light' | 'dark'>('light');
 
   useEffect(() => {
     setIsClient(true);
   }, []);
 
-  const getEffectiveTheme = () => {
-    if (theme === 'system') {
-      if (typeof window !== 'undefined') {
-        return window.matchMedia('(prefers-color-scheme: dark)').matches
-          ? 'dark'
-          : 'light';
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const getSystemTheme = () => window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      setEffectiveTheme(theme === 'system' ? getSystemTheme() : theme);
+
+      if (theme === 'system') {
+        const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+        const handleChange = () => setEffectiveTheme(getSystemTheme());
+        mediaQuery.addEventListener('change', handleChange);
+        return () => mediaQuery.removeEventListener('change', handleChange);
       }
-      return 'light'; // Default for server
     }
-    return theme;
-  };
+  }, [theme]);
+
 
   return (
     <>
       <Script
+        type="module"
         src="https://gradio.s3-us-west-2.amazonaws.com/4.36.0/gradio.js"
         strategy="lazyOnload"
       />
-      {isClient && <gradio-app src={src} theme={getEffectiveTheme()}></gradio-app>}
+      {isClient && <gradio-app src={src} theme={effectiveTheme}></gradio-app>}
     </>
   );
 }
