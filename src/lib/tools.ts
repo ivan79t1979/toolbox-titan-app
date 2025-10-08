@@ -40,6 +40,7 @@ import {
   Music,
   Shapes,
   PanelBottom,
+  Minimize,
 } from 'lucide-react';
 
 export type Tool = {
@@ -149,6 +150,12 @@ export const toolCategories: ToolCategory[] = [
         description: 'Resize images to your needs.',
         href: '/tools/designers/image-resizer',
         icon: Scaling,
+      },
+      {
+        title: 'Image Compressor',
+        description: 'Compress images to reduce file size.',
+        href: '/tools/designers/image-compressor',
+        icon: Minimize,
       },
       {
         title: 'Font Pairing',
