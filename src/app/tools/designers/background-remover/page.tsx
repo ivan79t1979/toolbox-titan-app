@@ -1,8 +1,8 @@
 'use client';
 
 import { PageHeader } from '@/components/page-header';
-import Script from 'next/script';
-import { useState } from 'react';
+import { useTheme } from '@/components/theme-provider';
+import { useEffect, useRef } from 'react';
 
 declare global {
   namespace JSX {
@@ -17,27 +17,38 @@ declare global {
   }
 }
 
-const GRADIO_SCRIPT_URL = 'https://gradio.s3-us-west-2.amazonaws.com/4.36.0/gradio.js';
-
 export default function BackgroundRemoverPage() {
-  const [isScriptLoaded, setIsScriptLoaded] = useState(false);
+  const gradioContainerRef = useRef<HTMLDivElement>(null);
+  const { theme } = useTheme();
+
+  useEffect(() => {
+    const script = document.createElement('script');
+    script.type = 'module';
+    script.src = 'https://gradio.s3-us-west-2.amazonaws.com/4.36.0/gradio.js';
+    script.async = true;
+
+    // Clear previous script if it exists
+    if (gradioContainerRef.current) {
+      gradioContainerRef.current.innerHTML = '';
+      gradioContainerRef.current.appendChild(script);
+    }
+    
+    return () => {
+      // Cleanup on unmount
+      if (gradioContainerRef.current) {
+        gradioContainerRef.current.innerHTML = '';
+      }
+    };
+  }, [theme]); // Re-run when theme changes
 
   return (
     <>
-      <Script 
-        src={GRADIO_SCRIPT_URL}
-        strategy="afterInteractive"
-        onLoad={() => setIsScriptLoaded(true)}
-      />
       <PageHeader
         title="Background Remover"
+        description="Removes the background from an image using a model from Hugging Face."
       />
-      <div className="mt-8">
-        {isScriptLoaded ? (
-          <gradio-app src="https://timemaster-removebg.hf.space"></gradio-app>
-        ) : (
-          <div>Loading Tool...</div>
-        )}
+      <div ref={gradioContainerRef} className="mt-8">
+        <gradio-app src="https://timemaster-removebg.hf.space"></gradio-app>
       </div>
     </>
   );
