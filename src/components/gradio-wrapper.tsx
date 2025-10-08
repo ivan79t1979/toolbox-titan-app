@@ -2,7 +2,6 @@
 'use client';
 
 import { useTheme } from '@/components/theme-provider';
-import Script from 'next/script';
 import { useEffect, useState } from 'react';
 
 declare global {
@@ -19,38 +18,54 @@ declare global {
   }
 }
 
-export function GradioWrapper({ src }: { src:string }) {
+export function GradioWrapper({ src }: { src: string }) {
   const { theme } = useTheme();
-  const [isClient, setIsClient] = useState(false);
+  const [isScriptLoaded, setIsScriptLoaded] = useState(false);
   const [effectiveTheme, setEffectiveTheme] = useState<'light' | 'dark'>('light');
 
   useEffect(() => {
-    setIsClient(true);
-  }, []);
+    // Determine the theme on the client
+    const getSystemTheme = () => window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    const currentTheme = theme === 'system' ? getSystemTheme() : theme || 'light';
+    setEffectiveTheme(currentTheme);
 
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const getSystemTheme = () => window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-      setEffectiveTheme(theme === 'system' ? getSystemTheme() : theme || 'light');
-
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const handleChange = () => {
       if (theme === 'system') {
-        const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-        const handleChange = () => setEffectiveTheme(getSystemTheme());
-        mediaQuery.addEventListener('change', handleChange);
-        return () => mediaQuery.removeEventListener('change', handleChange);
+        setEffectiveTheme(getSystemTheme());
       }
+    };
+    mediaQuery.addEventListener('change', handleChange);
+
+    // Manually inject the script
+    const scriptId = 'gradio-script';
+    if (document.getElementById(scriptId)) {
+        setIsScriptLoaded(true);
+        return;
     }
+
+    const script = document.createElement('script');
+    script.id = scriptId;
+    script.type = 'module';
+    script.src = 'https://gradio.s3-us-west-2.amazonaws.com/5.25.1/gradio.js';
+    script.onload = () => {
+      setIsScriptLoaded(true);
+    };
+    document.head.appendChild(script);
+
+    return () => {
+      mediaQuery.removeEventListener('change', handleChange);
+      const existingScript = document.getElementById(scriptId);
+      if (existingScript) {
+        // Optional: clean up script on unmount, though often not necessary for app-wide scripts
+        // document.head.removeChild(existingScript);
+      }
+    };
   }, [theme]);
+  
+  if (!isScriptLoaded) {
+    return <div>Loading Tool...</div>; // Or a loading spinner
+  }
 
-
-  return (
-    <>
-      <Script
-        type="module"
-        src="https://gradio.s3-us-west-2.amazonaws.com/5.25.1/gradio.js"
-        strategy="lazyOnload"
-      />
-      {isClient && <gradio-app src={src} theme={effectiveTheme}></gradio-app>}
-    </>
-  );
+  return <gradio-app src={src} theme={effectiveTheme}></gradio-app>;
 }
