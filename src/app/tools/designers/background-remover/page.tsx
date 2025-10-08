@@ -2,7 +2,8 @@
 
 import { PageHeader } from '@/components/page-header';
 import { useTheme } from '@/components/theme-provider';
-import { useEffect, useRef } from 'react';
+import Script from 'next/script';
+import { useEffect, useState } from 'react';
 
 declare global {
   namespace JSX {
@@ -20,39 +21,25 @@ declare global {
 
 export default function BackgroundRemoverPage() {
   const { theme } = useTheme();
+  const [effectiveTheme, setEffectiveTheme] = useState<'light' | 'dark'>('light');
 
   useEffect(() => {
-    const scriptId = 'gradio-script';
-    if (document.getElementById(scriptId)) {
-      return;
-    }
-
-    const script = document.createElement('script');
-    script.id = scriptId;
-    script.type = 'module';
-    script.src = 'https://gradio.s3-us-west-2.amazonaws.com/4.36.0/gradio.js';
-    script.async = true;
-    document.body.appendChild(script);
-
-    return () => {
-      const existingScript = document.getElementById(scriptId);
-      if (existingScript) {
-        // It's generally not recommended to remove scripts,
-        // but if cleanup is necessary, this is how you'd do it.
-        // document.body.removeChild(existingScript);
-      }
-    };
-  }, []);
-
-  const effectiveTheme = theme === 'system' 
-    ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') 
-    : theme;
+    const newTheme = theme === 'system' 
+      ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') 
+      : theme;
+    setEffectiveTheme(newTheme);
+  }, [theme]);
 
   return (
     <>
       <PageHeader
         title="Background Remover"
         description="Removes the background from an image using a model from Hugging Face."
+      />
+      <Script
+        id="gradio-script"
+        src="https://gradio.s3-us-west-2.amazonaws.com/4.36.0/gradio.js"
+        strategy="afterInteractive"
       />
       <div className="mt-8">
         <gradio-app
