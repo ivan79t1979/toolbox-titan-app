@@ -42,6 +42,8 @@ import {
   PanelBottom,
   Minimize,
   Database,
+  Code,
+  Image as ImageIcon,
 } from 'lucide-react';
 
 export type Tool = {
@@ -175,6 +177,18 @@ export const toolCategories: ToolCategory[] = [
         description: 'Create and customize box-shadow effects.',
         href: '/tools/designers/css-shadow-generator',
         icon: PanelBottom,
+      },
+    ],
+  },
+  {
+    name: 'Tools for Developers',
+    icon: Code,
+    tools: [
+      {
+        title: 'Favicon Generator',
+        description: 'Generate favicons for your website.',
+        href: '/tools/developers/favicon-generator',
+        icon: ImageIcon,
       },
     ],
   },
