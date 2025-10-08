@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useCallback, ChangeEvent, useRef } from 'react';
@@ -38,6 +39,7 @@ type FormValues = z.infer<typeof formSchema>;
 type GeneratedIcon = {
   size: number;
   dataUrl: string;
+  filename: string;
 };
 
 const faviconSizes = [16, 32, 48, 64];
@@ -72,7 +74,8 @@ export function FaviconGeneratorForm() {
             if (ctx) {
                 ctx.drawImage(image, 0, 0, size, size);
                 const dataUrl = canvas.toDataURL('image/png');
-                icons.push({ size, dataUrl });
+                const filename = size === appleTouchIconSize ? 'apple-touch-icon.png' : `favicon-${size}x${size}.png`;
+                icons.push({ size, dataUrl, filename });
             }
         }
         setGeneratedIcons(icons);
@@ -105,8 +108,7 @@ export function FaviconGeneratorForm() {
     const zip = new JSZip();
     for (const icon of generatedIcons) {
       const base64Data = icon.dataUrl.split(',')[1];
-      const filename = icon.size === appleTouchIconSize ? 'apple-touch-icon.png' : `favicon-${icon.size}x${icon.size}.png`;
-      zip.file(filename, base64Data, { base64: true });
+      zip.file(icon.filename, base64Data, { base64: true });
     }
 
     try {
@@ -183,17 +185,25 @@ export function FaviconGeneratorForm() {
                             <Download className="mr-2 h-4 w-4" /> Download All (.zip)
                         </Button>
                     </div>
-                    <CardDescription>Previews of your generated icons.</CardDescription>
+                    <CardDescription>Previews of your generated icons. Click an icon to download it individually.</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
                         {generatedIcons.map(icon => (
-                            <div key={icon.size} className="flex flex-col items-center gap-2">
-                                <div className="bg-muted/30 p-2 rounded-lg border">
+                            <a 
+                                key={icon.size}
+                                href={icon.dataUrl}
+                                download={icon.filename}
+                                className="group flex flex-col items-center gap-2 p-2 rounded-lg hover:bg-muted/50 transition-colors"
+                            >
+                                <div className="bg-muted/30 p-2 rounded-lg border relative">
                                     <Image src={icon.dataUrl} alt={`Favicon ${icon.size}x${icon.size}`} width={icon.size} height={icon.size} style={{ imageRendering: 'pixelated' }} />
+                                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <Download className="w-6 h-6 text-white" />
+                                    </div>
                                 </div>
                                 <span className="text-sm text-muted-foreground">{icon.size}x{icon.size}</span>
-                            </div>
+                            </a>
                         ))}
                     </div>
                 </CardContent>
