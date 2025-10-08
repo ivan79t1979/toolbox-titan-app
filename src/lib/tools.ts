@@ -93,6 +93,12 @@ export const toolCategories: ToolCategory[] = [
         href: '/tools/writers/spell-checker',
         icon: SpellCheck,
       },
+      {
+        title: 'Readability Analyzer',
+        description: 'Analyze text for readability scores.',
+        href: '/tools/writers/readability-analyzer',
+        icon: Scan,
+      },
     ],
   },
   {
