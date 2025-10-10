@@ -181,7 +181,7 @@ export function BudgetPlanner() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
-  const { totalIncome, totalExpenses, balance, expenseByCategory } = useMemo(() => {
+  const { totalIncome, totalExpenses, balance, expenseByCategory, incomeByCategory } = useMemo(() => {
     const income = transactions
       .filter((t) => t.type === 'income')
       .reduce((acc, t) => acc + t.amount, 0);
@@ -199,11 +199,22 @@ export function BudgetPlanner() {
             return acc;
         }, {} as Record<string, number>);
 
+    const incomeByCategory = transactions
+        .filter(t => t.type === 'income')
+        .reduce((acc, t) => {
+            if (!acc[t.category]) {
+                acc[t.category] = 0;
+            }
+            acc[t.category] += t.amount;
+            return acc;
+        }, {} as Record<string, number>);
+
     return {
       totalIncome: income,
       totalExpenses: expenses,
       balance: income - expenses,
-      expenseByCategory: Object.entries(expenseByCategory).map(([name, value]) => ({ name, value }))
+      expenseByCategory: Object.entries(expenseByCategory).map(([name, value]) => ({ name, value })),
+      incomeByCategory: Object.entries(incomeByCategory).map(([name, value]) => ({ name, value })),
     };
   }, [transactions]);
   
@@ -464,22 +475,40 @@ export function BudgetPlanner() {
                     </Table>
                 </CardContent>
             </Card>
-            <Card className="lg:col-span-3">
-                <CardHeader><CardTitle>Expense Breakdown</CardTitle></CardHeader>
-                <CardContent>
-                    <ResponsiveContainer width="100%" height={300}>
-                        <PieChart>
-                            <Pie data={expenseByCategory} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label>
-                                {expenseByCategory.map((entry, index) => (
-                                    <Cell key={`cell-${index}`} fill={categoryColors[index % categoryColors.length]} />
-                                ))}
-                            </Pie>
-                            <Tooltip formatter={(value: number) => `$${value.toFixed(2)}`} />
-                            <Legend />
-                        </PieChart>
-                    </ResponsiveContainer>
-                </CardContent>
-            </Card>
+            <div className="lg:col-span-3 space-y-4">
+              <Card>
+                  <CardHeader><CardTitle>Expense Breakdown</CardTitle></CardHeader>
+                  <CardContent>
+                      <ResponsiveContainer width="100%" height={250}>
+                          <PieChart>
+                              <Pie data={expenseByCategory} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label>
+                                  {expenseByCategory.map((entry, index) => (
+                                      <Cell key={`cell-expense-${index}`} fill={categoryColors[index % categoryColors.length]} />
+                                  ))}
+                              </Pie>
+                              <Tooltip formatter={(value: number) => `$${value.toFixed(2)}`} />
+                              <Legend />
+                          </PieChart>
+                      </ResponsiveContainer>
+                  </CardContent>
+              </Card>
+              <Card>
+                  <CardHeader><CardTitle>Income Breakdown</CardTitle></CardHeader>
+                  <CardContent>
+                      <ResponsiveContainer width="100%" height={250}>
+                          <PieChart>
+                              <Pie data={incomeByCategory} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label>
+                                  {incomeByCategory.map((entry, index) => (
+                                      <Cell key={`cell-income-${index}`} fill={categoryColors[index % categoryColors.length]} />
+                                  ))}
+                              </Pie>
+                              <Tooltip formatter={(value: number) => `$${value.toFixed(2)}`} />
+                              <Legend />
+                          </PieChart>
+                      </ResponsiveContainer>
+                  </CardContent>
+              </Card>
+            </div>
         </div>
       </div>
     </div>
