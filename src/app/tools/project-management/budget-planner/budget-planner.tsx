@@ -1,20 +1,14 @@
 'use client';
 
+import * as React from 'react';
 import { useState, useMemo, useRef } from 'react';
-import {
-  PieChart,
-  Pie,
-  Cell,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-} from 'recharts';
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
   CardDescription,
+  CardFooter
 } from '@/components/ui/card';
 import {
   Table,
@@ -23,19 +17,12 @@ import {
   TableHead,
   TableBody,
   TableCell,
+  TableFooter
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogFooter,
-  DialogClose,
-} from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import {
   Select,
   SelectContent,
@@ -72,372 +59,391 @@ import { format, parseISO } from 'date-fns';
 import * as XLSX from 'xlsx';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
+import Image from 'next/image';
 
-type TransactionType = 'income' | 'expense';
-
-type Transaction = {
+type LineItem = {
   id: string;
-  type: TransactionType;
   description: string;
-  amount: number;
-  date: string; // YYYY-MM-DD
-  category: string;
+  quantity: number;
+  rate: number;
 };
 
-const defaultTransactions: Transaction[] = [
-  { id: '1', type: 'income', description: 'Monthly Salary', amount: 4500, date: format(new Date(), 'yyyy-MM-dd'), category: 'Salary' },
-  { id: '2', type: 'expense', description: 'Rent', amount: 1200, date: format(new Date(), 'yyyy-MM-dd'), category: 'Housing' },
-  { id: '3', type: 'expense', description: 'Groceries', amount: 350, date: format(new Date(Date.now() - 3 * 24 * 60 * 60 * 1000), 'yyyy-MM-dd'), category: 'Food' },
-  { id: '4', type: 'expense', description: 'Internet Bill', amount: 60, date: format(new Date(Date.now() - 5 * 24 * 60 * 60 * 1000), 'yyyy-MM-dd'), category: 'Utilities' },
-  { id: '5', type: 'income', description: 'Freelance Project', amount: 750, date: format(new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), 'yyyy-MM-dd'), category: 'Freelance' },
-];
-
-const categoryColors = [
-    'hsl(var(--chart-1))',
-    'hsl(var(--chart-2))',
-    'hsl(var(--chart-3))',
-    'hsl(var(--chart-4))',
-    'hsl(var(--chart-5))',
-    '#82ca9d',
-    '#ffc658',
-    '#ff8042',
-    '#00C49F',
-    '#FFBB28',
-];
-
-
-function TransactionForm({ onSave, transaction }: { onSave: (data: Omit<Transaction, 'id'> & { id?: string }) => void; transaction?: Transaction }) {
-  const [type, setType] = useState<TransactionType>(transaction?.type || 'expense');
-  const [description, setDescription] = useState(transaction?.description || '');
-  const [amount, setAmount] = useState(transaction?.amount || '');
-  const [date, setDate] = useState(transaction?.date || format(new Date(), 'yyyy-MM-dd'));
-  const [category, setCategory] = useState(transaction?.category || '');
-  const { toast } = useToast();
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!description || !amount || !date || !category) {
-        toast({
-            variant: 'destructive',
-            title: 'Missing information',
-            description: 'Please fill out all fields.',
-        });
-      return;
-    }
-    onSave({
-      id: transaction?.id,
-      type,
-      description,
-      amount: parseFloat(String(amount)),
-      date,
-      category,
-    });
-  };
-
-  return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="space-y-2">
-        <Label>Type</Label>
-        <Select value={type} onValueChange={(v: TransactionType) => setType(v)}>
-          <SelectTrigger><SelectValue /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="income">Income</SelectItem>
-            <SelectItem value="expense">Expense</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="description">Description</Label>
-        <Input id="description" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="e.g., Coffee" />
-      </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="space-y-2">
-            <Label htmlFor="amount">Amount</Label>
-            <Input id="amount" type="number" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="e.g., 5.50" />
-        </div>
-        <div className="space-y-2">
-            <Label htmlFor="date">Date</Label>
-            <Input id="date" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
-        </div>
-      </div>
-       <div className="space-y-2">
-        <Label htmlFor="category">Category</Label>
-        <Input id="category" value={category} onChange={(e) => setCategory(e.target.value)} placeholder="e.g., Food, Salary" />
-      </div>
-      <DialogFooter>
-        <DialogClose asChild><Button type="submit">Save Transaction</Button></DialogClose>
-      </DialogFooter>
-    </form>
-  );
+type CustomField = {
+  id: string;
+  label: string;
+  value: string;
 }
 
+type Labels = {
+    invoiceTitle: string;
+    billFrom: string;
+    billTo: string;
+    invoiceNumber: string;
+    date: string;
+    dueDate: string;
+    item: string;
+    quantity: string;
+    rate: string;
+    amount: string;
+    subtotal: string;
+    tax: string;
+    total: string;
+    notes: string;
+}
 
-export function BudgetPlanner() {
-  const [transactions, setTransactions] = useState<Transaction[]>(defaultTransactions);
-  const [isFormOpen, setIsFormOpen] = useState(false);
-  const [editingTransaction, setEditingTransaction] = useState<Transaction | undefined>(undefined);
+export function InvoiceGenerator() {
+  const [yourDetails, setYourDetails] = useState('Your Company\n123 Street\nCity, ST 12345');
+  const [clientDetails, setClientDetails] = useState('Client Company\n456 Avenue\nCity, ST 67890');
+  const [invoiceMeta, setInvoiceMeta] = useState({
+      number: 'INV-001',
+      date: format(new Date(), 'yyyy-MM-dd'),
+      dueDate: '',
+  });
+  const [notes, setNotes] = useState('Thank you for your business!');
+  const [taxRate, setTaxRate] = useState(0);
+  const [logo, setLogo] = useState<string | null>(null);
+  const [currency, setCurrency] = useState('$');
   
-  const printableRef = useRef<HTMLDivElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [customFields, setCustomFields] = useState<CustomField[]>([]);
+
+  const [labels, setLabels] = useState<Labels>({
+    invoiceTitle: 'INVOICE',
+    billFrom: 'Bill From',
+    billTo: 'Bill To',
+    invoiceNumber: 'Invoice #',
+    date: 'Date',
+    dueDate: 'Due Date',
+    item: 'Item',
+    quantity: 'Quantity',
+    rate: 'Rate',
+    amount: 'Amount',
+    subtotal: 'Subtotal',
+    tax: 'Tax',
+    total: 'Total',
+    notes: 'Notes'
+  });
+
+  const [lineItems, setLineItems] = useState<LineItem[]>([
+    { id: `item-${Date.now()}`, description: 'Website Design', quantity: 1, rate: 2500 },
+  ]);
+
   const { toast } = useToast();
+  const invoiceRef = useRef<HTMLDivElement>(null);
 
-  const { totalIncome, totalExpenses, balance, expenseByCategory } = useMemo(() => {
-    const income = transactions
-      .filter((t) => t.type === 'income')
-      .reduce((acc, t) => acc + t.amount, 0);
-    const expenses = transactions
-      .filter((t) => t.type === 'expense')
-      .reduce((acc, t) => acc + t.amount, 0);
-    
-    const expenseByCategory = transactions
-        .filter(t => t.type === 'expense')
-        .reduce((acc, t) => {
-            if (!acc[t.category]) {
-                acc[t.category] = 0;
-            }
-            acc[t.category] += t.amount;
-            return acc;
-        }, {} as Record<string, number>);
+  const subtotal = useMemo(() => {
+    return lineItems.reduce((acc, item) => acc + item.quantity * item.rate, 0);
+  }, [lineItems]);
 
-    return {
-      totalIncome: income,
-      totalExpenses: expenses,
-      balance: income - expenses,
-      expenseByCategory: Object.entries(expenseByCategory).map(([name, value]) => ({ name, value }))
-    };
-  }, [transactions]);
-  
-  const handleSaveTransaction = (data: Omit<Transaction, 'id'> & { id?: string }) => {
-    setTransactions(prev => {
-        if(data.id) { // Editing existing
-            return prev.map(t => t.id === data.id ? {...t, ...data} : t);
-        } else { // Adding new
-            const newTransaction = { ...data, id: `txn-${Date.now()}`};
-            return [...prev, newTransaction].sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-        }
-    });
-    setIsFormOpen(false);
-    setEditingTransaction(undefined);
-  };
-  
-  const openEditDialog = (transaction: Transaction) => {
-    setEditingTransaction(transaction);
-    setIsFormOpen(true);
-  }
+  const tax = useMemo(() => {
+    return subtotal * (taxRate / 100);
+  }, [subtotal, taxRate]);
 
-  const openNewDialog = () => {
-    setEditingTransaction(undefined);
-    setIsFormOpen(true);
-  }
-  
-  const handleDelete = (id: string) => {
-    setTransactions(transactions.filter(t => t.id !== id));
-  };
-  
-  // --- Import / Export Logic ---
-   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
+  const total = useMemo(() => {
+    return subtotal + tax;
+  }, [subtotal, tax]);
 
-    const reader = new FileReader();
-    const fileType = file.name.split('.').pop()?.toLowerCase();
-
-    reader.onload = (e) => {
-      try {
-        const data = e.target?.result;
-        if (!data) throw new Error('File could not be read.');
-        let newTransactions: Transaction[];
-
-        if (fileType === 'json') {
-          newTransactions = JSON.parse(data as string);
-        } else {
-          const workbook = fileType === 'xlsx'
-              ? XLSX.read(data, { type: 'array' })
-              : XLSX.read(data, { type: 'string' });
-          const sheet = workbook.Sheets[workbook.SheetNames[0]];
-          newTransactions = XLSX.utils.sheet_to_json<Transaction>(sheet);
-        }
-
-        if (!Array.isArray(newTransactions)) throw new Error('Invalid file structure.');
-        setTransactions(newTransactions);
-        toast({ title: 'Import Successful', description: `${file.name} was imported.` });
-      } catch (error: any) {
-        toast({ variant: 'destructive', title: 'Import Failed', description: error.message });
-      } finally {
-        if (fileInputRef.current) fileInputRef.current.value = '';
-      }
-    };
-
-    if (fileType === 'xlsx') reader.readAsArrayBuffer(file);
-    else reader.readAsText(file);
+  const addLineItem = () => {
+    setLineItems([
+      ...lineItems,
+      { id: `item-${Date.now()}`, description: '', quantity: 1, rate: 0 },
+    ]);
   };
 
-  const triggerFileUpload = () => fileInputRef.current?.click();
-  const downloadFile = (filename: string, content: string, mimeType: string) => {
-    const blob = new Blob([content], { type: mimeType });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = filename;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(link.href);
-  };
-
-  const exportJSON = () => downloadFile('budget-planner.json', JSON.stringify(transactions, null, 2), 'application/json');
-  const exportCSV = () => {
-    const worksheet = XLSX.utils.json_to_sheet(transactions);
-    const csv = XLSX.utils.sheet_to_csv(worksheet);
-    downloadFile('budget-planner.csv', csv, 'text/csv');
-  };
-  const exportXLSX = () => {
-    const worksheet = XLSX.utils.json_to_sheet(transactions);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Transactions');
-    XLSX.writeFile(workbook, 'budget-planner.xlsx');
-  };
-
-  const exportPNG = async () => {
-    if (!printableRef.current) return;
-    try {
-      const canvas = await html2canvas(printableRef.current, { scale: 2, backgroundColor: null });
-      const link = document.createElement('a');
-      link.download = 'budget-planner.png';
-      link.href = canvas.toDataURL('image/png');
-      link.click();
-    } catch (error) {
-      toast({ variant: 'destructive', title: 'Export Failed', description: 'Could not export as PNG.' });
+  const removeLineItem = (id: string) => {
+    if (lineItems.length <= 1) {
+        toast({ variant: 'destructive', title: 'Cannot remove last item.' });
+        return;
     }
+    setLineItems(lineItems.filter((item) => item.id !== id));
   };
+
+  const updateLineItem = (id: string, field: keyof Omit<LineItem, 'id'>, value: any) => {
+    setLineItems(
+      lineItems.map((item) => {
+        if (item.id === id) {
+          const numericValue = ['quantity', 'rate'].includes(field) ? parseFloat(value) || 0 : value;
+          return { ...item, [field]: numericValue };
+        }
+        return item;
+      })
+    );
+  };
+  
+  const addCustomField = () => {
+      setCustomFields([...customFields, { id: `cf-${Date.now()}`, label: 'Custom Field', value: '' }]);
+  }
+
+  const removeCustomField = (id: string) => {
+      setCustomFields(customFields.filter(f => f.id !== id));
+  }
+
+  const updateCustomField = (id: string, field: 'label' | 'value', value: string) => {
+      setCustomFields(customFields.map(f => f.id === id ? { ...f, [field]: value } : f));
+  }
+
+  
+  const handleLogoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+      const file = event.target.files?.[0];
+      if (file) {
+          const reader = new FileReader();
+          reader.onloadend = () => {
+              setLogo(reader.result as string);
+          }
+          reader.readAsDataURL(file);
+      }
+  }
+
+  const removeLogo = () => {
+    setLogo(null);
+  }
+
   const exportPDF = async () => {
-    if (!printableRef.current) return;
+    if (!invoiceRef.current) return;
     try {
-        const canvas = await html2canvas(printableRef.current, { scale: 2 });
+        const canvas = await html2canvas(invoiceRef.current, { scale: 2 });
         const imgData = canvas.toDataURL('image/png');
+        
         const pdf = new jsPDF({
-            orientation: canvas.width > canvas.height ? 'landscape' : 'portrait',
+            orientation: 'portrait',
             unit: 'px',
-            format: [canvas.width, canvas.height],
+            format: [canvas.width, canvas.height]
         });
+
         pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
-        pdf.save('budget-planner.pdf');
+        pdf.save(`invoice-${invoiceMeta.number}.pdf`);
+
+        toast({ title: 'PDF Exported', description: 'Your invoice has been downloaded.' });
     } catch (error) {
         toast({ variant: 'destructive', title: 'Export Failed', description: 'Could not export as PDF.' });
     }
   };
 
+
   return (
-    <div className="space-y-6">
-       <style>{`
-        @media print {
-          body * { visibility: hidden; }
-          .printable-area, .printable-area * { visibility: visible; }
-          .printable-area { position: absolute; left: 0; top: 0; width: 100%; padding: 1rem; }
-          .no-print { display: none !important; }
-        }
-      `}</style>
-      <div className="flex justify-end gap-2 no-print">
-        <DropdownMenu>
-            <DropdownMenuTrigger asChild><Button variant="outline"><Upload className="mr-2 h-4 w-4" /> Import</Button></DropdownMenuTrigger>
-            <DropdownMenuContent>
-            <DropdownMenuLabel>Import from</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={triggerFileUpload}><FileJson className="mr-2 h-4 w-4" /> JSON / CSV / XLSX</DropdownMenuItem>
-            </DropdownMenuContent>
-        </DropdownMenu>
-        <DropdownMenu>
-            <DropdownMenuTrigger asChild><Button variant="outline"><Download className="mr-2 h-4 w-4" /> Export</Button></DropdownMenuTrigger>
-            <DropdownMenuContent>
-            <DropdownMenuLabel>Export as</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={exportJSON}><FileJson className="mr-2 h-4 w-4" /> JSON</DropdownMenuItem>
-            <DropdownMenuItem onClick={exportCSV}><FileText className="mr-2 h-4 w-4" /> CSV</DropdownMenuItem>
-            <DropdownMenuItem onClick={exportXLSX}><FileSpreadsheet className="mr-2 h-4 w-4" /> XLSX</DropdownMenuItem>
-            <DropdownMenuItem onClick={exportPNG}><ImageIcon className="mr-2 h-4 w-4" /> PNG</DropdownMenuItem>
-            <DropdownMenuItem onClick={exportPDF}><Printer className="mr-2 h-4 w-4" /> PDF</DropdownMenuItem>
-            </DropdownMenuContent>
-        </DropdownMenu>
-        <input type="file" ref={fileInputRef} className="hidden" onChange={handleFileUpload} accept=".json,.csv,.xlsx" />
-      </div>
-
-      <div ref={printableRef} className="printable-area space-y-6">
-        <div className="grid gap-4 md:grid-cols-3">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2"><CardTitle className="text-sm font-medium">Total Income</CardTitle><TrendingUp className="h-4 w-4 text-muted-foreground" /></CardHeader>
-            <CardContent><div className="text-2xl font-bold text-green-600">${totalIncome.toFixed(2)}</div></CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2"><CardTitle className="text-sm font-medium">Total Expenses</CardTitle><TrendingDown className="h-4 w-4 text-muted-foreground" /></CardHeader>
-            <CardContent><div className="text-2xl font-bold text-red-600">${totalExpenses.toFixed(2)}</div></CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2"><CardTitle className="text-sm font-medium">Balance</CardTitle><DollarSign className="h-4 w-4 text-muted-foreground" /></CardHeader>
-            <CardContent><div className={cn("text-2xl font-bold", balance >= 0 ? "text-foreground" : "text-red-600")}>${balance.toFixed(2)}</div></CardContent>
-          </Card>
-        </div>
-
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-            <Card className="lg:col-span-4">
-                <CardHeader>
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                        <div>
-                            <CardTitle>Transactions</CardTitle>
-                            <CardDescription>Your recent income and expenses.</CardDescription>
-                        </div>
-                        <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-                            <DialogTrigger asChild>
-                                <Button size="sm" onClick={openNewDialog} className="no-print"><PlusCircle className="mr-2 h-4 w-4" /> Add Transaction</Button>
-                            </DialogTrigger>
-                            <DialogContent className="sm:max-w-[425px]">
-                                <DialogHeader>
-                                    <DialogTitle>{editingTransaction ? 'Edit Transaction' : 'Add Transaction'}</DialogTitle>
-                                </DialogHeader>
-                                <TransactionForm onSave={handleSaveTransaction} transaction={editingTransaction} />
-                            </DialogContent>
-                        </Dialog>
+    <div className="grid gap-8 lg:grid-cols-[1fr_2fr]">
+      <div className="space-y-6">
+        <Card>
+            <CardHeader><CardTitle>Company & Client</CardTitle></CardHeader>
+            <CardContent className="space-y-4">
+                <div className="space-y-2">
+                    <Label htmlFor="yourDetails">Your Details</Label>
+                    <Textarea id="yourDetails" value={yourDetails} onChange={e => setYourDetails(e.target.value)} rows={4}/>
+                </div>
+                 <div className="space-y-2">
+                    <Label htmlFor="clientDetails">Client Details</Label>
+                    <Textarea id="clientDetails" value={clientDetails} onChange={e => setClientDetails(e.target.value)} rows={4}/>
+                </div>
+                 <div className="space-y-2">
+                    <Label htmlFor="logo-upload">Company Logo</Label>
+                    <div className="flex items-center gap-2">
+                      <Input id="logo-upload" type="file" accept="image/*" onChange={handleLogoUpload} className="flex-grow"/>
+                      {logo && <Button variant="ghost" size="icon" onClick={removeLogo}><Trash2 className="h-4 w-4"/></Button>}
                     </div>
-                </CardHeader>
-                <CardContent className="max-h-96 overflow-auto">
-                    <Table>
-                        <TableHeader><TableRow><TableHead>Description</TableHead><TableHead>Date</TableHead><TableHead>Category</TableHead><TableHead className="text-right">Amount</TableHead><TableHead className="no-print"></TableHead></TableRow></TableHeader>
-                        <TableBody>
-                        {transactions.length > 0 ? transactions.map(t => (
-                            <TableRow key={t.id}>
-                                <TableCell className="font-medium">{t.description}</TableCell>
-                                <TableCell>{format(parseISO(t.date), 'MMM d, yyyy')}</TableCell>
-                                <TableCell>{t.category}</TableCell>
-                                <TableCell className={cn("text-right", t.type === 'income' ? 'text-green-600' : 'text-red-600')}>
-                                    {t.type === 'income' ? '+' : '-'}${t.amount.toFixed(2)}
-                                </TableCell>
-                                <TableCell className="text-right no-print">
-                                    <Button variant="ghost" size="icon" onClick={() => openEditDialog(t)}><Edit className="h-4 w-4" /></Button>
-                                    <Button variant="ghost" size="icon" onClick={() => handleDelete(t.id)}><Trash2 className="h-4 w-4" /></Button>
-                                </TableCell>
-                            </TableRow>
-                        )) : (
-                            <TableRow><TableCell colSpan={5} className="h-24 text-center">No transactions yet.</TableCell></TableRow>
+                 </div>
+            </CardContent>
+        </Card>
+        <Card>
+            <CardHeader><CardTitle>Invoice Meta</CardTitle></CardHeader>
+            <CardContent className="space-y-4">
+                 <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                        <Label htmlFor="invoiceNumber">Invoice #</Label>
+                        <Input id="invoiceNumber" value={invoiceMeta.number} onChange={e => setInvoiceMeta({...invoiceMeta, number: e.target.value})} />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="invoiceDate">Date</Label>
+                        <Input id="invoiceDate" type="date" value={invoiceMeta.date} onChange={e => setInvoiceMeta({...invoiceMeta, date: e.target.value})} />
+                    </div>
+                 </div>
+                 <div className="space-y-2">
+                    <Label htmlFor="dueDate">Due Date</Label>
+                    <Input id="dueDate" type="date" value={invoiceMeta.dueDate} onChange={e => setInvoiceMeta({...invoiceMeta, dueDate: e.target.value})} />
+                </div>
+                {customFields.map(field => (
+                    <div key={field.id} className="flex gap-2 items-end">
+                        <div className="grid grid-cols-2 gap-2 flex-grow">
+                            <Input placeholder="Label" value={field.label} onChange={e => updateCustomField(field.id, 'label', e.target.value)} />
+                            <Input placeholder="Value" value={field.value} onChange={e => updateCustomField(field.id, 'value', e.target.value)} />
+                        </div>
+                        <Button variant="ghost" size="icon" onClick={() => removeCustomField(field.id)}><Trash2 className="h-4 w-4" /></Button>
+                    </div>
+                ))}
+                <Button variant="outline" size="sm" onClick={addCustomField}>Add Custom Field</Button>
+            </CardContent>
+        </Card>
+        <Card>
+            <CardHeader><CardTitle>Line Items</CardTitle></CardHeader>
+            <CardContent className="space-y-4">
+                 {lineItems.map(item => (
+                    <div key={item.id} className="p-2 border rounded-md space-y-2">
+                         <div className="space-y-1">
+                            <Label htmlFor={`desc-${item.id}`}>{labels.item}</Label>
+                            <Textarea 
+                                id={`desc-${item.id}`}
+                                placeholder="Description" 
+                                value={item.description}
+                                onChange={e => updateLineItem(item.id, 'description', e.target.value)}
+                                rows={2}
+                            />
+                        </div>
+                        <div className="flex gap-2 items-end">
+                           <div className="grid grid-cols-2 gap-2 flex-grow">
+                                <div className="space-y-1">
+                                    <Label htmlFor={`qty-${item.id}`}>{labels.quantity}</Label>
+                                    <Input 
+                                        id={`qty-${item.id}`}
+                                        type="number" 
+                                        placeholder="Qty"
+                                        value={item.quantity}
+                                        onChange={e => updateLineItem(item.id, 'quantity', e.target.value)}
+                                    />
+                                </div>
+                                <div className="space-y-1">
+                                    <Label htmlFor={`rate-${item.id}`}>{labels.rate}</Label>
+                                    <Input 
+                                        id={`rate-${item.id}`}
+                                        type="number" 
+                                        placeholder="Rate"
+                                        value={item.rate}
+                                        onChange={e => updateLineItem(item.id, 'rate', e.target.value)}
+                                    />
+                                </div>
+                           </div>
+                           <Button variant="ghost" size="icon" onClick={() => removeLineItem(item.id)}><Trash2 className="h-4 w-4" /></Button>
+                        </div>
+                    </div>
+                 ))}
+                 <Button onClick={addLineItem} variant="outline"><PlusCircle className="mr-2 h-4 w-4"/>Add Item</Button>
+            </CardContent>
+        </Card>
+         <Card>
+            <CardHeader><CardTitle>Totals, Notes & Labels</CardTitle></CardHeader>
+            <CardContent className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                        <Label htmlFor="taxRate">Tax Rate (%)</Label>
+                        <Input id="taxRate" type="number" value={taxRate} onChange={e => setTaxRate(parseFloat(e.target.value) || 0)}/>
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="currency">Currency</Label>
+                        <Select value={currency} onValueChange={setCurrency}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select currency" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="$">USD ($)</SelectItem>
+                            <SelectItem value="€">EUR (€)</SelectItem>
+                            <SelectItem value="£">GBP (£)</SelectItem>
+                            <SelectItem value="¥">JPY (¥)</SelectItem>
+                          </SelectContent>
+                        </Select>
+                    </div>
+                </div>
+                <div className="space-y-2">
+                    <Label htmlFor="notes">Notes</Label>
+                    <Textarea id="notes" value={notes} onChange={e => setNotes(e.target.value)} />
+                </div>
+                <div className="grid grid-cols-2 gap-4 pt-4 border-t">
+                    {(Object.keys(labels) as Array<keyof Labels>).map(key => (
+                        <div className="space-y-1" key={key}>
+                            <Label htmlFor={`label-${key}`} className="capitalize text-xs text-muted-foreground">{key.replace(/([A-Z])/g, ' $1')}</Label>
+                            <Input id={`label-${key}`} value={labels[key]} onChange={e => setLabels({...labels, [key]: e.target.value})} />
+                        </div>
+                    ))}
+                </div>
+            </CardContent>
+        </Card>
+      </div>
+      
+      <div className="space-y-4 sticky top-4 self-start">
+        <Button onClick={exportPDF} size="lg" className="w-full">
+            <Download className="mr-2 h-4 w-4"/> Download Invoice PDF
+        </Button>
+        <Card className="shadow-lg">
+            <CardContent ref={invoiceRef} className="p-8 bg-white text-black">
+                <header className="flex justify-between items-start mb-12">
+                    <div className="flex-1">
+                        {logo && (
+                          <div className="mb-4 max-w-[160px]">
+                            <Image src={logo} alt="Company Logo" width={160} height={80} style={{ objectFit: 'contain', width: 'auto', height: 'auto' }} />
+                          </div>
                         )}
+                        <p className="text-gray-500 font-semibold">{labels.billFrom}</p>
+                        <div className="text-sm font-sans">
+                          {yourDetails.split('\n').map((line, i) => <div key={i}>{line}</div>)}
+                        </div>
+                    </div>
+                    <div className="text-right flex-1">
+                        <h1 className="text-4xl font-bold font-headline mb-8">{labels.invoiceTitle}</h1>
+                        <p>{labels.invoiceNumber} {invoiceMeta.number}</p>
+                    </div>
+                </header>
+                <section className="flex justify-between mb-12">
+                     <div>
+                        <p className="text-gray-500 font-semibold">{labels.billTo}</p>
+                        <div className="text-sm font-sans">
+                           {clientDetails.split('\n').map((line, i) => <div key={i}>{line}</div>)}
+                        </div>
+                    </div>
+                    <div className="text-right">
+                         <p className="text-gray-500 font-semibold">{labels.date}</p>
+                         <p>{invoiceMeta.date ? format(parseISO(invoiceMeta.date), 'PPP') : ''}</p>
+                         {invoiceMeta.dueDate && <>
+                            <p className="text-gray-500 font-semibold mt-2">{labels.dueDate}</p>
+                            <p>{format(parseISO(invoiceMeta.dueDate), 'PPP')}</p>
+                         </>}
+                         {customFields.map(field => (
+                           <React.Fragment key={field.id}>
+                             <p className="text-gray-500 font-semibold mt-2">{field.label}</p>
+                             <p>{field.value}</p>
+                           </React.Fragment>
+                         ))}
+                    </div>
+                </section>
+                <section>
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>{labels.item}</TableHead>
+                                <TableHead className="text-center">{labels.quantity}</TableHead>
+                                <TableHead className="text-center">{labels.rate}</TableHead>
+                                <TableHead className="text-right">{labels.amount}</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {lineItems.map(item => (
+                                <TableRow key={item.id}>
+                                    <TableCell className="font-medium" style={{ whiteSpace: 'pre-wrap' }}>{item.description}</TableCell>
+                                    <TableCell className="text-center">{item.quantity}</TableCell>
+                                    <TableCell className="text-center">{currency}{item.rate.toFixed(2)}</TableCell>
+                                    <TableCell className="text-right">{currency}{(item.quantity * item.rate).toFixed(2)}</TableCell>
+                                </TableRow>
+                            ))}
                         </TableBody>
+                        <TableFooter>
+                            <TableRow>
+                                <TableCell colSpan={3} className="text-right font-semibold">{labels.subtotal}</TableCell>
+                                <TableCell className="text-right">{currency}{subtotal.toFixed(2)}</TableCell>
+                            </TableRow>
+                             <TableRow>
+                                <TableCell colSpan={3} className="text-right font-semibold">{labels.tax} ({taxRate}%)</TableCell>
+                                <TableCell className="text-right">{currency}{tax.toFixed(2)}</TableCell>
+                            </TableRow>
+                             <TableRow className="text-lg font-bold">
+                                <TableCell colSpan={3} className="text-right">{labels.total}</TableCell>
+                                <TableCell className="text-right">{currency}{total.toFixed(2)}</TableCell>
+                            </TableRow>
+                        </TableFooter>
                     </Table>
-                </CardContent>
-            </Card>
-            <Card className="lg:col-span-3">
-                <CardHeader><CardTitle>Expense Breakdown</CardTitle></CardHeader>
-                <CardContent>
-                    <ResponsiveContainer width="100%" height={300}>
-                        <PieChart>
-                            <Pie data={expenseByCategory} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label>
-                                {expenseByCategory.map((entry, index) => (
-                                    <Cell key={`cell-${index}`} fill={categoryColors[index % categoryColors.length]} />
-                                ))}
-                            </Pie>
-                            <Tooltip formatter={(value: number) => `$${value.toFixed(2)}`} />
-                            <Legend />
-                        </PieChart>
-                    </ResponsiveContainer>
-                </CardContent>
-            </Card>
-        </div>
+                </section>
+                 <footer className="mt-12">
+                    <p className="text-gray-500 font-semibold">{labels.notes}</p>
+                    <div className="text-sm font-sans">
+                      {notes.split('\n').map((line, i) => <div key={i}>{line}</div>)}
+                    </div>
+                </footer>
+            </CardContent>
+        </Card>
       </div>
     </div>
   );
