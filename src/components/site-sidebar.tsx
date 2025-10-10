@@ -19,7 +19,7 @@ import {
   SidebarSeparator,
 } from '@/components/ui/sidebar';
 import { toolCategories } from '@/lib/tools';
-import { Home, NotebookText } from 'lucide-react';
+import { Home, NotebookText, ChevronsLeft } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 
 export function SiteSidebar() {
@@ -34,10 +34,12 @@ export function SiteSidebar() {
         <Link href="/" className="flex items-center gap-2">
           <NotebookText className="size-6 text-primary" />
           <span className="font-headline text-xl font-semibold group-data-[collapsible=icon]:hidden">
-            Toolbox Titan
+            Modern Online Tools
           </span>
         </Link>
-        <SidebarTrigger className="hidden md:flex" />
+        <SidebarTrigger>
+          <ChevronsLeft className="size-5 transition-transform duration-200 group-data-[state=collapsed]:rotate-180" />
+        </SidebarTrigger>
       </SidebarHeader>
       <SidebarContent>
         <SidebarMenu>

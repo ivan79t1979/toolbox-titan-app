@@ -12,7 +12,7 @@ import { ThemeToggle } from '@/components/theme-toggle';
 import { SiteSidebar } from '@/components/site-sidebar';
 
 export const metadata: Metadata = {
-  title: 'Toolbox Titan',
+  title: 'Modern Online Tools',
   description:
     'Free online productivity tools for creators, writers, designers and professionals.',
 };
@@ -43,7 +43,7 @@ export default function RootLayout({
             <SidebarRail />
             <SidebarInset>
               <header className="sticky top-0 z-10 flex h-14 items-center justify-between gap-4 border-b bg-background/80 px-4 backdrop-blur-lg sm:justify-end sm:px-6">
-                <SidebarTrigger className="md:hidden" />
+                <div />
                 <ThemeToggle />
               </header>
               <main className="flex-1 p-4 sm:p-6">{children}</main>
