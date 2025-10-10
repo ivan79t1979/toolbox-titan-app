@@ -24,6 +24,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
   PlusCircle,
   Trash2,
   Download,
@@ -71,6 +78,14 @@ type Labels = {
     notes: string;
 }
 
+const dateFormats = [
+    { value: 'PPP', label: 'Month D, YYYY (e.g., Oct 26, 2023)' },
+    { value: 'yyyy-MM-dd', label: 'YYYY-MM-DD (e.g., 2023-10-26)' },
+    { value: 'MM/dd/yyyy', label: 'MM/DD/YYYY (e.g., 10/26/2023)' },
+    { value: 'dd/MM/yyyy', label: 'DD/MM/YYYY (e.g., 26/10/2023)' },
+    { value: 'MMMM d, yyyy', label: 'Month D, YYYY (e.g., October 26, 2023)'},
+];
+
 export function InvoiceGenerator() {
   const [yourDetails, setYourDetails] = useState('Your Company\n123 Street\nCity, ST 12345');
   const [clientDetails, setClientDetails] = useState('Client Company\n456 Avenue\nCity, ST 67890');
@@ -84,6 +99,7 @@ export function InvoiceGenerator() {
   const [logo, setLogo] = useState<string | null>(null);
   
   const [customFields, setCustomFields] = useState<CustomField[]>([]);
+  const [dateFormat, setDateFormat] = useState<string>('PPP');
 
   const [labels, setLabels] = useState<Labels>({
     invoiceTitle: 'INVOICE',
@@ -234,10 +250,25 @@ export function InvoiceGenerator() {
                         <Input id="invoiceDate" type="date" value={invoiceMeta.date} onChange={e => setInvoiceMeta({...invoiceMeta, date: e.target.value})} />
                     </div>
                  </div>
-                 <div className="space-y-2">
-                    <Label htmlFor="dueDate">Due Date</Label>
-                    <Input id="dueDate" type="date" value={invoiceMeta.dueDate} onChange={e => setInvoiceMeta({...invoiceMeta, dueDate: e.target.value})} />
-                </div>
+                 <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                        <Label htmlFor="dueDate">Due Date</Label>
+                        <Input id="dueDate" type="date" value={invoiceMeta.dueDate} onChange={e => setInvoiceMeta({...invoiceMeta, dueDate: e.target.value})} />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="dateFormat">Date Format</Label>
+                        <Select value={dateFormat} onValueChange={setDateFormat}>
+                            <SelectTrigger id="dateFormat">
+                                <SelectValue placeholder="Select date format" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {dateFormats.map(df => (
+                                    <SelectItem key={df.value} value={df.value}>{df.label}</SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+                 </div>
                 {customFields.map(field => (
                     <div key={field.id} className="flex gap-2 items-end">
                         <div className="grid grid-cols-2 gap-2 flex-grow">
@@ -350,10 +381,10 @@ export function InvoiceGenerator() {
                     </div>
                     <div className="text-right">
                          <p className="text-gray-500 font-semibold">{labels.date}</p>
-                         <p>{invoiceMeta.date ? format(parseISO(invoiceMeta.date), 'PPP') : ''}</p>
+                         <p>{invoiceMeta.date ? format(parseISO(invoiceMeta.date), dateFormat) : ''}</p>
                          {invoiceMeta.dueDate && <>
                             <p className="text-gray-500 font-semibold mt-2">{labels.dueDate}</p>
-                            <p>{format(parseISO(invoiceMeta.dueDate), 'PPP')}</p>
+                            <p>{format(parseISO(invoiceMeta.dueDate), dateFormat)}</p>
                          </>}
                          {customFields.map(field => (
                            <React.Fragment key={field.id}>
