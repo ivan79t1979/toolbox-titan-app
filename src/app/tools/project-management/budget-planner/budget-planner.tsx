@@ -1,13 +1,20 @@
 'use client';
 
-import { useState, useMemo, useRef, useCallback } from 'react';
+import { useState, useMemo, useRef } from 'react';
+import {
+  PieChart,
+  Pie,
+  Cell,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from 'recharts';
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
   CardDescription,
-  CardFooter
 } from '@/components/ui/card';
 import {
   Table,
@@ -16,10 +23,18 @@ import {
   TableHead,
   TableBody,
   TableCell,
-  TableFooter
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+  DialogClose,
+} from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import {
   Select,
@@ -37,17 +52,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-  DialogClose,
-  DialogTrigger
-} from '@/components/ui/dialog';
-import {
   PlusCircle,
+  Edit,
   Trash2,
   Download,
   Upload,
@@ -56,26 +62,16 @@ import {
   FileSpreadsheet,
   Image as ImageIcon,
   Printer,
-  Edit,
+  DollarSign,
   TrendingUp,
   TrendingDown,
-  Wallet,
-  MoreVertical,
 } from 'lucide-react';
-import {
-  PieChart,
-  Pie,
-  Cell,
-  Tooltip,
-  Legend,
-} from 'recharts';
 import { useToast } from '@/hooks/use-toast';
-import { ChartContainer, ChartTooltipContent } from '@/components/ui/chart';
+import { cn } from '@/lib/utils';
+import { format, parseISO } from 'date-fns';
 import * as XLSX from 'xlsx';
-import { saveAs } from 'file-saver';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
-
 
 type TransactionType = 'income' | 'expense';
 
@@ -84,191 +80,162 @@ type Transaction = {
   type: TransactionType;
   description: string;
   amount: number;
+  date: string; // YYYY-MM-DD
   category: string;
 };
 
 const defaultTransactions: Transaction[] = [
-    { id: '1', type: 'income', description: 'Monthly Salary', amount: 4000, category: 'Salary' },
-    { id: '2', type: 'expense', description: 'Rent', amount: 1200, category: 'Housing' },
-    { id: '3', type: 'expense', description: 'Groceries', amount: 350, category: 'Food' },
-    { id: '4', type: 'expense', description: 'Internet Bill', amount: 60, category: 'Utilities' },
+  { id: '1', type: 'income', description: 'Monthly Salary', amount: 4500, date: format(new Date(), 'yyyy-MM-dd'), category: 'Salary' },
+  { id: '2', type: 'expense', description: 'Rent', amount: 1200, date: format(new Date(), 'yyyy-MM-dd'), category: 'Housing' },
+  { id: '3', type: 'expense', description: 'Groceries', amount: 350, date: format(new Date(Date.now() - 3 * 24 * 60 * 60 * 1000), 'yyyy-MM-dd'), category: 'Food' },
+  { id: '4', type: 'expense', description: 'Internet Bill', amount: 60, date: format(new Date(Date.now() - 5 * 24 * 60 * 60 * 1000), 'yyyy-MM-dd'), category: 'Utilities' },
+  { id: '5', type: 'income', description: 'Freelance Project', amount: 750, date: format(new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), 'yyyy-MM-dd'), category: 'Freelance' },
 ];
 
-const expenseCategories = ['Housing', 'Food', 'Transportation', 'Utilities', 'Entertainment', 'Health', 'Other'];
-const incomeCategories = ['Salary', 'Freelance', 'Investment', 'Other'];
+const categoryColors = [
+    'hsl(var(--chart-1))',
+    'hsl(var(--chart-2))',
+    'hsl(var(--chart-3))',
+    'hsl(var(--chart-4))',
+    'hsl(var(--chart-5))',
+    '#82ca9d',
+    '#ffc658',
+    '#ff8042',
+    '#00C49F',
+    '#FFBB28',
+];
 
 
-function TransactionForm({
-  onSave,
-  transaction,
-  type,
-}: {
-  onSave: (data: Omit<Transaction, 'id'> & { id?: string }) => void;
-  transaction?: Transaction;
-  type: TransactionType;
-}) {
+function TransactionForm({ onSave, transaction }: { onSave: (data: Omit<Transaction, 'id'> & { id?: string }) => void; transaction?: Transaction }) {
+  const [type, setType] = useState<TransactionType>(transaction?.type || 'expense');
   const [description, setDescription] = useState(transaction?.description || '');
-  const [amount, setAmount] = useState(transaction?.amount || 0);
-  const [category, setCategory] = useState(transaction?.category || (type === 'income' ? incomeCategories[0] : expenseCategories[0]));
+  const [amount, setAmount] = useState(transaction?.amount || '');
+  const [date, setDate] = useState(transaction?.date || format(new Date(), 'yyyy-MM-dd'));
+  const [category, setCategory] = useState(transaction?.category || '');
   const { toast } = useToast();
-  
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!description || amount <= 0) {
-      toast({
-        variant: 'destructive',
-        title: 'Missing information',
-        description: 'Please provide a description and a valid amount.',
-      });
+    if (!description || !amount || !date || !category) {
+        toast({
+            variant: 'destructive',
+            title: 'Missing information',
+            description: 'Please fill out all fields.',
+        });
       return;
     }
     onSave({
       id: transaction?.id,
       type,
       description,
-      amount,
+      amount: parseFloat(String(amount)),
+      date,
       category,
     });
   };
 
   return (
-     <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="space-y-2">
+        <Label>Type</Label>
+        <Select value={type} onValueChange={(v: TransactionType) => setType(v)}>
+          <SelectTrigger><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="income">Income</SelectItem>
+            <SelectItem value="expense">Expense</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
       <div className="space-y-2">
         <Label htmlFor="description">Description</Label>
         <Input id="description" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="e.g., Coffee" />
       </div>
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="space-y-2">
             <Label htmlFor="amount">Amount</Label>
-            <Input id="amount" type="number" value={amount} onChange={(e) => setAmount(parseFloat(e.target.value) || 0)} min="0.01" step="0.01" />
+            <Input id="amount" type="number" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="e.g., 5.50" />
         </div>
         <div className="space-y-2">
-            <Label htmlFor="category">Category</Label>
-             <Select value={category} onValueChange={setCategory}>
-                <SelectTrigger id="category">
-                    <SelectValue placeholder="Select a category" />
-                </SelectTrigger>
-                <SelectContent>
-                    {(type === 'income' ? incomeCategories : expenseCategories).map(cat => (
-                        <SelectItem key={cat} value={cat}>{cat}</SelectItem>
-                    ))}
-                </SelectContent>
-            </Select>
+            <Label htmlFor="date">Date</Label>
+            <Input id="date" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
         </div>
       </div>
+       <div className="space-y-2">
+        <Label htmlFor="category">Category</Label>
+        <Input id="category" value={category} onChange={(e) => setCategory(e.target.value)} placeholder="e.g., Food, Salary" />
+      </div>
       <DialogFooter>
-        <DialogClose asChild><Button type="submit">Save</Button></DialogClose>
+        <DialogClose asChild><Button type="submit">Save Transaction</Button></DialogClose>
       </DialogFooter>
     </form>
-  )
+  );
 }
+
 
 export function BudgetPlanner() {
   const [transactions, setTransactions] = useState<Transaction[]>(defaultTransactions);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | undefined>(undefined);
-  const [formType, setFormType] = useState<TransactionType>('expense');
-  const [currency, setCurrency] = useState('$');
-
+  
   const printableRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
   const { totalIncome, totalExpenses, balance, expenseByCategory } = useMemo(() => {
-    let income = 0;
-    let expenses = 0;
-    const byCategory: { [key: string]: number } = {};
-
-    transactions.forEach(t => {
-      if (t.type === 'income') {
-        income += t.amount;
-      } else {
-        expenses += t.amount;
-        byCategory[t.category] = (byCategory[t.category] || 0) + t.amount;
-      }
-    });
+    const income = transactions
+      .filter((t) => t.type === 'income')
+      .reduce((acc, t) => acc + t.amount, 0);
+    const expenses = transactions
+      .filter((t) => t.type === 'expense')
+      .reduce((acc, t) => acc + t.amount, 0);
+    
+    const expenseByCategory = transactions
+        .filter(t => t.type === 'expense')
+        .reduce((acc, t) => {
+            if (!acc[t.category]) {
+                acc[t.category] = 0;
+            }
+            acc[t.category] += t.amount;
+            return acc;
+        }, {} as Record<string, number>);
 
     return {
       totalIncome: income,
       totalExpenses: expenses,
       balance: income - expenses,
-      expenseByCategory: Object.entries(byCategory).map(([name, value]) => ({ name, value }))
+      expenseByCategory: Object.entries(expenseByCategory).map(([name, value]) => ({ name, value }))
     };
   }, [transactions]);
   
   const handleSaveTransaction = (data: Omit<Transaction, 'id'> & { id?: string }) => {
     setTransactions(prev => {
-      if (data.id) {
-        return prev.map(t => (t.id === data.id ? { ...t, ...data } : t));
-      }
-      return [...prev, { ...data, id: `tx-${Date.now()}` }];
+        if(data.id) { // Editing existing
+            return prev.map(t => t.id === data.id ? {...t, ...data} : t);
+        } else { // Adding new
+            const newTransaction = { ...data, id: `txn-${Date.now()}`};
+            return [...prev, newTransaction].sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+        }
     });
     setIsFormOpen(false);
     setEditingTransaction(undefined);
   };
   
-  const openForm = (type: TransactionType, transaction?: Transaction) => {
-    setFormType(type);
+  const openEditDialog = (transaction: Transaction) => {
     setEditingTransaction(transaction);
     setIsFormOpen(true);
   }
 
+  const openNewDialog = () => {
+    setEditingTransaction(undefined);
+    setIsFormOpen(true);
+  }
+  
   const handleDelete = (id: string) => {
     setTransactions(transactions.filter(t => t.id !== id));
   };
   
-  const exportFile = useCallback((filename: string, content: string | ArrayBuffer, mimeType: string) => {
-    const blob = new Blob([content], { type: mimeType });
-    saveAs(blob, filename);
-  }, []);
-
-  const exportJSON = useCallback(() => {
-    exportFile('budget-data.json', JSON.stringify(transactions, null, 2), 'application/json');
-  }, [transactions, exportFile]);
-
-  const exportCSV = useCallback(() => {
-    const worksheet = XLSX.utils.json_to_sheet(transactions);
-    const csv = XLSX.utils.sheet_to_csv(worksheet);
-    exportFile('budget-data.csv', csv, 'text/csv');
-  }, [transactions, exportFile]);
-
-  const exportXLSX = useCallback(() => {
-    const worksheet = XLSX.utils.json_to_sheet(transactions);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Budget');
-    XLSX.writeFile(workbook, 'budget-data.xlsx');
-  }, [transactions]);
-
-  const exportPNG = async () => {
-    if (!printableRef.current) return;
-    try {
-      const canvas = await html2canvas(printableRef.current, { scale: 2 });
-      canvas.toBlob((blob) => {
-        if (blob) saveAs(blob, 'budget-summary.png');
-      });
-    } catch (error) {
-      toast({ variant: 'destructive', title: 'Export Failed', description: 'Could not export as PNG.' });
-    }
-  };
-
-  const exportPDF = async () => {
-    if (!printableRef.current) return;
-    try {
-      const canvas = await html2canvas(printableRef.current, { scale: 2 });
-      const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF({
-        orientation: 'portrait',
-        unit: 'px',
-        format: [canvas.width, canvas.height],
-      });
-      pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
-      pdf.save('budget-summary.pdf');
-    } catch (error) {
-      toast({ variant: 'destructive', title: 'Export Failed', description: 'Could not export as PDF.' });
-    }
-  };
-
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  // --- Import / Export Logic ---
+   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
@@ -280,176 +247,198 @@ export function BudgetPlanner() {
         const data = e.target?.result;
         if (!data) throw new Error('File could not be read.');
         let newTransactions: Transaction[];
+
         if (fileType === 'json') {
           newTransactions = JSON.parse(data as string);
         } else {
-            const workbook = fileType === 'xlsx' ? XLSX.read(data, { type: 'array' }) : XLSX.read(data, { type: 'string' });
-            const sheet = workbook.Sheets[workbook.SheetNames[0]];
-            newTransactions = XLSX.utils.sheet_to_json<Transaction>(sheet);
+          const workbook = fileType === 'xlsx'
+              ? XLSX.read(data, { type: 'array' })
+              : XLSX.read(data, { type: 'string' });
+          const sheet = workbook.Sheets[workbook.SheetNames[0]];
+          newTransactions = XLSX.utils.sheet_to_json<Transaction>(sheet);
         }
-        if (!Array.isArray(newTransactions)) throw new Error("Invalid file structure.");
+
+        if (!Array.isArray(newTransactions)) throw new Error('Invalid file structure.');
         setTransactions(newTransactions);
-        toast({ title: 'Import Successful' });
+        toast({ title: 'Import Successful', description: `${file.name} was imported.` });
       } catch (error: any) {
         toast({ variant: 'destructive', title: 'Import Failed', description: error.message });
       } finally {
-        if (fileInputRef.current) fileInputRef.current.value = "";
+        if (fileInputRef.current) fileInputRef.current.value = '';
       }
     };
 
     if (fileType === 'xlsx') reader.readAsArrayBuffer(file);
     else reader.readAsText(file);
   };
-  
-  const triggerFileUpload = () => fileInputRef.current?.click();
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', { style: 'currency', currency: currency.replace(/[^a-zA-Z]/g, '') || 'USD' }).format(amount).replace(/^[A-Z]{3}/, currency);
-  }
+  const triggerFileUpload = () => fileInputRef.current?.click();
+  const downloadFile = (filename: string, content: string, mimeType: string) => {
+    const blob = new Blob([content], { type: mimeType });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(link.href);
+  };
+
+  const exportJSON = () => downloadFile('budget-planner.json', JSON.stringify(transactions, null, 2), 'application/json');
+  const exportCSV = () => {
+    const worksheet = XLSX.utils.json_to_sheet(transactions);
+    const csv = XLSX.utils.sheet_to_csv(worksheet);
+    downloadFile('budget-planner.csv', csv, 'text/csv');
+  };
+  const exportXLSX = () => {
+    const worksheet = XLSX.utils.json_to_sheet(transactions);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Transactions');
+    XLSX.writeFile(workbook, 'budget-planner.xlsx');
+  };
+
+  const exportPNG = async () => {
+    if (!printableRef.current) return;
+    try {
+      const canvas = await html2canvas(printableRef.current, { scale: 2, backgroundColor: null });
+      const link = document.createElement('a');
+      link.download = 'budget-planner.png';
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    } catch (error) {
+      toast({ variant: 'destructive', title: 'Export Failed', description: 'Could not export as PNG.' });
+    }
+  };
+  const exportPDF = async () => {
+    if (!printableRef.current) return;
+    try {
+        const canvas = await html2canvas(printableRef.current, { scale: 2 });
+        const imgData = canvas.toDataURL('image/png');
+        const pdf = new jsPDF({
+            orientation: canvas.width > canvas.height ? 'landscape' : 'portrait',
+            unit: 'px',
+            format: [canvas.width, canvas.height],
+        });
+        pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
+        pdf.save('budget-planner.pdf');
+    } catch (error) {
+        toast({ variant: 'destructive', title: 'Export Failed', description: 'Could not export as PDF.' });
+    }
+  };
 
   return (
     <div className="space-y-6">
        <style>{`
-        @media print { .no-print { display: none !important; } }
-        .recharts-legend-item { padding-left: 5px !important; }
+        @media print {
+          body * { visibility: hidden; }
+          .printable-area, .printable-area * { visibility: visible; }
+          .printable-area { position: absolute; left: 0; top: 0; width: 100%; padding: 1rem; }
+          .no-print { display: none !important; }
+        }
       `}</style>
-      <div className="flex flex-wrap items-center justify-between gap-4 no-print">
-        <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-            <DialogContent>
-                <DialogHeader>
-                    <DialogTitle>{editingTransaction ? 'Edit' : 'Add'} {formType === 'income' ? 'Income' : 'Expense'}</DialogTitle>
-                </DialogHeader>
-                <TransactionForm type={formType} transaction={editingTransaction} onSave={handleSaveTransaction} />
-            </DialogContent>
-        </Dialog>
-        <div className="flex gap-2">
-            <Button onClick={() => openForm('income')} className="bg-green-600 hover:bg-green-700"><PlusCircle className="mr-2 h-4 w-4" /> Add Income</Button>
-            <Button onClick={() => openForm('expense')} className="bg-red-600 hover:bg-red-700"><PlusCircle className="mr-2 h-4 w-4" /> Add Expense</Button>
-        </div>
-        <div className="flex gap-2">
-          <DropdownMenu>
+      <div className="flex justify-end gap-2 no-print">
+        <DropdownMenu>
             <DropdownMenuTrigger asChild><Button variant="outline"><Upload className="mr-2 h-4 w-4" /> Import</Button></DropdownMenuTrigger>
             <DropdownMenuContent>
-              <DropdownMenuItem onClick={triggerFileUpload}><FileJson className="mr-2 h-4 w-4" /> JSON / CSV / XLSX</DropdownMenuItem>
+            <DropdownMenuLabel>Import from</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={triggerFileUpload}><FileJson className="mr-2 h-4 w-4" /> JSON / CSV / XLSX</DropdownMenuItem>
             </DropdownMenuContent>
-          </DropdownMenu>
-          <DropdownMenu>
+        </DropdownMenu>
+        <DropdownMenu>
             <DropdownMenuTrigger asChild><Button variant="outline"><Download className="mr-2 h-4 w-4" /> Export</Button></DropdownMenuTrigger>
             <DropdownMenuContent>
-              <DropdownMenuItem onClick={exportJSON}><FileJson className="mr-2 h-4 w-4" /> JSON</DropdownMenuItem>
-              <DropdownMenuItem onClick={exportCSV}><FileText className="mr-2 h-4 w-4" /> CSV</DropdownMenuItem>
-              <DropdownMenuItem onClick={exportXLSX}><FileSpreadsheet className="mr-2 h-4 w-4" /> XLSX</DropdownMenuItem>
-              <DropdownMenuItem onClick={exportPNG}><ImageIcon className="mr-2 h-4 w-4" /> PNG</DropdownMenuItem>
-              <DropdownMenuItem onClick={exportPDF}><Printer className="mr-2 h-4 w-4" /> PDF</DropdownMenuItem>
+            <DropdownMenuLabel>Export as</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={exportJSON}><FileJson className="mr-2 h-4 w-4" /> JSON</DropdownMenuItem>
+            <DropdownMenuItem onClick={exportCSV}><FileText className="mr-2 h-4 w-4" /> CSV</DropdownMenuItem>
+            <DropdownMenuItem onClick={exportXLSX}><FileSpreadsheet className="mr-2 h-4 w-4" /> XLSX</DropdownMenuItem>
+            <DropdownMenuItem onClick={exportPNG}><ImageIcon className="mr-2 h-4 w-4" /> PNG</DropdownMenuItem>
+            <DropdownMenuItem onClick={exportPDF}><Printer className="mr-2 h-4 w-4" /> PDF</DropdownMenuItem>
             </DropdownMenuContent>
-          </DropdownMenu>
-          <input type="file" ref={fileInputRef} className="hidden" onChange={handleFileUpload} accept=".json,.csv,.xlsx" />
-        </div>
+        </DropdownMenu>
+        <input type="file" ref={fileInputRef} className="hidden" onChange={handleFileUpload} accept=".json,.csv,.xlsx" />
       </div>
-      <div ref={printableRef} className="bg-background p-4 rounded-lg">
-        <div className="grid gap-6 md:grid-cols-3 mb-6">
-            <Card className="bg-green-500/10 border-green-500/30">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Total Income</CardTitle>
-                    <TrendingUp className="h-4 w-4 text-green-600" />
-                </CardHeader>
-                <CardContent>
-                    <div className="text-2xl font-bold text-green-600">{formatCurrency(totalIncome)}</div>
-                </CardContent>
-            </Card>
-            <Card className="bg-red-500/10 border-red-500/30">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Total Expenses</CardTitle>
-                    <TrendingDown className="h-4 w-4 text-red-600" />
-                </CardHeader>
-                <CardContent>
-                    <div className="text-2xl font-bold text-red-600">{formatCurrency(totalExpenses)}</div>
-                </CardContent>
-            </Card>
-            <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Balance</CardTitle>
-                    <Wallet className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                    <div className="text-2xl font-bold">{formatCurrency(balance)}</div>
-                </CardContent>
-            </Card>
-        </div>
-        <div className="grid gap-6 lg:grid-cols-2">
+
+      <div ref={printableRef} className="printable-area space-y-6">
+        <div className="grid gap-4 md:grid-cols-3">
           <Card>
-            <CardHeader><CardTitle>Transactions</CardTitle></CardHeader>
-            <CardContent>
-                <div className="max-h-96 overflow-y-auto">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2"><CardTitle className="text-sm font-medium">Total Income</CardTitle><TrendingUp className="h-4 w-4 text-muted-foreground" /></CardHeader>
+            <CardContent><div className="text-2xl font-bold text-green-600">${totalIncome.toFixed(2)}</div></CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2"><CardTitle className="text-sm font-medium">Total Expenses</CardTitle><TrendingDown className="h-4 w-4 text-muted-foreground" /></CardHeader>
+            <CardContent><div className="text-2xl font-bold text-red-600">${totalExpenses.toFixed(2)}</div></CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2"><CardTitle className="text-sm font-medium">Balance</CardTitle><DollarSign className="h-4 w-4 text-muted-foreground" /></CardHeader>
+            <CardContent><div className={cn("text-2xl font-bold", balance >= 0 ? "text-foreground" : "text-red-600")}>${balance.toFixed(2)}</div></CardContent>
+          </Card>
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
+            <Card className="lg:col-span-4">
+                <CardHeader>
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                        <div>
+                            <CardTitle>Transactions</CardTitle>
+                            <CardDescription>Your recent income and expenses.</CardDescription>
+                        </div>
+                        <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
+                            <DialogTrigger asChild>
+                                <Button size="sm" onClick={openNewDialog} className="no-print"><PlusCircle className="mr-2 h-4 w-4" /> Add Transaction</Button>
+                            </DialogTrigger>
+                            <DialogContent className="sm:max-w-[425px]">
+                                <DialogHeader>
+                                    <DialogTitle>{editingTransaction ? 'Edit Transaction' : 'Add Transaction'}</DialogTitle>
+                                </DialogHeader>
+                                <TransactionForm onSave={handleSaveTransaction} transaction={editingTransaction} />
+                            </DialogContent>
+                        </Dialog>
+                    </div>
+                </CardHeader>
+                <CardContent className="max-h-96 overflow-auto">
                     <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Description</TableHead>
-                                <TableHead>Category</TableHead>
-                                <TableHead className="text-right">Amount</TableHead>
-                                <TableHead className="w-10 no-print"></TableHead>
-                            </TableRow>
-                        </TableHeader>
+                        <TableHeader><TableRow><TableHead>Description</TableHead><TableHead>Date</TableHead><TableHead>Category</TableHead><TableHead className="text-right">Amount</TableHead><TableHead className="no-print"></TableHead></TableRow></TableHeader>
                         <TableBody>
-                            {transactions.length > 0 ? transactions.map(t => (
-                                <TableRow key={t.id}>
-                                    <TableCell className="font-medium">{t.description}</TableCell>
-                                    <TableCell>{t.category}</TableCell>
-                                    <TableCell className={`text-right font-medium ${t.type === 'income' ? 'text-green-600' : 'text-red-600'}`}>
-                                      {t.type === 'income' ? '+' : '-'} {formatCurrency(t.amount)}
-                                    </TableCell>
-                                    <TableCell className="no-print">
-                                      <DropdownMenu>
-                                        <DropdownMenuTrigger asChild>
-                                          <Button variant="ghost" size="icon"><MoreVertical className="h-4 w-4" /></Button>
-                                        </DropdownMenuTrigger>
-                                        <DropdownMenuContent>
-                                          <DropdownMenuItem onClick={() => openForm(t.type, t)}><Edit className="mr-2 h-4 w-4" /> Edit</DropdownMenuItem>
-                                          <DropdownMenuItem onClick={() => handleDelete(t.id)} className="text-red-500"><Trash2 className="mr-2 h-4 w-4" /> Delete</DropdownMenuItem>
-                                        </DropdownMenuContent>
-                                      </DropdownMenu>
-                                    </TableCell>
-                                </TableRow>
-                            )) : (
-                                <TableRow><TableCell colSpan={4} className="h-24 text-center">No transactions yet.</TableCell></TableRow>
-                            )}
+                        {transactions.length > 0 ? transactions.map(t => (
+                            <TableRow key={t.id}>
+                                <TableCell className="font-medium">{t.description}</TableCell>
+                                <TableCell>{format(parseISO(t.date), 'MMM d, yyyy')}</TableCell>
+                                <TableCell>{t.category}</TableCell>
+                                <TableCell className={cn("text-right", t.type === 'income' ? 'text-green-600' : 'text-red-600')}>
+                                    {t.type === 'income' ? '+' : '-'}${t.amount.toFixed(2)}
+                                </TableCell>
+                                <TableCell className="text-right no-print">
+                                    <Button variant="ghost" size="icon" onClick={() => openEditDialog(t)}><Edit className="h-4 w-4" /></Button>
+                                    <Button variant="ghost" size="icon" onClick={() => handleDelete(t.id)}><Trash2 className="h-4 w-4" /></Button>
+                                </TableCell>
+                            </TableRow>
+                        )) : (
+                            <TableRow><TableCell colSpan={5} className="h-24 text-center">No transactions yet.</TableCell></TableRow>
+                        )}
                         </TableBody>
                     </Table>
-                </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader>
-              <CardTitle>Expense Breakdown</CardTitle>
-              <CardDescription>A visual representation of your spending.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="w-full h-80">
-                <ChartContainer config={{}} className="min-h-0 w-full h-full">
-                  <PieChart>
-                    <Tooltip content={<ChartTooltipContent hideLabel />} />
-                    <Pie data={expenseByCategory} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={60} outerRadius={80}>
-                      {expenseByCategory.map((_, index) => (
-                        <Cell key={`cell-${index}`} fill={`hsl(var(--chart-${(index % 5) + 1}))`} />
-                      ))}
-                    </Pie>
-                    <Legend/>
-                  </PieChart>
-                </ChartContainer>
-              </div>
-            </CardContent>
-          </Card>
+                </CardContent>
+            </Card>
+            <Card className="lg:col-span-3">
+                <CardHeader><CardTitle>Expense Breakdown</CardTitle></CardHeader>
+                <CardContent>
+                    <ResponsiveContainer width="100%" height={300}>
+                        <PieChart>
+                            <Pie data={expenseByCategory} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label>
+                                {expenseByCategory.map((entry, index) => (
+                                    <Cell key={`cell-${index}`} fill={categoryColors[index % categoryColors.length]} />
+                                ))}
+                            </Pie>
+                            <Tooltip formatter={(value: number) => `$${value.toFixed(2)}`} />
+                            <Legend />
+                        </PieChart>
+                    </ResponsiveContainer>
+                </CardContent>
+            </Card>
         </div>
       </div>
-      <Card className="no-print">
-        <CardHeader><CardTitle>Settings</CardTitle></CardHeader>
-        <CardContent>
-          <div className="space-y-2 max-w-xs">
-            <Label htmlFor="currency-select">Currency Symbol</Label>
-            <Input id="currency-select" value={currency} onChange={e => setCurrency(e.target.value)} />
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 }
