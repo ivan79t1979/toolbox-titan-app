@@ -18,7 +18,7 @@ export default function BackgroundRemoverPage() {
         description="Removes the background from an image."
       />
       <div className="mt-8">
-        {isClient ? <GradioWrapper appSrc="https://timemaster-background-remover-c1.hf.space" scriptSrc="https://gradio.s3-us-west-2.amazonaws.com/5.35.0/gradio.js" /> : <div>Loading Tool...</div>}
+        {isClient ? <GradioWrapper appSrc="https://timemaster-background-remover-c1.hf.space" scriptSrc="https://gradio.s3-us-west-2.amazonaws.com/5.45.0/gradio.js" /> : <div>Loading Tool...</div>}
       </div>
     </>
   );

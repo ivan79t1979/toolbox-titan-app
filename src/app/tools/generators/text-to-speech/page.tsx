@@ -18,7 +18,7 @@ export default function TextToSpeechPage() {
         description="Convert text into spoken audio."
       />
       <div className="mt-8">
-        {isClient ? <GradioWrapper appSrc="https://huggingface-projects-text-to-speech-2.hf.space" scriptSrc="https://gradio.s3-us-west-2.amazonaws.com/5.35.0/gradio.js" /> : <div>Loading Tool...</div>}
+        {isClient ? <GradioWrapper appSrc="https://huggingface-projects-text-to-speech-2.hf.space" scriptSrc="https://gradio.s3-us-west-2.amazonaws.com/5.45.0/gradio.js" /> : <div>Loading Tool...</div>}
       </div>
     </>
   );
