@@ -296,33 +296,76 @@ export function BudgetPlanner() {
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Transactions');
     XLSX.writeFile(workbook, 'budget-planner.xlsx');
   };
+  
+  const prepareForExport = () => {
+    const area = printableRef.current;
+    if (!area) return { cleanup: () => {} };
+
+    const tableContainer = area.querySelector('.max-h-96.overflow-auto') as HTMLElement;
+    if (!tableContainer) return { cleanup: () => {} };
+
+    // Store original styles
+    const originalAreaStyle = area.style.cssText;
+    const originalTableContainerStyle = tableContainer.style.cssText;
+
+    // Apply export styles
+    area.style.padding = '5px';
+    tableContainer.style.maxHeight = 'none';
+    tableContainer.style.overflow = 'visible';
+
+    // Return cleanup function
+    return {
+      cleanup: () => {
+        area.style.cssText = originalAreaStyle;
+        tableContainer.style.cssText = originalTableContainerStyle;
+      },
+    };
+  };
 
   const exportPNG = async () => {
     if (!printableRef.current) return;
+    const { cleanup } = prepareForExport();
     try {
-      const canvas = await html2canvas(printableRef.current, { scale: 2, backgroundColor: null });
+      const canvas = await html2canvas(printableRef.current, {
+        scale: 2,
+        backgroundColor: null,
+      });
       const link = document.createElement('a');
       link.download = 'budget-planner.png';
       link.href = canvas.toDataURL('image/png');
       link.click();
     } catch (error) {
-      toast({ variant: 'destructive', title: 'Export Failed', description: 'Could not export as PNG.' });
+      toast({
+        variant: 'destructive',
+        title: 'Export Failed',
+        description: 'Could not export as PNG.',
+      });
+    } finally {
+      cleanup();
     }
   };
+
   const exportPDF = async () => {
     if (!printableRef.current) return;
+    const { cleanup } = prepareForExport();
     try {
-        const canvas = await html2canvas(printableRef.current, { scale: 2 });
-        const imgData = canvas.toDataURL('image/png');
-        const pdf = new jsPDF({
-            orientation: canvas.width > canvas.height ? 'landscape' : 'portrait',
-            unit: 'px',
-            format: [canvas.width, canvas.height],
-        });
-        pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
-        pdf.save('budget-planner.pdf');
+      const canvas = await html2canvas(printableRef.current, { scale: 2 });
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF({
+        orientation: canvas.width > canvas.height ? 'landscape' : 'portrait',
+        unit: 'px',
+        format: [canvas.width, canvas.height],
+      });
+      pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
+      pdf.save('budget-planner.pdf');
     } catch (error) {
-        toast({ variant: 'destructive', title: 'Export Failed', description: 'Could not export as PDF.' });
+      toast({
+        variant: 'destructive',
+        title: 'Export Failed',
+        description: 'Could not export as PDF.',
+      });
+    } finally {
+      cleanup();
     }
   };
 
