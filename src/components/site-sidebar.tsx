@@ -14,6 +14,9 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
   useSidebar,
+  SidebarFooter,
+  SidebarTrigger,
+  SidebarSeparator,
 } from '@/components/ui/sidebar';
 import { toolCategories } from '@/lib/tools';
 import { Home, NotebookText } from 'lucide-react';
@@ -89,6 +92,14 @@ export function SiteSidebar() {
           )}
         </SidebarMenu>
       </SidebarContent>
+      <SidebarFooter>
+        <SidebarSeparator />
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarTrigger className="hidden md:flex" />
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarFooter>
     </Sidebar>
   );
 }
