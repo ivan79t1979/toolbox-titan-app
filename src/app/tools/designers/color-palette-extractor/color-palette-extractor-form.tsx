@@ -4,6 +4,12 @@ import { useState } from 'react';
 import Image from 'next/image';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { extractColorPalette } from '@/ai/flows/color-palette-extractor';
+import {
+  ColorPaletteExtractorInputSchema,
+  type ColorPaletteExtractorInput,
+  type ColorPaletteExtractorOutput,
+} from '@/ai/flows/color-palette-extractor-types';
 import { Button } from '@/components/ui/button';
 import {
   Form,
@@ -19,14 +25,7 @@ import { Loader2, Pipette, Copy } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { Slider } from '@/components/ui/slider';
-import {
-  extractColorPalette,
-  type ColorPaletteExtractorInput,
-  type ColorPaletteExtractorOutput,
-} from '@/ai/flows/color-palette-extractor';
-import { ColorPaletteExtractorInputSchema } from '@/ai/flows/color-palette-extractor-types';
 
-type FormValues = ColorPaletteExtractorInput;
 
 function ColorValueRow({ label, value, onCopy }: { label: string, value: string, onCopy: (value: string) => void }) {
     return (
@@ -46,11 +45,13 @@ function ColorValueRow({ label, value, onCopy }: { label: string, value: string,
 
 export function ColorPaletteExtractorForm() {
   const [sourceImage, setSourceImage] = useState<string | null>(null);
-  const [palette, setPalette] = useState<ColorPaletteExtractorOutput['colors'] | null>(null);
+  const [palette, setPalette] = useState<ColorPaletteExtractorOutput['colors'] | null>(
+    null
+  );
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
-  const form = useForm<FormValues>({
+  const form = useForm<ColorPaletteExtractorInput>({
     resolver: zodResolver(ColorPaletteExtractorInputSchema),
     defaultValues: {
       photoDataUri: '',
@@ -64,15 +65,15 @@ export function ColorPaletteExtractorForm() {
       const reader = new FileReader();
       reader.onloadend = () => {
         const dataUri = reader.result as string;
-        form.setValue('photoDataUri', dataUri);
         setSourceImage(dataUri);
+        form.setValue('photoDataUri', dataUri);
         setPalette(null);
       };
       reader.readAsDataURL(file);
     }
   };
 
-  async function onSubmit(values: FormValues) {
+  async function onSubmit(values: ColorPaletteExtractorInput) {
     if (!values.photoDataUri) return;
 
     setIsLoading(true);
@@ -189,7 +190,7 @@ export function ColorPaletteExtractorForm() {
                         {palette.map((color, index) => (
                             <div key={index} className="group relative flex-grow flex items-center justify-between gap-4 rounded-md p-3 text-white" style={{ backgroundColor: color.hex }}>
                                 <div className={cn("font-mono text-sm mix-blend-difference")}>
-                                     <p className="font-sans font-bold text-lg">{color.name}</p>
+                                    <p className="font-bold text-base">{color.name}</p>
                                     <div className="mt-2 space-y-1">
                                       <ColorValueRow label="HEX" value={color.hex} onCopy={handleCopy} />
                                       <ColorValueRow label="RGB" value={color.rgb} onCopy={handleCopy} />
