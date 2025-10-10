@@ -4,7 +4,6 @@ import { useState } from 'react';
 import Image from 'next/image';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import {
   Form,
@@ -20,136 +19,14 @@ import { Loader2, Pipette, Copy } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { Slider } from '@/components/ui/slider';
+import {
+  extractColorPalette,
+  type ColorPaletteExtractorInput,
+  type ColorPaletteExtractorOutput,
+} from '@/ai/flows/color-palette-extractor';
+import { ColorPaletteExtractorInputSchema } from '@/ai/flows/color-palette-extractor-types';
 
-// --- Client-Side Color Extraction Logic ---
-
-type ColorPalette = {
-  hex: string;
-  rgb: string;
-  hsl: string;
-}[];
-
-function rgbToHsl(r: number, g: number, b: number): string {
-    r /= 255; g /= 255; b /= 255;
-    const max = Math.max(r, g, b), min = Math.min(r, g, b);
-    let h = 0, s = 0, l = (max + min) / 2;
-
-    if (max !== min) {
-        const d = max - min;
-        s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-        switch (max) {
-            case r: h = (g - b) / d + (g < b ? 6 : 0); break;
-            case g: h = (b - r) / d + 2; break;
-            case b: h = (r - g) / d + 4; break;
-        }
-        h /= 6;
-    }
-    
-    return `hsl(${Math.round(h * 360)}, ${Math.round(s * 100)}%, ${Math.round(l * 100)}%)`;
-}
-
-function componentToHex(c: number) {
-  const hex = c.toString(16);
-  return hex.length == 1 ? '0' + hex : hex;
-}
-
-function rgbToHex(r: number, g: number, b: number) {
-  return '#' + componentToHex(r) + componentToHex(g) + componentToHex(b);
-}
-
-
-async function extractPaletteFromImage(
-  imageSrc: string,
-  colorCount: number
-): Promise<ColorPalette> {
-  return new Promise((resolve, reject) => {
-    const img = document.createElement('img');
-    img.crossOrigin = 'Anonymous';
-    img.src = imageSrc;
-    img.onload = () => {
-      const canvas = document.createElement('canvas');
-      const context = canvas.getContext('2d', { willReadFrequently: true });
-      if (!context) {
-        return reject(new Error('Canvas context not available'));
-      }
-
-      // Scale image for performance
-      const scale = Math.min(1, 200 / img.width, 200 / img.height);
-      canvas.width = img.width * scale;
-      canvas.height = img.height * scale;
-      context.drawImage(img, 0, 0, canvas.width, canvas.height);
-
-      const imageData = context.getImageData(0, 0, canvas.width, canvas.height).data;
-      
-      const pixels: [number, number, number][] = [];
-      for (let i = 0; i < imageData.length; i += 4) {
-        pixels.push([imageData[i], imageData[i + 1], imageData[i + 2]]);
-      }
-
-      // k-means clustering algorithm
-      let centroids: [number, number, number][] = [];
-      for (let i = 0; i < colorCount; i++) {
-        centroids.push(pixels[Math.floor(Math.random() * pixels.length)]);
-      }
-
-      for (let iter = 0; iter < 10; iter++) {
-        const clusters: [number, number, number][][] = Array.from({ length: colorCount }, () => []);
-        pixels.forEach(pixel => {
-          let minDistance = Infinity;
-          let clusterIndex = 0;
-          centroids.forEach((centroid, index) => {
-            const distance = Math.sqrt(
-              Math.pow(pixel[0] - centroid[0], 2) +
-              Math.pow(pixel[1] - centroid[1], 2) +
-              Math.pow(pixel[2] - centroid[2], 2)
-            );
-            if (distance < minDistance) {
-              minDistance = distance;
-              clusterIndex = index;
-            }
-          });
-          clusters[clusterIndex].push(pixel);
-        });
-
-        centroids = clusters.map(cluster => {
-          if (cluster.length === 0) {
-            return pixels[Math.floor(Math.random() * pixels.length)];
-          }
-          const totals = cluster.reduce((acc, p) => [acc[0] + p[0], acc[1] + p[1], acc[2] + p[2]], [0, 0, 0]);
-          return [
-            Math.round(totals[0] / cluster.length),
-            Math.round(totals[1] / cluster.length),
-            Math.round(totals[2] / cluster.length)
-          ];
-        });
-      }
-
-      const palette = centroids.map(([r, g, b]) => {
-        const hex = rgbToHex(r, g, b);
-        return {
-          hex,
-          rgb: `rgb(${r}, ${g}, ${b})`,
-          hsl: rgbToHsl(r,g,b),
-        };
-      });
-
-      resolve(palette);
-    };
-    img.onerror = () => {
-      reject(new Error('Failed to load image.'));
-    };
-  });
-}
-
-
-// --- React Component ---
-
-const formSchema = z.object({
-  image: z.any().refine((file) => file instanceof File, 'Please upload an image.'),
-  numberOfColors: z.number().min(3).max(10),
-});
-
-type FormValues = z.infer<typeof formSchema>;
+type FormValues = ColorPaletteExtractorInput;
 
 function ColorValueRow({ label, value, onCopy }: { label: string, value: string, onCopy: (value: string) => void }) {
     return (
@@ -169,13 +46,14 @@ function ColorValueRow({ label, value, onCopy }: { label: string, value: string,
 
 export function ColorPaletteExtractorForm() {
   const [sourceImage, setSourceImage] = useState<string | null>(null);
-  const [palette, setPalette] = useState<ColorPalette | null>(null);
+  const [palette, setPalette] = useState<ColorPaletteExtractorOutput['colors'] | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
   const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
+    resolver: zodResolver(ColorPaletteExtractorInputSchema),
     defaultValues: {
+      photoDataUri: '',
       numberOfColors: 5,
     },
   });
@@ -183,10 +61,11 @@ export function ColorPaletteExtractorForm() {
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      form.setValue('image', file);
       const reader = new FileReader();
       reader.onloadend = () => {
-        setSourceImage(reader.result as string);
+        const dataUri = reader.result as string;
+        form.setValue('photoDataUri', dataUri);
+        setSourceImage(dataUri);
         setPalette(null);
       };
       reader.readAsDataURL(file);
@@ -194,17 +73,14 @@ export function ColorPaletteExtractorForm() {
   };
 
   async function onSubmit(values: FormValues) {
-    if (!sourceImage) return;
+    if (!values.photoDataUri) return;
 
     setIsLoading(true);
     setPalette(null);
 
     try {
-      const result = await extractPaletteFromImage(
-        sourceImage,
-        values.numberOfColors,
-      );
-      setPalette(result);
+      const result = await extractColorPalette(values);
+      setPalette(result.colors);
     } catch (error) {
       console.error(error);
       toast({
@@ -236,7 +112,7 @@ export function ColorPaletteExtractorForm() {
               <div className="flex flex-wrap items-end gap-4">
                 <FormField
                   control={form.control}
-                  name="image"
+                  name="photoDataUri"
                   render={() => (
                     <FormItem className="flex-grow">
                       <FormLabel>Image</FormLabel>
@@ -313,6 +189,7 @@ export function ColorPaletteExtractorForm() {
                         {palette.map((color, index) => (
                             <div key={index} className="group relative flex-grow flex items-center justify-between gap-4 rounded-md p-3 text-white" style={{ backgroundColor: color.hex }}>
                                 <div className={cn("font-mono text-sm mix-blend-difference")}>
+                                     <p className="font-sans font-bold text-lg">{color.name}</p>
                                     <div className="mt-2 space-y-1">
                                       <ColorValueRow label="HEX" value={color.hex} onCopy={handleCopy} />
                                       <ColorValueRow label="RGB" value={color.rgb} onCopy={handleCopy} />
