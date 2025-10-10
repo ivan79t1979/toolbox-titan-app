@@ -37,6 +37,7 @@ export function SiteSidebar() {
             Toolbox Titan
           </span>
         </Link>
+        <SidebarTrigger className="hidden md:flex" />
       </SidebarHeader>
       <SidebarContent>
         <SidebarMenu>
@@ -95,9 +96,6 @@ export function SiteSidebar() {
       <SidebarFooter>
         <SidebarSeparator />
         <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarTrigger className="hidden md:flex" />
-          </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>
     </Sidebar>
