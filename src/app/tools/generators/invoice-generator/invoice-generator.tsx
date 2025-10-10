@@ -83,6 +83,7 @@ const dateFormats = [
     { value: 'yyyy-MM-dd', label: 'YYYY-MM-DD (e.g., 2023-10-26)' },
     { value: 'MM/dd/yyyy', label: 'MM/DD/YYYY (e.g., 10/26/2023)' },
     { value: 'dd/MM/yyyy', label: 'DD/MM/YYYY (e.g., 26/10/2023)' },
+    { value: 'dd.MM.yyyy', label: 'DD.MM.YYYY (e.g., 26.10.2023)' },
     { value: 'MMMM d, yyyy', label: 'Month D, YYYY (e.g., October 26, 2023)'},
 ];
 
