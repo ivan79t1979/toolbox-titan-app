@@ -73,42 +73,58 @@ async function extractPaletteFromImage(
         return reject(new Error('Canvas context not available'));
       }
 
-      canvas.width = img.width;
-      canvas.height = img.height;
-      context.drawImage(img, 0, 0);
+      // Scale image for performance
+      const scale = Math.min(1, 200 / img.width, 200 / img.height);
+      canvas.width = img.width * scale;
+      canvas.height = img.height * scale;
+      context.drawImage(img, 0, 0, canvas.width, canvas.height);
 
       const imageData = context.getImageData(0, 0, canvas.width, canvas.height).data;
-      const pixelCount = imageData.length / 4;
       
-      // Use a quantization algorithm to find dominant colors
-      // This is a simplified version (median cut)
-      const colorBox: [number, number, number][] = [];
-      for (let i = 0; i < pixelCount; i += 10) { // Sample every 10 pixels for performance
-        const offset = i * 4;
-        colorBox.push([imageData[offset], imageData[offset + 1], imageData[offset + 2]]);
+      const pixels: [number, number, number][] = [];
+      for (let i = 0; i < imageData.length; i += 4) {
+        pixels.push([imageData[i], imageData[i + 1], imageData[i + 2]]);
       }
 
-      const findDominantColors = (box: [number, number, number][], count: number): [number,number,number][] => {
-          if (count <= 1 || box.length === 0) { // Base case: return the average color of the box
-            if (box.length === 0) return [];
-            const totals = box.reduce((acc, c) => [acc[0]+c[0], acc[1]+c[1], acc[2]+c[2]], [0,0,0]);
-            return [[Math.round(totals[0]/box.length), Math.round(totals[1]/box.length), Math.round(totals[2]/box.length)]];
+      // k-means clustering algorithm
+      let centroids: [number, number, number][] = [];
+      for (let i = 0; i < colorCount; i++) {
+        centroids.push(pixels[Math.floor(Math.random() * pixels.length)]);
+      }
+
+      for (let iter = 0; iter < 10; iter++) {
+        const clusters: [number, number, number][][] = Array.from({ length: colorCount }, () => []);
+        pixels.forEach(pixel => {
+          let minDistance = Infinity;
+          let clusterIndex = 0;
+          centroids.forEach((centroid, index) => {
+            const distance = Math.sqrt(
+              Math.pow(pixel[0] - centroid[0], 2) +
+              Math.pow(pixel[1] - centroid[1], 2) +
+              Math.pow(pixel[2] - centroid[2], 2)
+            );
+            if (distance < minDistance) {
+              minDistance = distance;
+              clusterIndex = index;
+            }
+          });
+          clusters[clusterIndex].push(pixel);
+        });
+
+        centroids = clusters.map(cluster => {
+          if (cluster.length === 0) {
+            return pixels[Math.floor(Math.random() * pixels.length)];
           }
-
-          const ranges = [0,1,2].map(i => Math.max(...box.map(c => c[i])) - Math.min(...box.map(c => c[i])));
-          const longestAxis = ranges.indexOf(Math.max(...ranges));
-          box.sort((a,b) => a[longestAxis] - b[longestAxis]);
-
-          const mid = Math.floor(box.length / 2);
-          const box1 = box.slice(0, mid);
-          const box2 = box.slice(mid);
-          
-          return [...findDominantColors(box1, Math.ceil(count/2)), ...findDominantColors(box2, Math.floor(count/2))];
+          const totals = cluster.reduce((acc, p) => [acc[0] + p[0], acc[1] + p[1], acc[2] + p[2]], [0, 0, 0]);
+          return [
+            Math.round(totals[0] / cluster.length),
+            Math.round(totals[1] / cluster.length),
+            Math.round(totals[2] / cluster.length)
+          ];
+        });
       }
-      
-      const dominantRgb = findDominantColors(colorBox, colorCount);
 
-      const palette = dominantRgb.map(([r, g, b]) => {
+      const palette = centroids.map(([r, g, b]) => {
         const hex = rgbToHex(r, g, b);
         return {
           hex,
@@ -124,6 +140,7 @@ async function extractPaletteFromImage(
     };
   });
 }
+
 
 // --- React Component ---
 
