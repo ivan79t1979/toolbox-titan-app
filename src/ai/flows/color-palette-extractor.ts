@@ -23,6 +23,7 @@ const prompt = ai.definePrompt({
   name: 'colorPaletteExtractorPrompt',
   input: {schema: ColorPaletteExtractorInputSchema},
   output: {schema: ColorPaletteExtractorOutputSchema},
+  model: 'googleai/gemini-2.5-flash-image-preview',
   prompt: `You are a color expert. Analyze the provided image and extract a palette of the {{numberOfColors}} most dominant and representative colors.
 
 For each color, provide its HEX code, its RGB value, its HSL value, and a simple, common name for that color (e.g., "Deep Sky Blue", "Forest Green", "Warm Sand").
