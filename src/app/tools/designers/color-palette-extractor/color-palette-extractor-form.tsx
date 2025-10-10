@@ -89,8 +89,8 @@ async function extractPaletteFromImage(
       }
 
       const findDominantColors = (box: [number, number, number][], count: number): [number,number,number][] => {
-          if (count <= 0 || box.length === 0) return [];
-          if(count === 1) { // Base case: return the average color of the box
+          if (count <= 1 || box.length === 0) { // Base case: return the average color of the box
+            if (box.length === 0) return [];
             const totals = box.reduce((acc, c) => [acc[0]+c[0], acc[1]+c[1], acc[2]+c[2]], [0,0,0]);
             return [[Math.round(totals[0]/box.length), Math.round(totals[1]/box.length), Math.round(totals[2]/box.length)]];
           }
