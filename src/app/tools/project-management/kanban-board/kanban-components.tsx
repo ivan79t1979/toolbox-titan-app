@@ -6,7 +6,7 @@ import { cva } from 'class-variance-authority';
 import { Id, Task, Column, Priority } from './kanban-types';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { GripVertical, PlusCircle, Trash2, CalendarIcon, Flag } from 'lucide-react';
+import { GripVertical, PlusCircle, Trash2, CalendarIcon, Flag, Move } from 'lucide-react';
 import React, { useState } from 'react';
 import {
   SortableContext,
@@ -20,6 +20,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { format, parseISO } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 interface ColumnProps {
   column: Column;
@@ -29,6 +35,8 @@ interface ColumnProps {
   deleteTask: (id: Id) => void;
   updateTask: (id: Id, updatedProperties: Partial<Task>) => void;
   tasks: Task[];
+  isMobile?: boolean;
+  allColumns?: Column[];
 }
 
 export function KanbanColumn({
@@ -39,6 +47,8 @@ export function KanbanColumn({
   tasks,
   deleteTask,
   updateTask,
+  isMobile,
+  allColumns = [],
 }: ColumnProps) {
   const [editMode, setEditMode] = useState(false);
 
@@ -58,6 +68,7 @@ export function KanbanColumn({
     attributes: {
       'aria-roledescription': 'sortable column',
     },
+    disabled: isMobile,
   });
 
   const style = {
@@ -79,7 +90,7 @@ export function KanbanColumn({
     <div
       ref={setNodeRef}
       style={style}
-      className="w-[350px] h-fit max-h-full bg-card rounded-lg flex flex-col border"
+      className="w-full md:w-[350px] shrink-0 h-fit max-h-full bg-card rounded-lg flex flex-col border"
     >
       {/* Column title */}
       <CardHeader
@@ -88,7 +99,7 @@ export function KanbanColumn({
         className="p-3 font-semibold border-b flex flex-row items-center justify-between cursor-grab"
       >
         <div className="flex items-center gap-2">
-            <GripVertical className="text-muted-foreground" />
+            {!isMobile && <GripVertical className="text-muted-foreground" />}
             {!editMode && <div onClick={() => setEditMode(true)} className="flex-1">{column.title}</div>}
             {editMode && (
             <Input
@@ -114,13 +125,15 @@ export function KanbanColumn({
       
       {/* Column task container */}
       <CardContent className="flex flex-grow flex-col gap-4 p-2 overflow-y-auto">
-        <SortableContext items={tasks.map(t => t.id)} strategy={verticalListSortingStrategy}>
+        <SortableContext items={tasks.map(t => t.id)} strategy={verticalListSortingStrategy} disabled={isMobile}>
             {tasks.map((task) => (
             <KanbanTaskCard
                 key={task.id}
                 task={task}
                 deleteTask={deleteTask}
                 updateTask={updateTask}
+                isMobile={isMobile}
+                allColumns={allColumns}
             />
             ))}
         </SortableContext>
@@ -144,6 +157,8 @@ interface TaskCardProps {
   task: Task;
   deleteTask?: (id: Id) => void;
   updateTask?: (id: Id, updatedProperties: Partial<Task>) => void;
+  isMobile?: boolean;
+  allColumns?: Column[];
 }
 
 const priorityConfig: Record<Priority, { label: string; color: string; iconColor: string }> = {
@@ -157,6 +172,8 @@ export function KanbanTaskCard({
   task,
   deleteTask,
   updateTask,
+  isMobile,
+  allColumns = [],
 }: TaskCardProps) {
   const [mouseIsOver, setMouseIsOver] = useState(false);
   const [editMode, setEditMode] = useState(false);
@@ -174,7 +191,7 @@ export function KanbanTaskCard({
       type: 'Task',
       task,
     },
-    disabled: editMode,
+    disabled: editMode || isMobile,
   });
 
   const style = {
@@ -196,7 +213,6 @@ export function KanbanTaskCard({
       },
     }
   );
-
 
   if (isDragging) {
     return (
@@ -291,18 +307,43 @@ export function KanbanTaskCard({
           )}
       </div>
 
-      {mouseIsOver && deleteTask && (
-        <Button
-          variant={'ghost'}
-          size="icon"
-          className="absolute right-1 top-1 h-8 w-8"
-          onClick={(e) => {
-            e.stopPropagation();
-            deleteTask(task.id);
-          }}
-        >
-          <Trash2 className="h-4 w-4" />
-        </Button>
+      {(mouseIsOver || isMobile) && (
+        <div className="absolute right-1 top-1 flex">
+          {isMobile && updateTask && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-8 w-8">
+                  <Move className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                {allColumns.map((col) => (
+                  <DropdownMenuItem
+                    key={col.id}
+                    disabled={col.id === task.columnId}
+                    onClick={() => updateTask(task.id, { columnId: col.id })}
+                  >
+                    Move to {col.title}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+
+          {deleteTask && (
+             <Button
+              variant={'ghost'}
+              size="icon"
+              className="h-8 w-8"
+              onClick={(e) => {
+                e.stopPropagation();
+                deleteTask(task.id);
+              }}
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          )}
+        </div>
       )}
     </Card>
   );

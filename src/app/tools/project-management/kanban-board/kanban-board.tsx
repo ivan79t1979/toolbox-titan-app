@@ -44,6 +44,8 @@ import { Id, Column, Task } from './kanban-types';
 import * as XLSX from 'xlsx';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { Card, CardContent } from '@/components/ui/card';
 
 const defaultCols: Column[] = [
   { id: 'todo', title: 'To Do' },
@@ -69,6 +71,7 @@ export function KanbanBoard() {
   const boardRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+  const isMobile = useIsMobile();
 
   const columnsId = useMemo(() => columns.map((col) => col.id), [columns]);
 
@@ -81,6 +84,7 @@ export function KanbanBoard() {
   );
 
   const handleDragStart = (event: DragStartEvent) => {
+    if (isMobile) return;
     const { active } = event;
     if (active.data.current?.type === 'Column') {
       setActiveColumn(active.data.current.column);
@@ -92,6 +96,7 @@ export function KanbanBoard() {
   };
 
   const handleDragOver = (event: DragOverEvent) => {
+    if (isMobile) return;
     const { active, over } = event;
     if (!over || active.id === over.id) return;
 
@@ -125,6 +130,7 @@ export function KanbanBoard() {
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
+    if (isMobile) return;
     setActiveColumn(null);
     setActiveTask(null);
     const { active, over } = event;
@@ -307,7 +313,7 @@ export function KanbanBoard() {
         const canvas = await html2canvas(boardRef.current, { scale: 2 });
         const imgData = canvas.toDataURL('image/png');
         const pdf = new jsPDF({
-            orientation: 'landscape',
+            orientation: isMobile ? 'portrait' : 'landscape',
             unit: 'px',
             format: [canvas.width, canvas.height]
         });
@@ -377,52 +383,73 @@ export function KanbanBoard() {
         </div>
       </div>
       
-      <div ref={boardRef} className="printable-board overflow-x-auto">
-        <DndContext
-            sensors={sensors}
-            onDragStart={handleDragStart}
-            onDragOver={handleDragOver}
-            onDragEnd={handleDragEnd}
-            collisionDetection={closestCenter}
-        >
-            <div className="flex gap-4">
-                <SortableContext items={columnsId} strategy={horizontalListSortingStrategy}>
-                    {columns.map((col) => (
-                    <KanbanColumn
-                        key={col.id}
-                        column={col}
-                        deleteColumn={deleteColumn}
-                        updateColumnTitle={updateColumnTitle}
-                        addTask={() => addTask(col.id)}
-                        deleteTask={deleteTask}
-                        updateTask={updateTask}
-                        tasks={tasks.filter((task) => task.columnId === col.id)}
-                    />
-                    ))}
-                </SortableContext>
-            </div>
-            {typeof document !== 'undefined' && createPortal(
-                <DragOverlay>
-                    {activeColumn && (
-                        <KanbanColumn
-                            column={activeColumn}
-                            deleteColumn={deleteColumn}
-                            updateColumnTitle={updateColumnTitle}
-                            addTask={() => addTask(activeColumn.id)}
-                            deleteTask={deleteTask}
-                            updateTask={updateTask}
-                            tasks={tasks.filter(
-                                (task) => task.columnId === activeColumn.id
-                            )}
-                        />
-                    )}
-                    {activeTask && (
-                        <KanbanTaskCard task={activeTask} />
-                    )}
-                </DragOverlay>,
-                document.body
-            )}
-        </DndContext>
+      <div ref={boardRef} className="printable-board">
+        {isMobile ? (
+          <div className="space-y-4">
+            {columns.map((col) => (
+                <KanbanColumn
+                    key={col.id}
+                    column={col}
+                    deleteColumn={deleteColumn}
+                    updateColumnTitle={updateColumnTitle}
+                    addTask={() => addTask(col.id)}
+                    deleteTask={deleteTask}
+                    updateTask={updateTask}
+                    tasks={tasks.filter((task) => task.columnId === col.id)}
+                    isMobile={isMobile}
+                    allColumns={columns}
+                />
+            ))}
+          </div>
+        ) : (
+          <DndContext
+              sensors={sensors}
+              onDragStart={handleDragStart}
+              onDragOver={handleDragOver}
+              onDragEnd={handleDragEnd}
+              collisionDetection={closestCenter}
+          >
+              <div className="flex gap-4 overflow-x-auto">
+                  <SortableContext items={columnsId} strategy={horizontalListSortingStrategy}>
+                      {columns.map((col) => (
+                      <KanbanColumn
+                          key={col.id}
+                          column={col}
+                          deleteColumn={deleteColumn}
+                          updateColumnTitle={updateColumnTitle}
+                          addTask={() => addTask(col.id)}
+                          deleteTask={deleteTask}
+                          updateTask={updateTask}
+                          tasks={tasks.filter((task) => task.columnId === col.id)}
+                          isMobile={isMobile}
+                          allColumns={columns}
+                      />
+                      ))}
+                  </SortableContext>
+              </div>
+              {typeof document !== 'undefined' && createPortal(
+                  <DragOverlay>
+                      {activeColumn && (
+                          <KanbanColumn
+                              column={activeColumn}
+                              deleteColumn={deleteColumn}
+                              updateColumnTitle={updateColumnTitle}
+                              addTask={() => addTask(activeColumn.id)}
+                              deleteTask={deleteTask}
+                              updateTask={updateTask}
+                              tasks={tasks.filter(
+                                  (task) => task.columnId === activeColumn.id
+                              )}
+                          />
+                      )}
+                      {activeTask && (
+                          <KanbanTaskCard task={activeTask} />
+                      )}
+                  </DragOverlay>,
+                  document.body
+              )}
+          </DndContext>
+        )}
       </div>
     </div>
   );
