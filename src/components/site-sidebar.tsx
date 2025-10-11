@@ -24,14 +24,20 @@ import { usePathname } from 'next/navigation';
 
 export function SiteSidebar() {
   const pathname = usePathname();
-  const { state: sidebarState } = useSidebar();
+  const { state: sidebarState, setOpenMobile, isMobile } = useSidebar();
 
   const isCollapsed = sidebarState === 'collapsed';
+
+  const handleLinkClick = () => {
+    if (isMobile) {
+      setOpenMobile(false);
+    }
+  };
 
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader>
-        <Link href="/" className="flex items-center gap-2">
+        <Link href="/" className="flex items-center gap-2" onClick={handleLinkClick}>
           <NotebookText className="size-6 text-primary" />
           <span className="font-headline text-xl font-semibold group-data-[collapsible=icon]:hidden">
             Modern Online Tools
@@ -45,7 +51,7 @@ export function SiteSidebar() {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton asChild tooltip="Dashboard" isActive={pathname === '/'}>
-              <Link href="/">
+              <Link href="/" onClick={handleLinkClick}>
                 <Home />
                 <span>Dashboard</span>
               </Link>
@@ -86,7 +92,7 @@ export function SiteSidebar() {
                       className="w-full justify-start"
                       isActive={pathname === tool.href}
                     >
-                      <Link href={tool.href}>{tool.title}</Link>
+                      <Link href={tool.href} onClick={handleLinkClick}>{tool.title}</Link>
                     </SidebarMenuButton>
                   ))}
                 </div>
