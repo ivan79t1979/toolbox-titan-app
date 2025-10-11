@@ -45,8 +45,8 @@ export default function RootLayout({
             <SidebarRail />
             <SidebarInset>
               <header className="sticky top-0 z-10 flex h-14 items-center justify-between gap-4 border-b bg-background/80 px-4 backdrop-blur-lg sm:justify-end sm:px-6">
-                <SidebarTrigger className="sm:hidden">
-                  <Menu className="size-5" />
+                <SidebarTrigger className="sm:hidden bg-muted p-2 rounded-md">
+                  <Menu className="size-6" />
                 </SidebarTrigger>
                 <ThemeToggle />
               </header>
