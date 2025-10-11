@@ -10,9 +10,11 @@ export default function PasswordGeneratorPage() {
         title="Password Generator"
         description="Generate secure passwords."
       />
-      <PasswordGeneratorForm />
-      <NordPassBanner />
       <NordVPNBanner />
+      <div className="my-8">
+        <PasswordGeneratorForm />
+      </div>
+      <NordPassBanner />
     </>
   );
 }
