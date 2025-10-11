@@ -1,16 +1,8 @@
-<svg width="200" height="200" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-<g clip-path="url(#clip0_1_2)">
-<path d="M78.5 21.5C84.8137 27.8137 88.5 36.6087 88.5 46.5C88.5 56.3913 84.8137 65.1863 78.5 71.5M78.5 71.5C72.1863 77.8137 63.3913 81.5 53.5 81.5C43.6087 81.5 34.8137 77.8137 28.5 71.5M21.5 78.5C15.1863 72.1863 11.5 63.3913 11.5 53.5C11.5 43.6087 15.1863 34.8137 21.5 28.5M21.5 28.5C27.8137 22.1863 36.6087 18.5 46.5 18.5C56.3913 18.5 65.1863 22.1863 71.5 28.5" stroke="black" stroke-width="6" stroke-linecap="round"/>
-<path d="M69.9698 25.1317L29.1317 65.9698" stroke="black" stroke-width="6" stroke-linecap="round"/>
-<path d="M74.8079 31.0302L68.9094 36.9287" stroke="black" stroke-width="6" stroke-linecap="round"/>
-<path d4="M34.9697 60.1317L29.0712 66.0302" stroke="black" stroke-width="6" stroke-linecap="round"/>
-<path d="M72 40C72 40 70.5 33.5 65 30C59.5 26.5 54.9184 27.449 50 30C45.0816 32.551 40 37.5 40 37.5" stroke="black" stroke-width="6" stroke-linecap="round"/>
-<path d="M25 61C25 61 31.5 67.5 37 71C42.5 74.5 47.0816 73.551 52 71C56.9184 68.449 62 63.5 62 63.5" stroke="black" stroke-width="6" stroke-linecap="round"/>
-<path d="M30 42L36 36" stroke="black" stroke-width="6" stroke-linecap="round"/>
+<svg width="128" height="128" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg">
+<circle cx="64" cy="64" r="56" fill="#FFFFFF" stroke="#E5E7EB" stroke-width="4"/>
+<g transform="translate(32, 32) scale(2)">
+  <path d="M22.7 14.3l-1.4-1.4-7.6-7.6C13.3 4.9 12.7 5 12.3 5.3L10.9 6.7l5.7 5.7-1.4 1.4-5.7-5.7-1.4 1.4 5.7 5.7-1.4 1.4-5.7-5.7L6.7 12.3c-.3.4-.3.9 0 1.3l7.6 7.6 1.4 1.4c.4.4 1 .4 1.4 0l5.6-5.6c.4-.4.4-1 0-1.4zM19.8 8.1l-1.4 1.4-2.8-2.8 1.4-1.4c.4-.4 1-.4 1.4 0l1.4 1.4c.4.4.4 1 0 1.4z" fill="#212121"/>
+  <path d="M9.8 5.6c-.4.2-.6.7-.4 1.1l4.9 9.8c.2.4.7.6 1.1.4.4-.2.6-.7.4-1.1L10.9 6c-.2-.4-.7-.6-1.1-.4z" fill="#212121"/>
+  <path d="M15.8 19.3c-3.7 3.7-9.6 3.7-13.3 0s-3.7-9.6 0-13.3l4.9-4.9c.4-.4 1-.4 1.4 0s.4 1 0 1.4L4 12.4c-2.9 2.9-2.9 7.7 0 10.6 2.9 2.9 7.7 2.9 10.6 0l4.9-4.9c.4-.4 1-.4 1.4 0s.4 1 0 1.4l-4.9 4.8z" fill="#212121"/>
 </g>
-<defs>
-<clipPath id="clip0_1_2">
-<rect width="100" height="100" fill="white"/>
-</clipPath>
-</defs>
 </svg>
