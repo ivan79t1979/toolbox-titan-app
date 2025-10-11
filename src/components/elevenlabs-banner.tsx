@@ -1,7 +1,6 @@
 'use client';
 
 import Link from 'next/link';
-import Image from 'next/image';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
@@ -38,13 +37,6 @@ export function ElevenLabsBanner() {
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                 <Image
-                  src="https://storage.googleapis.com/studiostore/temp/elevenlabs-logo-dark.svg"
-                  alt="ElevenLabs Logo"
-                  width={128}
-                  height={32}
-                  className="mr-2 dark:invert"
-                />
                 Try ElevenLabs Free <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>
