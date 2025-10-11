@@ -1,6 +1,7 @@
 import { PageHeader } from '@/components/page-header';
 import { PasswordGeneratorForm } from './password-generator-form';
 import { NordPassBanner } from '@/components/nordpass-banner';
+import { NordVPNBanner } from '@/components/nordvpn-banner';
 
 export default function PasswordGeneratorPage() {
   return (
@@ -11,6 +12,7 @@ export default function PasswordGeneratorPage() {
       />
       <PasswordGeneratorForm />
       <NordPassBanner />
+      <NordVPNBanner />
     </>
   );
 }
