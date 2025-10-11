@@ -1,7 +1,9 @@
+
 'use client';
 
 import { PageHeader } from '@/components/page-header';
 import { GradioWrapper } from '@/components/gradio-wrapper';
+import { ElevenLabsBanner } from '@/components/elevenlabs-banner';
 
 export default function TextToSpeechPage() {
   return (
@@ -13,6 +15,7 @@ export default function TextToSpeechPage() {
       <div className="mt-8">
         <GradioWrapper appSrc="https://timemaster-multilingual-tts.hf.space" scriptSrc="https://gradio.s3-us-west-2.amazonaws.com/5.35.0/gradio.js" />
       </div>
+      <ElevenLabsBanner />
     </>
   );
 }
