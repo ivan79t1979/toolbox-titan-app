@@ -1,4 +1,4 @@
-rigin main# Firebase Studio
+t rigin main# Firebase Studio
 
 This is a NextJS starter in Firebase Studio.
 
