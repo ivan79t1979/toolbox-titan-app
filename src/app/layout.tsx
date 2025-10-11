@@ -5,11 +5,11 @@ import { Toaster } from '@/components/ui/toaster';
 import {
   SidebarInset,
   SidebarProvider,
-  SidebarTrigger,
   SidebarRail,
 } from '@/components/ui/sidebar';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { SiteSidebar } from '@/components/site-sidebar';
+import { SiteFooter } from '@/components/site-footer';
 
 export const metadata: Metadata = {
   title: 'Modern Online Tools',
@@ -47,6 +47,7 @@ export default function RootLayout({
                 <ThemeToggle />
               </header>
               <main className="flex-1 p-4 sm:p-6">{children}</main>
+              <SiteFooter />
             </SidebarInset>
           </SidebarProvider>
           <Toaster />
