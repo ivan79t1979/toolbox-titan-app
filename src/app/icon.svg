@@ -1,4 +1,4 @@
-<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-<rect width="48" height="48" rx="8" fill="hsl(var(--primary))"/>
-<path d="M12 32L12 16L24 28L36 16L36 32" stroke="hsl(var(--primary-foreground))" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+<svg width="256" height="256" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
+<rect width="256" height="256" rx="60" fill="hsl(var(--primary))"/>
+<path d="M64 192V64H112L128 96L144 64H192V192H160V112L144 144L128 112L96 192H64Z" fill="hsl(var(--primary-foreground))"/>
 </svg>
