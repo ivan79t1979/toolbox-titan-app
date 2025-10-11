@@ -1,5 +1,2 @@
-t rigin main# Firebase Studio
-
-This is a NextJS starter in Firebase Studio.
-
-To get started, take a look at src/app/page.tsx.
+Modern Online Tools
+Streamline your workflow with our curated collection of modern, intuitive online tools designed for creators, writers, and professionals.
