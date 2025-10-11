@@ -11,7 +11,7 @@ import {
 import { ThemeToggle } from '@/components/theme-toggle';
 import { SiteSidebar } from '@/components/site-sidebar';
 import { SiteFooter } from '@/components/site-footer';
-import { ChevronsRight } from 'lucide-react';
+import { ChevronsRight, Menu } from 'lucide-react';
 
 export const metadata: Metadata = {
   title: 'Modern Online Tools',
@@ -46,7 +46,7 @@ export default function RootLayout({
             <SidebarInset>
               <header className="sticky top-0 z-10 flex h-14 items-center justify-between gap-4 border-b bg-background/80 px-4 backdrop-blur-lg sm:px-6">
                 <SidebarTrigger className="sm:hidden">
-                  <ChevronsRight className="size-5" />
+                  <Menu className="size-5" />
                 </SidebarTrigger>
                 <div className="flex-1" />
                 <ThemeToggle />
