@@ -11,7 +11,7 @@ import {
 import { ThemeToggle } from '@/components/theme-toggle';
 import { SiteSidebar } from '@/components/site-sidebar';
 import { SiteFooter } from '@/components/site-footer';
-import { ChevronsRight, Menu } from 'lucide-react';
+import { Menu } from 'lucide-react';
 
 export const metadata: Metadata = {
   title: 'Modern Online Tools',
