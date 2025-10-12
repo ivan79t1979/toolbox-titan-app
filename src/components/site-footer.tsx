@@ -1,3 +1,4 @@
+
 import Link from 'next/link';
 
 export function SiteFooter() {
@@ -75,6 +76,14 @@ export function SiteFooter() {
                     className="text-slate-300 hover:text-white hover:underline"
                   >
                     Cookie Policy
+                  </Link>
+                </li>
+                 <li>
+                  <Link
+                    href="/sitemap"
+                    className="text-slate-300 hover:text-white hover:underline"
+                  >
+                    Sitemap
                   </Link>
                 </li>
               </ul>
