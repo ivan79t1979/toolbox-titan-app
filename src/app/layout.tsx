@@ -12,6 +12,7 @@ import { ThemeToggle } from '@/components/theme-toggle';
 import { SiteSidebar } from '@/components/site-sidebar';
 import { SiteFooter } from '@/components/site-footer';
 import { Menu } from 'lucide-react';
+import { CookieConsent } from '@/components/cookie-consent';
 
 export const metadata: Metadata = {
   title: 'Modern Online Tools',
@@ -37,6 +38,8 @@ export default function RootLayout({
           href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Space+Grotesk:wght@500;700&family=Source+Code+Pro:wght@400;500;700&display=swap"
           rel="stylesheet"
         />
+        <link rel="stylesheet" id="silktide-consent-manager-css" href="/cookie-banner/silktide-consent-manager.css" />
+        <script src="/cookie-banner/silktide-consent-manager.js"></script>
       </head>
       <body className="font-body antialiased">
         <ThemeProvider>
@@ -55,6 +58,7 @@ export default function RootLayout({
             </SidebarInset>
           </SidebarProvider>
           <Toaster />
+          <CookieConsent />
         </ThemeProvider>
       </body>
     </html>
