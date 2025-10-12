@@ -1,18 +1,53 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 declare global {
   interface Window {
     silktideCookieBannerManager?: {
       updateCookieBannerConfig: (config: any) => void;
+      initCookieBanner: () => void;
     };
   }
 }
 
 export function CookieBanner() {
+  const [scriptLoaded, setScriptLoaded] = useState(false);
+
   useEffect(() => {
-    if (window.silktideCookieBannerManager) {
+    // Check if script is already on the page
+    if (document.getElementById('silktide-consent-manager-js')) {
+      if (window.silktideCookieBannerManager) {
+        setScriptLoaded(true);
+      }
+      return;
+    }
+
+    // If not, create and append it
+    const script = document.createElement('script');
+    script.id = 'silktide-consent-manager-js';
+    script.src = '/cookie-banner/silktide-consent-manager.js';
+    script.async = true;
+    script.onload = () => {
+      setScriptLoaded(true);
+    };
+    script.onerror = () => {
+      console.error('Silktide consent manager script failed to load.');
+    };
+    document.body.appendChild(script);
+
+    // Cleanup function to remove script if component unmounts
+    return () => {
+      const existingScript = document.getElementById('silktide-consent-manager-js');
+      if (existingScript) {
+        // It might already be gone if navigating away quickly
+        // document.body.removeChild(existingScript);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    if (scriptLoaded && window.silktideCookieBannerManager) {
       window.silktideCookieBannerManager.updateCookieBannerConfig({
         background: {
           showBackground: true,
@@ -77,8 +112,12 @@ export function CookieBanner() {
           },
         },
       });
+      // The script might initialize itself, but calling init ensures it runs with the new config.
+      if (window.silktideCookieBannerManager.initCookieBanner) {
+        window.silktideCookieBannerManager.initCookieBanner();
+      }
     }
-  }, []);
+  }, [scriptLoaded]);
 
   return null;
 }

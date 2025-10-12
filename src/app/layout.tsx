@@ -44,11 +44,6 @@ export default function RootLayout({
           id="silktide-consent-manager-css"
           href="/cookie-banner/silktide-consent-manager.css"
         />
-        <Script
-          id="silktide-consent-manager-js"
-          src="/cookie-banner/silktide-consent-manager.js"
-          strategy="beforeInteractive"
-        />
       </head>
       <body className="font-body antialiased">
         <ThemeProvider>
