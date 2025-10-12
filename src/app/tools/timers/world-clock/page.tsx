@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import { PageHeader } from '@/components/page-header';
 import { WorldClock } from './world-clock';
 import {
@@ -7,9 +8,47 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion';
 
+const tool = {
+  title: 'World Clock',
+  description: 'View the current local time in cities and time zones all around the world. Add and customize your own world clock dashboard.',
+  path: '/tools/timers/world-clock',
+};
+
+export const metadata: Metadata = {
+  title: tool.title,
+  description: tool.description,
+  alternates: {
+    canonical: tool.path,
+  },
+  openGraph: {
+    title: tool.title,
+    description: tool.description,
+    url: tool.path,
+  },
+};
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'SoftwareApplication',
+  name: tool.title,
+  description: tool.description,
+  applicationCategory: 'Utilities',
+  operatingSystem: 'Any',
+  url: `https://modernonlinetools.com${tool.path}`,
+  offers: {
+    '@type': 'Offer',
+    price: '0',
+    priceCurrency: 'USD',
+  },
+};
+
 export default function WorldClockPage() {
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <PageHeader
         title="World Clock"
         description="Current time in different time zones."

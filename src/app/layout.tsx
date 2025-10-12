@@ -16,10 +16,36 @@ import Script from 'next/script';
 import { CookieBanner } from '@/components/cookie-banner';
 
 export const metadata: Metadata = {
-  title: 'Modern Online Tools',
+  title: {
+    default: 'Modern Online Tools',
+    template: '%s | Modern Online Tools',
+  },
   description:
-    'Free online productivity tools for creators, writers, designers and professionals.',
+    'A free, modern suite of online tools for creators, developers, and professionals. Includes AI writing assistants, image editors, converters, and much more.',
+  alternates: {
+    canonical: '/',
+  },
+  openGraph: {
+    title: 'Modern Online Tools',
+    description: 'A free, modern suite of online tools for creators, developers, and professionals.',
+    url: 'https://modernonlinetools.com',
+    siteName: 'Modern Online Tools',
+    locale: 'en_US',
+    type: 'website',
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
 };
+
 
 export default function RootLayout({
   children,
