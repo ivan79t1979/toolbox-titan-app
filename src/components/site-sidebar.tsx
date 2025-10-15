@@ -105,8 +105,8 @@ export function SiteSidebar() {
       <SidebarFooter>
         <SidebarSeparator />
         {!isCollapsed && (
-          <div className="p-4">
-            <AdPlaceholder width={160} height={600} />
+          <div className="p-4 flex justify-center">
+            <AdPlaceholder width={160} height={160} />
           </div>
         )}
       </SidebarFooter>
