@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { PageHeader } from '@/components/page-header';
 import { ColorPickerConverterForm } from './color-picker-converter-form';
+import { AdPlaceholder } from '@/components/ad-placeholder';
 
 const tool = {
   title: 'Color Picker & Converter (HEX, RGB, HSL)',
@@ -47,7 +48,13 @@ export default function ColorPickerConverterPage() {
         title="Color Picker & Converter"
         description="Pick a color and convert it to different formats like HEX, RGB, and HSL."
       />
+      <div className="mb-8 hidden justify-center md:flex">
+        <AdPlaceholder width={728} height={90} />
+      </div>
       <ColorPickerConverterForm />
+      <div className="mt-8 flex justify-center">
+        <AdPlaceholder width={300} height={250} />
+      </div>
     </>
   );
 }

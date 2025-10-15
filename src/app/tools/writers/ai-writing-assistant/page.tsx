@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { PageHeader } from '@/components/page-header';
 import { AiWritingAssistantForm } from './ai-writing-form';
+import { AdPlaceholder } from '@/components/ad-placeholder';
 
 const tool = {
   title: 'AI Writing Assistant',
@@ -47,7 +48,13 @@ export default function AiWritingAssistantPage() {
         title="AI Writing Assistant"
         description="Generate high-quality text for your articles, emails, or social media posts with the power of AI."
       />
+      <div className="mb-8 hidden justify-center md:flex">
+        <AdPlaceholder width={728} height={90} />
+      </div>
       <AiWritingAssistantForm />
+      <div className="mt-8 flex justify-center">
+        <AdPlaceholder width={300} height={250} />
+      </div>
     </div>
   );
 }

@@ -21,6 +21,7 @@ import {
 import { toolCategories } from '@/lib/tools';
 import { Home, NotebookText, ChevronsLeft } from 'lucide-react';
 import { usePathname } from 'next/navigation';
+import { AdPlaceholder } from './ad-placeholder';
 
 export function SiteSidebar() {
   const pathname = usePathname();
@@ -103,8 +104,11 @@ export function SiteSidebar() {
       </SidebarContent>
       <SidebarFooter>
         <SidebarSeparator />
-        <SidebarMenu>
-        </SidebarMenu>
+        {!isCollapsed && (
+          <div className="p-4">
+            <AdPlaceholder width={160} height={600} />
+          </div>
+        )}
       </SidebarFooter>
     </Sidebar>
   );

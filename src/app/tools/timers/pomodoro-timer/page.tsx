@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { PageHeader } from '@/components/page-header';
 import { PomodoroTimer } from './pomodoro-timer';
+import { AdPlaceholder } from '@/components/ad-placeholder';
 
 const tool = {
   title: 'Pomodoro Timer',
@@ -47,7 +48,13 @@ export default function PomodoroTimerPage() {
         title="Pomodoro Timer"
         description="Boost your productivity with the Pomodoro Technique. Customize your work and break intervals."
       />
+      <div className="mb-8 hidden justify-center md:flex">
+        <AdPlaceholder width={728} height={90} />
+      </div>
       <PomodoroTimer />
+      <div className="mt-8 flex justify-center">
+        <AdPlaceholder width={300} height={250} />
+      </div>
     </>
   );
 }
