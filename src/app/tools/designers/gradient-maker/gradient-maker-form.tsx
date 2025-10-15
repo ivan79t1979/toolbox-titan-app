@@ -20,12 +20,28 @@ type ColorStop = {
   id: number;
   color: string;
   position: number;
+  opacity: number;
 };
+
+function hexToRgba(hex: string, alpha: number): string {
+  let r = 0, g = 0, b = 0;
+  if (hex.length === 4) { // #RGB
+    r = parseInt(hex[1] + hex[1], 16);
+    g = parseInt(hex[2] + hex[2], 16);
+    b = parseInt(hex[3] + hex[3], 16);
+  } else if (hex.length === 7) { // #RRGGBB
+    r = parseInt(hex.substring(1, 3), 16);
+    g = parseInt(hex.substring(3, 5), 16);
+    b = parseInt(hex.substring(5, 7), 16);
+  }
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
 
 export function GradientMakerForm() {
   const [colors, setColors] = useState<ColorStop[]>([
-    { id: 1, color: '#4A90E2', position: 0 },
-    { id: 2, color: '#9013FE', position: 100 },
+    { id: 1, color: '#4A90E2', position: 0, opacity: 1 },
+    { id: 2, color: '#9013FE', position: 100, opacity: 1 },
   ]);
   const [gradientType, setGradientType] = useState('linear');
   const [angle, setAngle] = useState(90);
@@ -34,7 +50,7 @@ export function GradientMakerForm() {
   const gradientCss = useMemo(() => {
     const colorStops = colors
       .sort((a, b) => a.position - b.position)
-      .map((c) => `${c.color} ${c.position}%`)
+      .map((c) => `${hexToRgba(c.color, c.opacity)} ${c.position}%`)
       .join(', ');
 
     if (gradientType === 'linear') {
@@ -48,6 +64,7 @@ export function GradientMakerForm() {
       id: Date.now(),
       color: '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0'),
       position: 50,
+      opacity: 1,
     };
     setColors([...colors, newColor]);
   };
@@ -125,32 +142,38 @@ export function GradientMakerForm() {
         <Card>
             <CardContent className="p-4 space-y-4">
                  {colors.map((color) => (
-                    <div key={color.id} className="grid grid-cols-[auto,1fr,auto] items-center gap-3">
-                        <Input
-                            type="color"
-                            value={color.color}
-                            onChange={(e) => updateColor(color.id, { color: e.target.value })}
-                            className="h-10 w-12 p-1"
-                        />
-                        <div className="space-y-2">
-                             <Input
-                                type="text"
-                                value={color.color.toUpperCase()}
+                    <div key={color.id} className="p-2 border rounded-md">
+                        <div className="grid grid-cols-[auto,1fr,auto] items-center gap-3">
+                            <Input
+                                type="color"
+                                value={color.color}
                                 onChange={(e) => updateColor(color.id, { color: e.target.value })}
-                                className="font-mono h-8"
+                                className="h-10 w-12 p-1"
                             />
-                             <Slider
-                                value={[color.position]}
-                                onValueChange={(v) => updateColor(color.id, { position: v[0] })}
-                            />
+                            <div className="space-y-2">
+                                <Input
+                                    type="text"
+                                    value={color.color.toUpperCase()}
+                                    onChange={(e) => updateColor(color.id, { color: e.target.value })}
+                                    className="font-mono h-8"
+                                />
+                                <Slider
+                                    value={[color.position]}
+                                    onValueChange={(v) => updateColor(color.id, { position: v[0] })}
+                                />
+                            </div>
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => removeColor(color.id)}
+                            >
+                                <Trash2 className="h-4 w-4" />
+                            </Button>
                         </div>
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => removeColor(color.id)}
-                        >
-                            <Trash2 className="h-4 w-4" />
-                        </Button>
+                        <div className="mt-2 space-y-2">
+                            <Label>Opacity ({color.opacity.toFixed(2)})</Label>
+                            <Slider value={[color.opacity]} onValueChange={(v) => updateColor(color.id, { opacity: v[0] })} min={0} max={1} step={0.01} />
+                        </div>
                     </div>
                 ))}
                  <Button onClick={addColor} variant="outline" className="w-full">

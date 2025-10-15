@@ -274,7 +274,7 @@ const SidebarTrigger = React.forwardRef<
   React.ElementRef<typeof Button>,
   React.ComponentProps<typeof Button>
 >(({ className, onClick, ...props }, ref) => {
-  const { toggleSidebar, state } = useSidebar()
+  const { toggleSidebar } = useSidebar()
 
   return (
     <Button
@@ -282,27 +282,13 @@ const SidebarTrigger = React.forwardRef<
       data-sidebar="trigger"
       variant="ghost"
       size="icon"
-      className={cn(
-        "h-8 w-full justify-start p-2 text-sidebar-foreground/70",
-        "group-data-[collapsible=icon]:h-8 group-data-[collapsible=icon]:w-8 group-data-[collapsible=icon]:justify-center",
-        className
-      )}
+      className={cn("border-2 border-transparent", className)}
       onClick={(event) => {
         onClick?.(event)
         toggleSidebar()
       }}
       {...props}
-    >
-      <ChevronsLeft
-        className={cn(
-          "shrink-0 transition-transform duration-200",
-          state === "collapsed" && "rotate-180"
-        )}
-      />
-      <span className="sr-only group-data-[collapsible=icon]:hidden">
-        Toggle Sidebar
-      </span>
-    </Button>
+    />
   )
 })
 SidebarTrigger.displayName = "SidebarTrigger"

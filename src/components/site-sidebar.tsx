@@ -22,10 +22,11 @@ import { toolCategories } from '@/lib/tools';
 import { Home, NotebookText, ChevronsLeft } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { AdPlaceholder } from './ad-placeholder';
+import { Button } from './ui/button';
 
 export function SiteSidebar() {
   const pathname = usePathname();
-  const { state: sidebarState, setOpenMobile, isMobile } = useSidebar();
+  const { state: sidebarState, setOpenMobile, isMobile, toggleSidebar } = useSidebar();
 
   const isCollapsed = sidebarState === 'collapsed';
 
@@ -38,15 +39,23 @@ export function SiteSidebar() {
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader>
-        <Link href="/" className="flex items-center gap-2" onClick={handleLinkClick}>
-          <NotebookText className="size-6 text-primary" />
-          <span className="font-headline text-xl font-semibold group-data-[collapsible=icon]:hidden">
-            Modern Online Tools
-          </span>
-        </Link>
-        <SidebarTrigger>
-          <ChevronsLeft className="size-5 transition-transform duration-200 group-data-[state=collapsed]:rotate-180" />
-        </SidebarTrigger>
+        <div className="flex w-full items-center justify-between">
+          <Link href="/" className="flex items-center gap-2" onClick={handleLinkClick}>
+            <NotebookText className="size-6 text-primary" />
+            <span className="font-headline text-xl font-semibold group-data-[collapsible=icon]:hidden">
+              Modern Online Tools
+            </span>
+          </Link>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 justify-start p-2 text-sidebar-foreground/70 group-data-[collapsible=icon]:h-8 group-data-[collapsible=icon]:w-8 group-data-[collapsible=icon]:justify-center"
+            onClick={toggleSidebar}
+          >
+            <ChevronsLeft className="size-5 shrink-0 transition-transform duration-200 group-data-[state=collapsed]:rotate-180" />
+            <span className="sr-only">Toggle Sidebar</span>
+          </Button>
+        </div>
       </SidebarHeader>
       <SidebarContent>
         <SidebarMenu>
