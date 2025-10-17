@@ -247,7 +247,7 @@ export const toolCategories: ToolCategory[] = [
     ],
   },
   {
-    name: 'Timers',
+    name: 'Time tracking tools',
     icon: Clock,
     tools: [
       {
