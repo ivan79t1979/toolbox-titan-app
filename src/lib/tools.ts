@@ -1,3 +1,4 @@
+
 import {
   Pencil,
   Palette,
@@ -121,7 +122,7 @@ export const toolCategories: ToolCategory[] = [
     ],
   },
   {
-    name: 'Tools for Designers',
+    name: 'Graphic design tools',
     icon: Palette,
     tools: [
       {
