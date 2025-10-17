@@ -62,7 +62,7 @@ export type ToolCategory = {
 
 export const toolCategories: ToolCategory[] = [
   {
-    name: 'Tools for Writers',
+    name: 'Online writing tools',
     icon: Pencil,
     tools: [
       {
