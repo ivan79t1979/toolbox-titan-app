@@ -374,7 +374,7 @@ export function ResumeBuilderForm() {
                 <h2 className="text-lg font-bold border-b-2 border-gray-300 pb-1 mb-2">{formData.labels.skills}</h2>
                 <div className="flex flex-wrap gap-2">
                     {formData.skills.map((skill, index) => skill.skill && (
-                        <span key={index} className="bg-gray-200 text-gray-800 text-xs font-medium px-2.5 py-0.5 rounded-full">{skill.skill}</span>
+                        <span key={index} className="inline-block bg-gray-200 text-gray-800 text-xs font-medium px-2.5 py-0.5 rounded-full mr-2 mb-2">{skill.skill}</span>
                     ))}
                 </div>
                 </section>
