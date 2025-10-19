@@ -56,6 +56,7 @@ export type Tool = {
 
 export type ToolCategory = {
   name: string;
+  description: string;
   icon: LucideIcon;
   tools: Tool[];
 };
@@ -64,6 +65,7 @@ export const toolCategories: ToolCategory[] = [
   {
     name: 'Online writing tools',
     icon: Pencil,
+    description: 'Whether you\'\'\'re drafting an article, checking for errors, or need placeholder text, our free writing tools are here to help. Improve clarity, count words, and analyze readability in seconds.',
     tools: [
       {
         title: 'AI Writing Assistant',
@@ -124,6 +126,7 @@ export const toolCategories: ToolCategory[] = [
   {
     name: 'Graphic design tools',
     icon: Palette,
+    description: 'A perfect suite of free online design tools for professionals and hobbyists. From removing backgrounds to generating color palettes and resizing images, everything you need is right here.',
     tools: [
       {
         title: 'Background Remover',
@@ -184,6 +187,7 @@ export const toolCategories: ToolCategory[] = [
   {
     name: 'Tools for Developers',
     icon: Code,
+    description: 'Quickly generate assets and code snippets for your web projects. Our developer tools are designed to save you time on common tasks like creating favicons or hashing strings.',
     tools: [
       {
         title: 'Favicon Generator',
@@ -196,6 +200,7 @@ export const toolCategories: ToolCategory[] = [
   {
     name: 'Generators',
     icon: Wand2,
+    description: 'Our generator tools provide instant solutions for common needs. Create secure passwords, generate unique UUIDs, get QR codes for your links, and much more in just a few clicks.',
     tools: [
       {
         title: 'Text to Speech',
@@ -250,6 +255,7 @@ export const toolCategories: ToolCategory[] = [
   {
     name: 'Time tracking tools',
     icon: Clock,
+    description: 'Boost your productivity with our simple and effective time management tools. Use the Pomodoro Timer to stay focused, or track your work with our Stopwatch and Time Tracker.',
     tools: [
       {
         title: 'Pomodoro Timer',
@@ -280,6 +286,7 @@ export const toolCategories: ToolCategory[] = [
   {
     name: 'Math Tools',
     icon: Calculator,
+    description: 'From simple sums to complex conversions, our math tools make calculations easy. Use the advanced calculator, figure out percentages, or convert units without leaving your browser.',
     tools: [
       {
         title: 'Simple & Advanced Calculator',
@@ -304,6 +311,7 @@ export const toolCategories: ToolCategory[] = [
   {
     name: 'Project Management',
     icon: KanbanSquare,
+    description: 'Organize your projects and streamline your workflow with our free project management tools. Whether you need a Kanban board, a to-do list, or a budget planner, we have you covered.',
     tools: [
       {
         title: 'Kanban Board',
