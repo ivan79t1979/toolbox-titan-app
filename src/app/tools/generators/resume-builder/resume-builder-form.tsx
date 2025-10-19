@@ -13,12 +13,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Download, PlusCircle, Trash2, Mail, Phone, MapPin, Link as LinkIcon } from 'lucide-react';
+import { Download, PlusCircle, Trash2, Mail, Phone, MapPin, Link as LinkIcon, Edit, User } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import { format, parseISO } from 'date-fns';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import Image from 'next/image';
 
 type ResumeFormData = {
   name: string;
@@ -60,6 +61,8 @@ const dateFormats = [
 ];
 
 export function ResumeBuilderForm() {
+  const [photo, setPhoto] = useState<string | null>(null);
+
   const { register, control, handleSubmit, watch } = useForm<ResumeFormData>({
     defaultValues: {
       name: 'Your Name',
@@ -121,18 +124,20 @@ export function ResumeBuilderForm() {
             format: 'a4',
         });
 
-        const pageHeightMM = 297;
+        const pageHeightMM = pdf.internal.pageSize.getHeight();
         const canvasHeightMM = (canvas.height * pdfWidth) / canvas.width;
         let position = 0;
         let remainingHeight = canvasHeightMM;
         
+        let page = 1;
         while (remainingHeight > 0) {
+            if (page > 1) {
+              pdf.addPage();
+            }
             pdf.addImage(imgData, 'PNG', 0, -position, pdfWidth, canvasHeightMM);
             remainingHeight -= pageHeightMM;
-            if(remainingHeight > 0) {
-                pdf.addPage();
-                position += pageHeightMM;
-            }
+            position += pageHeightMM;
+            page++;
         }
         
         pdf.save('resume.pdf');
@@ -154,6 +159,17 @@ export function ResumeBuilderForm() {
       return dateString; // Return original if parsing fails
     }
   };
+  
+  const handlePhotoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            setPhoto(reader.result as string);
+        }
+        reader.readAsDataURL(file);
+    }
+  };
 
 
   return (
@@ -162,6 +178,13 @@ export function ResumeBuilderForm() {
         <Card>
           <CardHeader><CardTitle>Personal Details</CardTitle></CardHeader>
           <CardContent className="space-y-4">
+            <div className="space-y-2">
+                <Label htmlFor="photo-upload">Photo</Label>
+                <div className="flex items-center gap-2">
+                    <Input id="photo-upload" type="file" accept="image/*" onChange={handlePhotoUpload} className="flex-grow"/>
+                    {photo && <Button variant="ghost" size="icon" onClick={() => setPhoto(null)}><Trash2 className="h-4 w-4"/></Button>}
+                </div>
+            </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1"><Label>Full Name</Label><Input {...register('name')} /></div>
               <div className="space-y-1"><Label>Title</Label><Input {...register('title')} /></div>
@@ -284,15 +307,26 @@ export function ResumeBuilderForm() {
             className="p-8 bg-white text-black aspect-[1/1.414] min-h-[1123px] w-[794px] overflow-auto scale-[0.7] sm:scale-[0.8] md:scale-[1] origin-top-left"
             style={{ fontFamily: 'sans-serif' }}
           >
-            <header className="text-center mb-8">
-              <h1 className="text-4xl font-bold tracking-tight">{formData.name}</h1>
-              <p className="text-lg text-gray-600">{formData.title}</p>
-              <div className="flex justify-center flex-wrap gap-x-4 gap-y-1 text-xs mt-2 text-gray-500">
-                {formData.email && <span className="flex items-center gap-1"><Mail className="w-3 h-3"/>{formData.email}</span>}
-                {formData.phone && <span className="flex items-center gap-1"><Phone className="w-3 h-3"/>{formData.phone}</span>}
-                {formData.address && <span className="flex items-center gap-1"><MapPin className="w-3 h-3"/>{formData.address}</span>}
-                {formData.website && <span className="flex items-center gap-1"><LinkIcon className="w-3 h-3"/>{formData.website}</span>}
+            <header className="flex justify-between items-start mb-8">
+              <div className="flex-1">
+                <h1 className="text-4xl font-bold tracking-tight">{formData.name}</h1>
+                <p className="text-lg text-gray-600">{formData.title}</p>
+                <div className="flex flex-col gap-1 text-xs mt-4 text-gray-500">
+                  {formData.email && <span className="flex items-center gap-2"><Mail className="w-3 h-3"/>{formData.email}</span>}
+                  {formData.phone && <span className="flex items-center gap-2"><Phone className="w-3 h-3"/>{formData.phone}</span>}
+                  {formData.address && <span className="flex items-center gap-2"><MapPin className="w-3 h-3"/>{formData.address}</span>}
+                  {formData.website && <span className="flex items-center gap-2"><LinkIcon className="w-3 h-3"/>{formData.website}</span>}
+                </div>
               </div>
+              {photo ? (
+                  <div className="w-32 h-32 relative">
+                    <Image src={photo} alt="Resume Photo" layout="fill" objectFit="cover" className="rounded-full"/>
+                  </div>
+              ) : (
+                  <div className="w-32 h-32 bg-gray-200 rounded-full flex items-center justify-center">
+                      <User className="w-16 h-16 text-gray-400" />
+                  </div>
+              )}
             </header>
 
             {formData.summary && (
