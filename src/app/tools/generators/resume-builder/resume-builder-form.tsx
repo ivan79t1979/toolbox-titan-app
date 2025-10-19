@@ -44,6 +44,12 @@ type ResumeFormData = {
   skills: {
     skill: string;
   }[];
+  labels: {
+    summary: string;
+    experience: string;
+    education: string;
+    skills: string;
+  };
 };
 
 export function ResumeBuilderForm() {
@@ -59,6 +65,12 @@ export function ResumeBuilderForm() {
       experience: [{ company: 'Company Name', role: 'Your Role', startDate: '2020-01', endDate: 'Present', description: '- Your key achievement or responsibility' }],
       education: [{ school: 'University Name', degree: 'Your Degree', startDate: '2016-09', endDate: '2020-05' }],
       skills: [{ skill: 'A key skill' }, { skill: 'Another skill' }],
+      labels: {
+        summary: 'PROFESSIONAL SUMMARY',
+        experience: 'WORK EXPERIENCE',
+        education: 'EDUCATION',
+        skills: 'SKILLS',
+      }
     },
   });
 
@@ -73,26 +85,28 @@ export function ResumeBuilderForm() {
   const exportPDF = async () => {
     if (!resumeRef.current) return;
     try {
-        const canvas = await html2canvas(resumeRef.current, { scale: 2 });
+        const canvas = await html2canvas(resumeRef.current, { 
+            scale: 2, 
+            windowWidth: resumeRef.current.scrollWidth,
+            windowHeight: resumeRef.current.scrollHeight
+        });
         const imgData = canvas.toDataURL('image/png');
-
-        // A4 page in px at 96 DPI: 794 x 1123
-        const pdfWidth = 794;
-        const pdfHeight = 1123;
+        
+        const pdfWidth = 210; // A4 width in mm
+        const pdfHeight = 297; // A4 height in mm
         
         const canvasWidth = canvas.width;
         const canvasHeight = canvas.height;
         
         const ratio = canvasWidth / canvasHeight;
+        const contentWidth = pdfWidth;
+        const contentHeight = contentWidth / ratio;
         
         const pdf = new jsPDF({
             orientation: 'portrait',
-            unit: 'px',
+            unit: 'mm',
             format: 'a4',
         });
-        
-        const contentWidth = pdf.internal.pageSize.getWidth();
-        const contentHeight = canvasHeight * contentWidth / canvasWidth;
 
         if (contentHeight > pdfHeight) {
             let position = 0;
@@ -100,12 +114,12 @@ export function ResumeBuilderForm() {
             let remainingHeight = contentHeight;
 
             while (remainingHeight > 0) {
-                if (position > 0) {
-                    pdf.addPage();
-                }
                 pdf.addImage(imgData, 'PNG', 0, -position, contentWidth, contentHeight);
-                position += pageHeight;
                 remainingHeight -= pageHeight;
+                if (remainingHeight > 0) {
+                    pdf.addPage();
+                    position += pageHeight;
+                }
             }
         } else {
              pdf.addImage(imgData, 'PNG', 0, 0, contentWidth, contentHeight);
@@ -114,6 +128,7 @@ export function ResumeBuilderForm() {
         pdf.save('resume.pdf');
         toast({ title: 'PDF Exported', description: 'Your resume has been downloaded.' });
     } catch (error) {
+        console.error(error);
         toast({ variant: 'destructive', title: 'Export Failed' });
     }
   };
@@ -194,6 +209,30 @@ export function ResumeBuilderForm() {
             <Button variant="outline" onClick={() => appendSkill({ skill: '' })}><PlusCircle className="mr-2 h-4 w-4"/>Add Skill</Button>
           </CardContent>
         </Card>
+
+        <Card>
+          <CardHeader><CardTitle>Customize Labels</CardTitle></CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <Label>Summary Label</Label>
+                <Input {...register('labels.summary')} />
+              </div>
+              <div className="space-y-1">
+                <Label>Experience Label</Label>
+                <Input {...register('labels.experience')} />
+              </div>
+              <div className="space-y-1">
+                <Label>Education Label</Label>
+                <Input {...register('labels.education')} />
+              </div>
+              <div className="space-y-1">
+                <Label>Skills Label</Label>
+                <Input {...register('labels.skills')} />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       <div className="space-y-4 sticky top-4 self-start">
@@ -203,13 +242,13 @@ export function ResumeBuilderForm() {
         <Card className="shadow-lg">
           <CardContent
             ref={resumeRef}
-            className="p-8 bg-white text-black aspect-[1/1.414] min-h-[842px] overflow-auto"
+            className="p-8 bg-white text-black aspect-[1/1.414] min-h-[1123px] w-[794px] overflow-auto scale-[0.7] sm:scale-[0.8] md:scale-[1] origin-top-left"
             style={{ fontFamily: 'sans-serif' }}
           >
             <header className="text-center mb-8">
               <h1 className="text-4xl font-bold tracking-tight">{formData.name}</h1>
               <p className="text-lg text-gray-600">{formData.title}</p>
-              <div className="flex justify-center gap-4 text-xs mt-2 text-gray-500">
+              <div className="flex justify-center flex-wrap gap-x-4 gap-y-1 text-xs mt-2 text-gray-500">
                 {formData.email && <span className="flex items-center gap-1"><Mail className="w-3 h-3"/>{formData.email}</span>}
                 {formData.phone && <span className="flex items-center gap-1"><Phone className="w-3 h-3"/>{formData.phone}</span>}
                 {formData.address && <span className="flex items-center gap-1"><MapPin className="w-3 h-3"/>{formData.address}</span>}
@@ -217,48 +256,56 @@ export function ResumeBuilderForm() {
               </div>
             </header>
 
-            <section>
-              <h2 className="text-lg font-bold border-b-2 border-gray-300 pb-1 mb-2">PROFESSIONAL SUMMARY</h2>
-              <p className="text-sm">{formData.summary}</p>
-            </section>
+            {formData.summary && (
+              <section>
+                <h2 className="text-lg font-bold border-b-2 border-gray-300 pb-1 mb-2">{formData.labels.summary}</h2>
+                <p className="text-sm">{formData.summary}</p>
+              </section>
+            )}
             
-            <section className="mt-6">
-              <h2 className="text-lg font-bold border-b-2 border-gray-300 pb-1 mb-2">WORK EXPERIENCE</h2>
-              {formData.experience.map((exp, index) => (
-                <div key={index} className="mb-4">
-                  <div className="flex justify-between items-baseline">
-                    <h3 className="text-md font-semibold">{exp.role}</h3>
-                    <p className="text-xs text-gray-600">{exp.startDate} - {exp.endDate}</p>
+            {formData.experience?.length > 0 && (
+              <section className="mt-6">
+                <h2 className="text-lg font-bold border-b-2 border-gray-300 pb-1 mb-2">{formData.labels.experience}</h2>
+                {formData.experience.map((exp, index) => (
+                  <div key={index} className="mb-4">
+                    <div className="flex justify-between items-baseline">
+                      <h3 className="text-md font-semibold">{exp.role}</h3>
+                      <p className="text-xs text-gray-600">{exp.startDate} - {exp.endDate}</p>
+                    </div>
+                    <p className="text-sm font-medium text-gray-700">{exp.company}</p>
+                    <ul className="list-disc pl-5 mt-1 text-sm space-y-1">
+                      {exp.description.split('\n').map((line, i) => line.trim() && <li key={i}>{line.replace(/^-/, '').trim()}</li>)}
+                    </ul>
                   </div>
-                  <p className="text-sm font-medium text-gray-700">{exp.company}</p>
-                  <ul className="list-disc pl-5 mt-1 text-sm">
-                    {exp.description.split('\n').map((line, i) => line.trim() && <li key={i}>{line.replace(/^-/, '').trim()}</li>)}
-                  </ul>
-                </div>
-              ))}
-            </section>
-            
-             <section className="mt-6">
-              <h2 className="text-lg font-bold border-b-2 border-gray-300 pb-1 mb-2">EDUCATION</h2>
-              {formData.education.map((edu, index) => (
-                <div key={index} className="mb-2">
-                  <div className="flex justify-between items-baseline">
-                    <h3 className="text-md font-semibold">{edu.school}</h3>
-                     <p className="text-xs text-gray-600">{edu.startDate} - {edu.endDate}</p>
-                  </div>
-                  <p className="text-sm text-gray-700">{edu.degree}</p>
-                </div>
-              ))}
-            </section>
-
-             <section className="mt-6">
-              <h2 className="text-lg font-bold border-b-2 border-gray-300 pb-1 mb-2">SKILLS</h2>
-              <div className="flex flex-wrap gap-2">
-                {formData.skills.map((skill, index) => skill.skill && (
-                    <span key={index} className="bg-gray-200 text-gray-800 text-xs font-medium px-2.5 py-0.5 rounded-full">{skill.skill}</span>
                 ))}
-              </div>
-            </section>
+              </section>
+            )}
+            
+             {formData.education?.length > 0 && (
+                <section className="mt-6">
+                <h2 className="text-lg font-bold border-b-2 border-gray-300 pb-1 mb-2">{formData.labels.education}</h2>
+                {formData.education.map((edu, index) => (
+                    <div key={index} className="mb-2">
+                    <div className="flex justify-between items-baseline">
+                        <h3 className="text-md font-semibold">{edu.school}</h3>
+                        <p className="text-xs text-gray-600">{edu.startDate} - {edu.endDate}</p>
+                    </div>
+                    <p className="text-sm text-gray-700">{edu.degree}</p>
+                    </div>
+                ))}
+                </section>
+             )}
+
+             {formData.skills?.length > 0 && formData.skills.some(s => s.skill) && (
+                <section className="mt-6">
+                <h2 className="text-lg font-bold border-b-2 border-gray-300 pb-1 mb-2">{formData.labels.skills}</h2>
+                <div className="flex flex-wrap gap-2">
+                    {formData.skills.map((skill, index) => skill.skill && (
+                        <span key={index} className="bg-gray-200 text-gray-800 text-xs font-medium px-2.5 py-0.5 rounded-full">{skill.skill}</span>
+                    ))}
+                </div>
+                </section>
+             )}
 
           </CardContent>
         </Card>
@@ -266,3 +313,5 @@ export function ResumeBuilderForm() {
     </div>
   );
 }
+
+    
