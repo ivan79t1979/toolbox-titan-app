@@ -1,6 +1,7 @@
+
 'use client';
 
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -15,7 +16,7 @@ import { Play, Pause, RotateCcw, Flag } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
 const formatTime = (time: number) => {
-  const milliseconds = `00${time % 1000}`.slice(-3, -1);
+  const milliseconds = `00${Math.floor(time % 1000) / 10}`.slice(-2);
   const seconds = `0${Math.floor(time / 1000) % 60}`.slice(-2);
   const minutes = `0${Math.floor(time / 60000) % 60}`.slice(-2);
   const hours = `0${Math.floor(time / 3600000)}`.slice(-2);
@@ -30,21 +31,26 @@ export function Stopwatch() {
   const startTimeRef = useRef<number>(0);
   const pauseTimeRef = useRef<number>(0);
 
-  const start = () => {
-    setIsActive(true);
-    startTimeRef.current = performance.now() - (pauseTimeRef.current || 0);
+  const animate = useCallback(() => {
+    setTime(performance.now() - startTimeRef.current);
     requestRef.current = requestAnimationFrame(animate);
-  };
+  }, []);
 
-  const pause = () => {
+  const start = useCallback(() => {
+    setIsActive(true);
+    startTimeRef.current = performance.now() - pauseTimeRef.current;
+    requestRef.current = requestAnimationFrame(animate);
+  }, [animate]);
+
+  const pause = useCallback(() => {
     setIsActive(false);
-    pauseTimeRef.current = performance.now() - startTimeRef.current;
     if (requestRef.current) {
       cancelAnimationFrame(requestRef.current);
     }
-  };
+    pauseTimeRef.current = performance.now() - startTimeRef.current;
+  }, []);
 
-  const reset = () => {
+  const reset = useCallback(() => {
     setIsActive(false);
     if (requestRef.current) {
       cancelAnimationFrame(requestRef.current);
@@ -52,16 +58,11 @@ export function Stopwatch() {
     setTime(0);
     setLaps([]);
     pauseTimeRef.current = 0;
-  };
+  }, []);
 
-  const lap = () => {
+  const lap = useCallback(() => {
     setLaps((prevLaps) => [...prevLaps, time]);
-  };
-
-  const animate = (timestamp: number) => {
-    setTime(timestamp - startTimeRef.current);
-    requestRef.current = requestAnimationFrame(animate);
-  };
+  }, [time]);
 
   const handleStartStop = () => {
     if (isActive) {
@@ -80,9 +81,18 @@ export function Stopwatch() {
   };
   
   const getLapTime = (lapTime: number, index: number) => {
-    const previousLap = laps[index - 1] || 0;
+    const previousLap = index > 0 ? laps[index - 1] : 0;
     return lapTime - previousLap;
   };
+
+  useEffect(() => {
+    return () => {
+      if (requestRef.current) {
+        cancelAnimationFrame(requestRef.current);
+      }
+    };
+  }, []);
+
 
   return (
     <div className="mx-auto max-w-2xl space-y-8">
@@ -130,17 +140,20 @@ export function Stopwatch() {
               </TableHeader>
               <TableBody>
                 {laps.length > 0 ? (
-                  [...laps].reverse().map((lapTime, index) => (
-                    <TableRow key={laps.length - index}>
-                      <TableCell className="font-medium">
-                        {laps.length - index}
-                      </TableCell>
-                      <TableCell>{formatTime(getLapTime(lapTime, laps.length - 1 - index))}</TableCell>
-                      <TableCell className="text-right font-mono">
-                        {formatTime(lapTime)}
-                      </TableCell>
-                    </TableRow>
-                  ))
+                  [...laps].reverse().map((lapTime, index) => {
+                    const originalIndex = laps.length - 1 - index;
+                    return (
+                        <TableRow key={laps.length - index}>
+                        <TableCell className="font-medium">
+                            {laps.length - index}
+                        </TableCell>
+                        <TableCell>{formatTime(getLapTime(lapTime, originalIndex))}</TableCell>
+                        <TableCell className="text-right font-mono">
+                            {formatTime(lapTime)}
+                        </TableCell>
+                        </TableRow>
+                    )
+                  })
                 ) : (
                   <TableRow>
                     <TableCell
@@ -159,3 +172,5 @@ export function Stopwatch() {
     </div>
   );
 }
+
+    

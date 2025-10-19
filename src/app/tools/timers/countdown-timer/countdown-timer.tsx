@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
@@ -26,19 +27,23 @@ import {
 
 type AlarmSoundType = 'beep' | 'bell' | 'digital';
 let audioContext: AudioContext | null = null;
-let alarmOscillator: OscillatorNode | null = null;
 let stopLoop: (() => void) | null = null;
 
 const playTone = (soundType: AlarmSoundType, isLoop: boolean) => {
   if (typeof window === 'undefined') return;
 
-  if (!audioContext) {
+  if (!audioContext || audioContext.state === 'suspended') {
     try {
       audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
     } catch (e) {
       console.error("Web Audio API is not supported in this browser");
       return;
     }
+  }
+   
+  // Resume context if it was suspended
+  if(audioContext.state === 'suspended') {
+    audioContext.resume();
   }
 
   stopTone();
@@ -109,62 +114,86 @@ export function CountdownTimer() {
   const [initialDuration, setInitialDuration] = useState({
     years: 0, months: 0, weeks: 0, days: 0, hours: 0, minutes: 5, seconds: 0
   });
-  const [totalSeconds, setTotalSeconds] = useState(0);
+  const [targetTime, setTargetTime] = useState<number | null>(null);
   const [timeLeft, setTimeLeft] = useState(0);
   const [isActive, setIsActive] = useState(false);
   const [isTimeUp, setIsTimeUp] = useState(false);
   const [alarmSound, setAlarmSound] = useState<AlarmSoundType>('bell');
+  const [originalTitle, setOriginalTitle] = useState('');
 
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+        setOriginalTitle(document.title);
+    }
+  }, []);
 
-  const calculateTotalSeconds = (duration: typeof initialDuration) => {
-    return (
-      (duration.years || 0) * 31536000 +
-      (duration.months || 0) * 2628000 +
-      (duration.weeks || 0) * 604800 +
-      (duration.days || 0) * 86400 +
-      (duration.hours || 0) * 3600 +
-      (duration.minutes || 0) * 60 +
-      (duration.seconds || 0)
-    );
-  };
+  const totalSeconds = useMemo(() => {
+      return (
+          (initialDuration.years || 0) * 31536000 +
+          (initialDuration.months || 0) * 2628000 +
+          (initialDuration.weeks || 0) * 604800 +
+          (initialDuration.days || 0) * 86400 +
+          (initialDuration.hours || 0) * 3600 +
+          (initialDuration.minutes || 0) * 60 +
+          (initialDuration.seconds || 0)
+      );
+  }, [initialDuration]);
   
+  useEffect(() => {
+      if (!isActive) {
+          setTimeLeft(totalSeconds);
+      }
+  }, [totalSeconds, isActive]);
+
   const playAlarm = useCallback(() => {
     playTone(alarmSound, true);
   }, [alarmSound]);
 
 
   useEffect(() => {
-    const seconds = calculateTotalSeconds(initialDuration);
-    setTotalSeconds(seconds);
-    setTimeLeft(seconds);
-  }, [initialDuration]);
-
-  useEffect(() => {
     let interval: NodeJS.Timeout | null = null;
-    if (isActive && timeLeft > 0) {
+    if (isActive && targetTime) {
       interval = setInterval(() => {
-        setTimeLeft((prev) => prev - 1);
-      }, 1000);
-    } else if (timeLeft === 0 && isActive) {
-      setIsActive(false);
-      setIsTimeUp(true);
-      playAlarm();
-    }
+        const remaining = Math.max(0, targetTime - Date.now());
+        setTimeLeft(Math.ceil(remaining / 1000));
+
+        if (remaining <= 0) {
+          setIsActive(false);
+          setTargetTime(null);
+          setIsTimeUp(true);
+          playAlarm();
+          document.title = "Time's Up!";
+        }
+      }, 250);
+    } 
+    
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [isActive, timeLeft, playAlarm]);
+  }, [isActive, targetTime, playAlarm]);
 
   const handleStartPause = () => {
-    if (totalSeconds > 0) {
-      setIsActive(!isActive);
+    if (totalSeconds <= 0) return;
+
+    if(isActive) { // pausing
+        setIsActive(false);
+        if(targetTime) {
+            const remaining = targetTime - Date.now();
+            setTimeLeft(Math.ceil(remaining / 1000));
+        }
+        setTargetTime(null);
+    } else { // starting or resuming
+        setIsActive(true);
+        const newTargetTime = Date.now() + timeLeft * 1000;
+        setTargetTime(newTargetTime);
     }
   };
 
   const handleReset = () => {
     setIsActive(false);
-    const seconds = calculateTotalSeconds(initialDuration);
-    setTimeLeft(seconds);
+    setTargetTime(null);
+    setTimeLeft(totalSeconds);
+    document.title = originalTitle;
   };
 
   const handleInputChange = (unit: keyof typeof initialDuration, value: string) => {
@@ -179,6 +208,7 @@ export function CountdownTimer() {
   const handleTimeUpClose = () => {
     stopTone();
     setIsTimeUp(false);
+    document.title = originalTitle;
   }
 
   const previewSound = () => {
@@ -297,3 +327,5 @@ function TimeUnit({ value, label }: { value: number, label: string }) {
         </div>
     )
 }
+
+    

@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
@@ -64,10 +65,12 @@ type FinishedTask = {
 
 // Web Audio API sound generation
 let audioContext: AudioContext | null = null;
-let alarmOscillator: OscillatorNode | null = null;
+let stopLoop: (() => void) | null = null;
 
-const playTone = (soundType: AlarmSoundType, duration: number, isLoop: boolean) => {
-  if (!audioContext) {
+const playTone = (soundType: AlarmSoundType, isLoop: boolean) => {
+  if (typeof window === 'undefined') return;
+
+  if (!audioContext || audioContext.state === 'suspended') {
     try {
       audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
     } catch (e) {
@@ -76,10 +79,11 @@ const playTone = (soundType: AlarmSoundType, duration: number, isLoop: boolean) 
     }
   }
 
-  // Stop any existing sound
-  if (alarmOscillator) {
-    alarmOscillator.stop();
+  if (audioContext.state === 'suspended') {
+    audioContext.resume();
   }
+
+  stopTone();
 
   const play = (time: number) => {
     let osc: OscillatorNode | null = null;
@@ -117,24 +121,25 @@ const playTone = (soundType: AlarmSoundType, duration: number, isLoop: boolean) 
   }
   
   if (isLoop) {
-      const loop = () => {
-          play(audioContext!.currentTime);
-          alarmOscillator = audioContext!.createOscillator(); // a dummy one to be stoppable
-          alarmOscillator.onended = loop;
-          alarmOscillator.start(audioContext!.currentTime + 1.5); // Loop every 1.5s
-          alarmOscillator.stop(audioContext!.currentTime + 1.5);
-      }
-      loop();
+    let loopTimeout: NodeJS.Timeout | null = null;
+    const loop = () => {
+        play(audioContext!.currentTime);
+        loopTimeout = setTimeout(loop, 1500);
+    }
+    loop();
+
+    stopLoop = () => {
+        if (loopTimeout) clearTimeout(loopTimeout);
+        stopLoop = null;
+    }
   } else {
       play(audioContext!.currentTime);
   }
 };
 
 const stopTone = () => {
-  if (alarmOscillator) {
-    alarmOscillator.onended = null;
-    alarmOscillator.stop();
-    alarmOscillator = null;
+  if (stopLoop) {
+    stopLoop();
   }
 };
 
@@ -149,6 +154,7 @@ export function PomodoroTimer() {
 
   // Timer State
   const [mode, setMode] = useState<TimerMode>('work');
+  const [targetTime, setTargetTime] = useState<number | null>(null);
   const [timeLeft, setTimeLeft] = useState(workTime * 60);
   const [isActive, setIsActive] = useState(false);
   const [task, setTask] = useState('');
@@ -163,6 +169,14 @@ export function PomodoroTimer() {
   // Alarm state
   const [isTimeUp, setIsTimeUp] = useState(false);
   const [finishedMode, setFinishedMode] = useState<TimerMode | null>(null);
+  const [originalTitle, setOriginalTitle] = useState('');
+
+  useEffect(() => {
+    if(typeof window !== 'undefined') {
+        setOriginalTitle(document.title);
+    }
+  }, []);
+
 
   const totalTime =
     (mode === 'work'
@@ -173,7 +187,7 @@ export function PomodoroTimer() {
   const progress = ((totalTime - timeLeft) / totalTime) * 100;
 
   const playAlarm = useCallback(() => {
-    playTone(alarmSound, 1, true);
+    playTone(alarmSound, true);
   }, [alarmSound]);
 
   const stopAlarm = useCallback(() => {
@@ -181,11 +195,11 @@ export function PomodoroTimer() {
   }, []);
   
   const previewSound = () => {
-    playTone(alarmSound, 0.5, false);
+    playTone(alarmSound, false);
   }
 
   const switchMode = useCallback(
-    (nextMode: TimerMode) => {
+    (nextMode: TimerMode, shouldAutoStart: boolean) => {
       setMode(nextMode);
       let newTime;
       if (nextMode === 'work') {
@@ -196,77 +210,100 @@ export function PomodoroTimer() {
         newTime = longBreakTime * 60;
       }
       setTimeLeft(newTime);
-      setIsActive(autoStart);
+      setIsActive(shouldAutoStart);
+      if(shouldAutoStart) {
+        setTargetTime(Date.now() + newTime * 1000);
+      } else {
+        setTargetTime(null);
+      }
     },
-    [workTime, shortBreakTime, longBreakTime, autoStart]
+    [workTime, shortBreakTime, longBreakTime]
   );
-
+  
+  // Timer main loop
   useEffect(() => {
     let interval: NodeJS.Timeout | null = null;
-    if (isActive && timeLeft > 0) {
+
+    if (isActive && targetTime) {
       interval = setInterval(() => {
-        setTimeLeft((prev) => prev - 1);
+        const remaining = Math.max(0, targetTime - Date.now());
+        const remainingSeconds = Math.ceil(remaining / 1000);
+
+        setTimeLeft(remainingSeconds);
+
         if (mode === 'work') {
             setFocusMinutes(prev => prev + 1/60);
         } else {
             setBreakMinutes(prev => prev + 1/60);
         }
-      }, 1000);
-    } else if (timeLeft === 0 && isActive) {
-      setIsActive(false);
-      setFinishedMode(mode);
-      setIsTimeUp(true);
-      playAlarm();
 
-      if (mode === 'work') {
-        setSessions((prev) => prev + 1);
-        if(task.trim()){
-            const newFinishedTask: FinishedTask = {
-                id: `task-${Date.now()}`,
-                name: task,
-                description: taskDescription,
-                duration: formatTime(totalTime),
-            };
-            setFinishedTasks(prev => [newFinishedTask, ...prev]);
+        if (remaining <= 0) {
+          setIsActive(false);
+          setTargetTime(null);
+          setFinishedMode(mode);
+          setIsTimeUp(true);
+          playAlarm();
+          document.title = "Time's Up!";
+
+          if (mode === 'work') {
+            setSessions((prev) => prev + 1);
+            if(task.trim()){
+                const newFinishedTask: FinishedTask = {
+                    id: `task-${Date.now()}`,
+                    name: task,
+                    description: taskDescription,
+                    duration: formatTime(totalTime),
+                };
+                setFinishedTasks(prev => [newFinishedTask, ...prev]);
+            }
+            const nextMode = (sessions + 1) % longBreakInterval === 0 ? 'longBreak' : 'shortBreak';
+            switchMode(nextMode, autoStart);
+          } else {
+            switchMode('work', autoStart);
+          }
         }
-        if ((sessions + 1) % longBreakInterval === 0) {
-          switchMode('longBreak');
-        } else {
-          switchMode('shortBreak');
-        }
-      } else {
-        switchMode('work');
-      }
+      }, 250);
     }
+    
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [isActive, timeLeft, mode, sessions, longBreakInterval, switchMode, playAlarm, task, taskDescription, totalTime]);
+  }, [isActive, targetTime, mode, sessions, longBreakInterval, switchMode, playAlarm, task, taskDescription, totalTime, autoStart]);
 
   useEffect(() => {
-    // Reset timer when settings change
-    setIsActive(false);
-    setMode('work');
-    setTimeLeft(workTime * 60);
-  }, [workTime, shortBreakTime, longBreakTime]);
+    // Reset timer when settings change and it's not active
+    if (!isActive) {
+        setMode('work');
+        setTimeLeft(workTime * 60);
+    }
+  }, [workTime, shortBreakTime, longBreakTime, isActive]);
 
   const handleStartPause = () => {
     if (timeLeft === 0) return;
-    setIsActive(!isActive);
+
+    setIsActive(prev => {
+        const newIsActive = !prev;
+        if(newIsActive) { // Starting or resuming
+            setTargetTime(Date.now() + timeLeft * 1000);
+        } else { // Pausing
+            setTargetTime(null);
+        }
+        return newIsActive;
+    });
   };
 
   const handleReset = () => {
     setIsActive(false);
+    setTargetTime(null);
     setMode('work');
     setTimeLeft(workTime * 60);
+    document.title = originalTitle;
   };
   
   const handleTimeUpConfirm = () => {
       stopAlarm();
       setIsTimeUp(false);
-      if (autoStart) {
-          setIsActive(true);
-      }
+      document.title = originalTitle;
   }
 
   const formatTime = (seconds: number) => {
@@ -297,21 +334,21 @@ export function PomodoroTimer() {
           <div className="flex justify-center gap-2 mb-4">
             <Button
               variant={mode === 'work' ? 'default' : 'ghost'}
-              onClick={() => { setMode('work'); setTimeLeft(workTime * 60); setIsActive(false); }}
+              onClick={() => { switchMode('work', false); }}
               className={cn(mode === 'work' && 'bg-red-500 hover:bg-red-600')}
             >
               Pomodoro
             </Button>
             <Button
               variant={mode === 'shortBreak' ? 'default' : 'ghost'}
-              onClick={() => { setMode('shortBreak'); setTimeLeft(shortBreakTime * 60); setIsActive(false); }}
+              onClick={() => { switchMode('shortBreak', false); }}
                className={cn(mode === 'shortBreak' && 'bg-blue-500 hover:bg-blue-600')}
             >
               Short Break
             </Button>
             <Button
               variant={mode === 'longBreak' ? 'default' : 'ghost'}
-              onClick={() => { setMode('longBreak'); setTimeLeft(longBreakTime * 60); setIsActive(false); }}
+              onClick={() => { switchMode('longBreak', false); }}
                className={cn(mode === 'longBreak' && 'bg-green-500 hover:bg-green-600')}
             >
               Long Break
@@ -525,3 +562,5 @@ export function PomodoroTimer() {
     </div>
   );
 }
+
+    
