@@ -372,11 +372,11 @@ export function ResumeBuilderForm() {
              {formData.skills?.length > 0 && formData.skills.some(s => s.skill) && (
                 <section className="mt-6">
                 <h2 className="text-lg font-bold border-b-2 border-gray-300 pb-1 mb-2">{formData.labels.skills}</h2>
-                <div className="flex flex-wrap gap-2">
+                <ul className="list-disc pl-5 mt-1 text-sm space-y-1">
                     {formData.skills.map((skill, index) => skill.skill && (
-                        <span key={index} className="inline-block bg-gray-200 text-gray-800 text-xs font-medium px-2.5 py-0.5 rounded-full mr-2 mb-2">{skill.skill}</span>
+                        <li key={index}>{skill.skill}</li>
                     ))}
-                </div>
+                </ul>
                 </section>
              )}
 
