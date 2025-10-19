@@ -48,6 +48,17 @@ export default function HashGeneratorPage() {
         description="Generate hashes from text using MD5, SHA-1, SHA-256, and SHA-512."
       />
       <HashGeneratorForm />
+       <section className="mt-12">
+          <h2 className="text-2xl font-bold font-headline">How to Use This Tool</h2>
+          <div className="prose dark:prose-invert mt-4">
+              <ol>
+                  <li>Type or paste your text into the <strong>Text Input</strong> area.</li>
+                  <li>The tool will automatically generate hashes for MD5, SHA-1, SHA-256, and SHA-512 as you type.</li>
+                  <li>Wait for the loading spinner to disappear to see the final hashes.</li>
+                  <li>Click the copy icon next to any hash to copy it to your clipboard.</li>
+              </ol>
+          </div>
+      </section>
     </>
   );
 }

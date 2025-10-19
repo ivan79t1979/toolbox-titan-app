@@ -48,6 +48,18 @@ export default function Base64ConverterPage() {
         description="Encode plain text to Base64 or decode Base64 back to plain text."
       />
       <Base64ConverterForm />
+       <section className="mt-12">
+          <h2 className="text-2xl font-bold font-headline">How to Use This Tool</h2>
+          <div className="prose dark:prose-invert mt-4">
+              <ol>
+                  <li>Type or paste your content into either the <strong>Plain Text</strong> box or the <strong>Base64</strong> box.</li>
+                  <li>The tool will automatically convert your input into the other format in real-time.</li>
+                  <li>If you enter an invalid Base64 string, an error message will appear.</li>
+                  <li>Use the copy icon to copy the contents of either box to your clipboard.</li>
+                  <li>Use the trash can icon to clear the content from both boxes.</li>
+              </ol>
+          </div>
+      </section>
     </>
   );
 }

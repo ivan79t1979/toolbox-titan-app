@@ -49,6 +49,17 @@ export default function CaseConverterPage() {
         description="Easily convert text between different letter cases."
       />
       <CaseConverterForm />
+      <section className="mt-12">
+          <h2 className="text-2xl font-bold font-headline">How to Use This Tool</h2>
+          <div className="prose dark:prose-invert mt-4">
+              <ol>
+                  <li>Type or paste your text into the text area.</li>
+                  <li>Click any of the case buttons (e.g., UPPER CASE, Title Case, camelCase).</li>
+                  <li>The text in the box will be instantly converted to the selected case.</li>
+                  <li>Use the copy icon to copy the result, or the trash icon to clear the text box.</li>
+              </ol>
+          </div>
+      </section>
     </>
   );
 }

@@ -55,6 +55,17 @@ export default function ColorPickerConverterPage() {
       <div className="mt-8 flex justify-center">
         <AdPlaceholder width={300} height={250} />
       </div>
+       <section className="mt-12">
+          <h2 className="text-2xl font-bold font-headline">How to Use This Tool</h2>
+          <div className="prose dark:prose-invert mt-4">
+              <ol>
+                  <li>Use the visual color picker to select a color, or click the square swatch to open your system's color picker.</li>
+                  <li>Alternatively, manually type a value into the <strong>HEX</strong>, <strong>RGB</strong>, or <strong>HSL</strong> input fields.</li>
+                  <li>The color preview and all other values will update automatically as you make changes.</li>
+                  <li>Click the copy icon next to any value (HEX, RGB, HSL) to copy it to your clipboard.</li>
+              </ol>
+          </div>
+      </section>
     </>
   );
 }

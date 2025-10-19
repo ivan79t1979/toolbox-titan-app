@@ -55,6 +55,18 @@ export default function PomodoroTimerPage() {
       <div className="mt-8 flex justify-center">
         <AdPlaceholder width={300} height={250} />
       </div>
+      <section className="mt-12">
+          <h2 className="text-2xl font-bold font-headline">How to Use This Tool</h2>
+          <div className="prose dark:prose-invert mt-4">
+              <ol>
+                  <li>(Optional) In the Settings, customize the duration for <strong>Work</strong>, <strong>Short Break</strong>, and <strong>Long Break</strong> periods.</li>
+                  <li>Enter the task you are working on in the input field.</li>
+                  <li>Click the <strong>Start</strong> button to begin your first work session (Pomodoro).</li>
+                  <li>The timer will count down. Once finished, an alarm will sound, and the timer will automatically switch to a break period.</li>
+                  <li>Your completed tasks and focus statistics are logged below the timer.</li>
+              </ol>
+          </div>
+      </section>
     </>
   );
 }

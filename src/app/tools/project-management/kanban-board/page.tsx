@@ -48,6 +48,19 @@ export default function KanbanBoardPage() {
         description="Organize your tasks with a drag-and-drop Kanban board. Import and export your data."
       />
       <KanbanBoard />
+       <section className="mt-12">
+          <h2 className="text-2xl font-bold font-headline">How to Use This Tool</h2>
+          <div className="prose dark:prose-invert mt-4">
+              <ol>
+                  <li>Add new columns for your workflow stages by typing a title and clicking <strong>Add Column</strong>.</li>
+                  <li>Click <strong>Add Task</strong> at the bottom of any column to create a new task card.</li>
+                  <li>Click on a task card to edit its content, set a due date, or assign a priority.</li>
+                  <li>On desktop, drag and drop tasks between columns to update their status.</li>
+                  <li>On mobile, click the move icon on a task card to send it to a different column.</li>
+                  <li>Use the <strong>Import/Export</strong> buttons to save your board state as a file or load a previous board.</li>
+              </ol>
+          </div>
+      </section>
     </>
   );
 }

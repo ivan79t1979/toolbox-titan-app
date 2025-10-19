@@ -48,6 +48,18 @@ export default function SpellCheckerPage() {
         description="Check spelling and grammar, and get suggestions for improvement."
       />
       <SpellCheckerForm />
+      <section className="mt-12">
+          <h2 className="text-2xl font-bold font-headline">How to Use This Tool</h2>
+          <div className="prose dark:prose-invert mt-4">
+              <ol>
+                  <li>Paste your text into the text area on the left.</li>
+                  <li>Click the <strong>Check Text</strong> button.</li>
+                  <li>Review the list of <strong>Suggestions</strong> that appear on the right.</li>
+                  <li>View the fully <strong>Corrected Text</strong> in the box that appears below the input.</li>
+                  <li>You can either copy the corrected text or click <strong>Accept All Corrections</strong> to apply the changes to your original input.</li>
+              </ol>
+          </div>
+      </section>
     </>
   );
 }

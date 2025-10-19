@@ -48,6 +48,20 @@ export default function DecisionMatrixPage() {
         description="Make better decisions by evaluating your options against weighted criteria. The best choice is highlighted for you."
       />
       <DecisionMatrixTool />
+       <section className="mt-12">
+          <h2 className="text-2xl font-bold font-headline">How to Use This Tool</h2>
+          <div className="prose dark:prose-invert mt-4">
+              <ol>
+                  <li>Click <strong>Add Criterion</strong> to add factors for your decision (e.g., "Cost", "Ease of Use").</li>
+                  <li>Click <strong>Add Option</strong> to add the choices you are considering (e.g., "Software A", "Software B").</li>
+                  <li>For each criterion, assign a <strong>Weight</strong> to signify its importance.</li>
+                  <li>For each option, enter a <strong>Score</strong> for how well it meets each criterion.</li>
+                  <li>The table will automatically calculate the total score for each option.</li>
+                  <li>The option with the highest score is highlighted as the recommended choice.</li>
+                  <li>Use the <strong>Import/Export</strong> buttons to save or load your decision matrix data.</li>
+              </ol>
+          </div>
+      </section>
     </>
   );
 }

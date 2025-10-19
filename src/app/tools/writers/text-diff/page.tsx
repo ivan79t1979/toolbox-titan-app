@@ -48,6 +48,18 @@ export default function TextDiffPage() {
         description="Compare two texts and highlight differences."
       />
       <TextDiffForm />
+      <section className="mt-12">
+          <h2 className="text-2xl font-bold font-headline">How to Use This Tool</h2>
+          <div className="prose dark:prose-invert mt-4">
+              <ol>
+                  <li>Paste the original text into the left-hand text box.</li>
+                  <li>Paste the modified text into the right-hand text box.</li>
+                  <li>The "Unified View" below will automatically update.</li>
+                  <li>Text that was removed will be highlighted in red.</li>
+                  <li>Text that was added will be highlighted in green.</li>
+              </ol>
+          </div>
+      </section>
     </>
   );
 }

@@ -48,6 +48,16 @@ export default function WordCounterPage() {
         description="Count words, characters, sentences, and paragraphs in your text."
       />
       <WordCounterForm />
+      <section className="mt-12">
+          <h2 className="text-2xl font-bold font-headline">How to Use This Tool</h2>
+          <div className="prose dark:prose-invert mt-4">
+              <ol>
+                  <li>Type or paste your text into the large text area.</li>
+                  <li>As you type, the counters on the right will update in real-time.</li>
+                  <li>Review the counts for words, characters, sentences, and paragraphs.</li>
+              </ol>
+          </div>
+      </section>
     </>
   );
 }

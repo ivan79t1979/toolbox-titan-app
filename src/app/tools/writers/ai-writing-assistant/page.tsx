@@ -55,6 +55,18 @@ export default function AiWritingAssistantPage() {
       <div className="mt-8 flex justify-center">
         <AdPlaceholder width={300} height={250} />
       </div>
+      <section className="mt-12">
+          <h2 className="text-2xl font-bold font-headline">How to Use This Tool</h2>
+          <div className="prose dark:prose-invert mt-4">
+              <ol>
+                  <li>Enter a <strong>Topic</strong> for the AI to write about.</li>
+                  <li>Select a <strong>Writing Style</strong> (e.g., Formal, Creative) and a desired <strong>Length</strong>.</li>
+                  <li>(Optional) Add specific <strong>Keywords</strong> to guide the content.</li>
+                  <li>Click the <strong>Generate Text</strong> button.</li>
+                  <li>Review the output in the "Generated Text" box and click the copy icon to save it.</li>
+              </ol>
+          </div>
+      </section>
     </div>
   );
 }

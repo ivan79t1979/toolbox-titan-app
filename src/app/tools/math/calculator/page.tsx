@@ -48,6 +48,18 @@ export default function CalculatorPage() {
         description="From basic to scientific calculations."
       />
       <Calculator />
+      <section className="mt-12">
+          <h2 className="text-2xl font-bold font-headline">How to Use This Tool</h2>
+          <div className="prose dark:prose-invert mt-4">
+              <ol>
+                  <li>Use the number and operator buttons to perform calculations just like a physical calculator.</li>
+                  <li>The display shows the current input, and the smaller text above shows the history of your operation.</li>
+                  <li>Use the <strong>C</strong> button to clear all input, or <strong>CE</strong> to clear the current entry.</li>
+                  <li>Switch to the <strong>Advanced</strong> tab for scientific functions like sine, cosine, logarithm, and more.</li>
+                  <li>Use the memory functions (MC, MR, MS, M+, M-) to store and recall numbers.</li>
+              </ol>
+          </div>
+      </section>
     </>
   );
 }

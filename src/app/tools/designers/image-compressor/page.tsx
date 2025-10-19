@@ -48,6 +48,18 @@ export default function ImageCompressorPage() {
         description="Optimize your images by reducing their file size without significant quality loss."
       />
       <ImageCompressorForm />
+       <section className="mt-12">
+          <h2 className="text-2xl font-bold font-headline">How to Use This Tool</h2>
+          <div className="prose dark:prose-invert mt-4">
+              <ol>
+                  <li>Drag and drop an image or click the upload area to select a file (PNG, JPG, etc.).</li>
+                  <li>Use the <strong>Quality</strong> slider to adjust the compression level. The preview updates automatically.</li>
+                  <li>Compare the original and compressed image sizes to see the reduction percentage.</li>
+                  <li>Click on the compressed image preview to see it in a new tab.</li>
+                  <li>Click the <strong>Download</strong> button to save the compressed image.</li>
+              </ol>
+          </div>
+      </section>
     </>
   );
 }

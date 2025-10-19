@@ -45,6 +45,18 @@ export default function StopwatchPage() {
       />
       <PageHeader title="Stopwatch" description="Measure elapsed time with laps." />
       <Stopwatch />
+      <section className="mt-12">
+          <h2 className="text-2xl font-bold font-headline">How to Use This Tool</h2>
+          <div className="prose dark:prose-invert mt-4">
+              <ol>
+                  <li>Click the <strong>Start</strong> button to begin measuring time.</li>
+                  <li>The main display shows the total elapsed time.</li>
+                  <li>Click the <strong>Pause</strong> button to temporarily stop the timer.</li>
+                  <li>While the timer is running, click the <strong>Lap</strong> button to record a split time.</li>
+                  <li>When the timer is stopped, the "Lap" button becomes a <strong>Reset</strong> button, which will clear the timer and all recorded laps.</li>
+              </ol>
+          </div>
+      </section>
     </>
   );
 }

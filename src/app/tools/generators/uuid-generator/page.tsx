@@ -48,6 +48,18 @@ export default function UuidGeneratorPage() {
         description="Generate unique Version 4 UUIDs."
       />
       <UuidGeneratorForm />
+       <section className="mt-12">
+          <h2 className="text-2xl font-bold font-headline">How to Use This Tool</h2>
+          <div className="prose dark:prose-invert mt-4">
+              <ol>
+                  <li>Enter the <strong>Number of UUIDs</strong> you want to generate (up to 1000).</li>
+                  <li>Check or uncheck <strong>Include Hyphens</strong> to format the UUIDs.</li>
+                  <li>Check or uncheck <strong>Uppercase</strong> to control the letter casing.</li>
+                  <li>Click the <strong>Generate</strong> button to create new UUIDs based on your settings.</li>
+                  <li>The results will appear in the text box below, where you can click <strong>Copy All</strong> to copy them.</li>
+              </ol>
+          </div>
+      </section>
     </>
   );
 }

@@ -48,6 +48,19 @@ export default function SvgShapeGeneratorPage() {
         description="Create and customize basic SVG shapes, and copy the code."
       />
       <SvgShapeGeneratorForm />
+      <section className="mt-12">
+          <h2 className="text-2xl font-bold font-headline">How to Use This Tool</h2>
+          <div className="prose dark:prose-invert mt-4">
+              <ol>
+                  <li>Select a shape type (Rectangle, Circle, Ellipse, or Polygon) from the dropdown menu.</li>
+                  <li>Use the sliders to adjust the <strong>Width</strong>, <strong>Height</strong>, and other shape-specific properties like <strong>Border Radius</strong> or <strong>Sides</strong>.</li>
+                  <li>Choose a <strong>Fill Color</strong> and <strong>Stroke Color</strong> using the color pickers.</li>
+                  <li>Adjust the <strong>Stroke Width</strong> with the slider.</li>
+                  <li>The preview on the right will update in real-time.</li>
+                  <li>Click the copy button to copy the complete SVG code to your clipboard.</li>
+              </ol>
+          </div>
+      </section>
     </>
   );
 }

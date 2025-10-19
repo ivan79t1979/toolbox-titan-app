@@ -48,6 +48,18 @@ export default function TextSummarizerPage() {
         description="Condense long articles, papers, or documents into key points with AI."
       />
       <TextSummarizerForm />
+      <section className="mt-12">
+          <h2 className="text-2xl font-bold font-headline">How to Use This Tool</h2>
+          <div className="prose dark:prose-invert mt-4">
+              <ol>
+                  <li>Paste the text you want to summarize into the <strong>Original Text</strong> box.</li>
+                  <li>Select your desired summary <strong>Length</strong> (Short, Medium, or Long).</li>
+                  <li>Click the <strong>Summarize</strong> button.</li>
+                  <li>The AI-generated summary will appear in the <strong>Summary</strong> box on the right.</li>
+                  <li>Use the copy icon to copy the summary, or click <strong>Clear</strong> to start over.</li>
+              </ol>
+          </div>
+      </section>
     </>
   );
 }

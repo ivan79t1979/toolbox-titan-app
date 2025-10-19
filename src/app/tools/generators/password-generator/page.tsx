@@ -54,6 +54,18 @@ export default function PasswordGeneratorPage() {
         <PasswordGeneratorForm />
       </div>
       <NordPassBanner />
+       <section className="mt-12">
+          <h2 className="text-2xl font-bold font-headline">How to Use This Tool</h2>
+          <div className="prose dark:prose-invert mt-4">
+              <ol>
+                  <li>Use the slider to set your desired <strong>Password Length</strong> (from 8 to 64 characters).</li>
+                  <li>Check or uncheck the boxes to include or exclude <strong>Uppercase</strong> letters, <strong>Numbers</strong>, and <strong>Symbols</strong>.</li>
+                  <li>Click the <strong>Generate New Password</strong> button.</li>
+                  <li>A new password will be added to the list below.</li>
+                  <li>Click the copy icon to copy an individual password, or use the "Copy All" and "Clear All" buttons to manage your list.</li>
+              </ol>
+          </div>
+      </section>
     </>
   );
 }

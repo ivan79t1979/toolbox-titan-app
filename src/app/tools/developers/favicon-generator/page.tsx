@@ -48,6 +48,18 @@ export default function FaviconGeneratorPage() {
         description="Create favicons for your website from an image."
       />
       <FaviconGeneratorForm />
+       <section className="mt-12">
+          <h2 className="text-2xl font-bold font-headline">How to Use This Tool</h2>
+          <div className="prose dark:prose-invert mt-4">
+              <ol>
+                  <li>Click the upload area to select a source image (a square image of 512x512px is recommended).</li>
+                  <li>The tool will automatically generate favicons in various standard sizes (16x16, 32x32, apple-touch-icon, etc.).</li>
+                  <li>Review the generated icon previews.</li>
+                  <li>Click <strong>Download All (.zip)</strong> to get all the icons in a single file.</li>
+                  <li>Copy the provided HTML code and paste it into the <code>&lt;head&gt;</code> section of your website.</li>
+              </ol>
+          </div>
+      </section>
     </>
   );
 }

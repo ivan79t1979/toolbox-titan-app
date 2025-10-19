@@ -48,6 +48,17 @@ export default function PercentageCalculatorPage() {
         description="All your percentage calculation needs."
       />
       <PercentageCalculatorForm />
+      <section className="mt-12">
+          <h2 className="text-2xl font-bold font-headline">How to Use This Tool</h2>
+          <div className="prose dark:prose-invert mt-4">
+              <ol>
+                  <li>Select the type of calculation you need from the tabs at the top (e.g., "X% of Y", "% Change").</li>
+                  <li>Enter your numbers into the input fields provided for that calculation.</li>
+                  <li>The result is calculated automatically and displayed in the "Result" area.</li>
+                  <li>No need to click a button—the tool updates as you type.</li>
+              </ol>
+          </div>
+      </section>
     </>
   );
 }

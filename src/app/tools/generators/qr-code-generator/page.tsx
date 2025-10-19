@@ -50,6 +50,18 @@ export default function QrCodeGeneratorPage() {
       />
       <QrCodeGeneratorForm />
       <MeQrBanner />
+       <section className="mt-12">
+          <h2 className="text-2xl font-bold font-headline">How to Use This Tool</h2>
+          <div className="prose dark:prose-invert mt-4">
+              <ol>
+                  <li>Select the type of QR code you want to create (URL, Text, Email, etc.) from the dropdown menu.</li>
+                  <li>Fill in the required information for your chosen type.</li>
+                  <li>Customize the <strong>Size</strong>, <strong>Foreground Color</strong>, and <strong>Background Color</strong> of your QR code.</li>
+                  <li>The QR code preview on the right will update instantly.</li>
+                  <li>Click the <strong>Download QR Code</strong> button to save the generated code as a PNG image.</li>
+              </ol>
+          </div>
+      </section>
     </>
   );
 }

@@ -61,6 +61,19 @@ export default function ImageResizerPage() {
           <BatchImageResizerForm />
         </TabsContent>
       </Tabs>
+      <section className="mt-12">
+          <h2 className="text-2xl font-bold font-headline">How to Use This Tool</h2>
+          <div className="prose dark:prose-invert mt-4">
+              <ol>
+                  <li>Select the <strong>Single Image</strong> or <strong>Batch Resize</strong> tab.</li>
+                  <li>Click the upload area to choose one or more images from your device.</li>
+                  <li>Enter the desired <strong>Width</strong> and <strong>Height</strong>, or choose from a common preset size.</li>
+                  <li>Check the <strong>Maintain Aspect Ratio</strong> box to prevent distortion (recommended).</li>
+                  <li>Click <strong>Resize Image</strong> (for single) or <strong>Resize All</strong> (for batch).</li>
+                  <li>For single mode, download the result. For batch mode, download individual images or get all of them in a ZIP file.</li>
+              </ol>
+          </div>
+      </section>
     </>
   );
 }

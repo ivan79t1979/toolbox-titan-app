@@ -48,6 +48,18 @@ export default function LoremIpsumPage() {
         description="Generate placeholder text."
       />
       <LoremIpsumForm />
+      <section className="mt-12">
+          <h2 className="text-2xl font-bold font-headline">How to Use This Tool</h2>
+          <div className="prose dark:prose-invert mt-4">
+              <ol>
+                  <li>Set the <strong>Count</strong> and <strong>Type</strong> (Paragraphs, Sentences, or Words) for the amount of text you need.</li>
+                  <li>Choose an <strong>Ipsum Style</strong> (e.g., Standard, Hipster, Pirate) for different flavors of placeholder text.</li>
+                  <li>(Optional) Check the boxes to include HTML elements like headings, links, or lists.</li>
+                  <li>Click <strong>Generate</strong> to create the text. The output box will update automatically.</li>
+                  <li>Click the copy icon to copy the plain text to your clipboard.</li>
+              </ol>
+          </div>
+      </section>
     </>
   );
 }

@@ -48,6 +48,20 @@ export default function InvoiceGeneratorPage() {
         description="Create, customize, and download professional invoices with ease."
       />
       <InvoiceGenerator />
+       <section className="mt-12">
+          <h2 className="text-2xl font-bold font-headline">How to Use This Tool</h2>
+          <div className="prose dark:prose-invert mt-4">
+              <ol>
+                  <li>Fill in <strong>Your Details</strong> and the <strong>Client Details</strong> in the respective text boxes.</li>
+                  <li>(Optional) Upload your company logo.</li>
+                  <li>Set the <strong>Invoice #</strong>, <strong>Date</strong>, and optional <strong>Due Date</strong>.</li>
+                  <li>Add or edit line items, specifying a description, quantity, and rate for each.</li>
+                  <li>Set a <strong>Tax Rate</strong> and add any final <strong>Notes</strong>.</li>
+                  <li>All changes will be reflected live in the invoice preview on the right.</li>
+                  <li>When you're ready, click the <strong>Download Invoice PDF</strong> button to save your invoice.</li>
+              </ol>
+          </div>
+      </section>
     </>
   );
 }

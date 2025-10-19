@@ -44,7 +44,7 @@ import {
   Minimize,
   Database,
   Code,
-  Image as ImageIcon,
+  ImageIcon,
 } from 'lucide-react';
 
 export type Tool = {
@@ -65,7 +65,7 @@ export const toolCategories: ToolCategory[] = [
   {
     name: 'Online writing tools',
     icon: Pencil,
-    description: 'Whether you\'\'\'re drafting an article, checking for errors, or need placeholder text, our free writing tools are here to help. Improve clarity, count words, and analyze readability in seconds.',
+    description: 'Whether you\'re drafting an article, checking for errors, or need placeholder text, our free writing tools are here to help. Improve clarity, count words, and analyze readability in seconds.',
     tools: [
       {
         title: 'AI Writing Assistant',
@@ -185,23 +185,16 @@ export const toolCategories: ToolCategory[] = [
     ],
   },
   {
-    name: 'Tools for Developers',
-    icon: Code,
-    description: 'Quickly generate assets and code snippets for your web projects. Our developer tools are designed to save you time on common tasks like creating favicons or hashing strings.',
+    name: 'Generators',
+    icon: Wand2,
+    description: 'Our generator tools provide instant solutions for common needs. Create secure passwords, generate unique UUIDs, get QR codes for your links, and much more in just a few clicks.',
     tools: [
-      {
+       {
         title: 'Favicon Generator',
         description: 'Generate favicons for your website.',
         href: '/tools/developers/favicon-generator',
         icon: ImageIcon,
       },
-    ],
-  },
-  {
-    name: 'Generators',
-    icon: Wand2,
-    description: 'Our generator tools provide instant solutions for common needs. Create secure passwords, generate unique UUIDs, get QR codes for your links, and much more in just a few clicks.',
-    tools: [
       {
         title: 'Text to Speech',
         description: 'Convert text to spoken audio.',

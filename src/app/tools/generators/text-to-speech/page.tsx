@@ -52,6 +52,18 @@ export default function TextToSpeechPage() {
         <GradioWrapper appSrc="https://timemaster-multilingual-tts.hf.space" scriptSrc="https://gradio.s3-us-west-2.amazonaws.com/5.35.0/gradio.js" />
       </div>
       <ElevenLabsBanner />
+       <section className="mt-12">
+          <h2 className="text-2xl font-bold font-headline">How to Use This Tool</h2>
+          <div className="prose dark:prose-invert mt-4">
+              <ol>
+                  <li>Type or paste the text you want to convert into the <strong>Text</strong> input box.</li>
+                  <li>Choose a <strong>Language</strong> from the dropdown menu.</li>
+                  <li>Select a <strong>Speaker</strong> voice. You can listen to a sample of each speaker.</li>
+                  <li>Click the <strong>Submit</strong> button to generate the audio.</li>
+                  <li>Use the audio player to listen to the generated speech and download it as a WAV file.</li>
+              </ol>
+          </div>
+      </section>
     </>
   );
 }

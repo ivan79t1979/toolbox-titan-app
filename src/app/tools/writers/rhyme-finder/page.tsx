@@ -48,6 +48,18 @@ export default function RhymeFinderPage() {
         description="Find the perfect rhyme for your poems, songs, or creative writing."
       />
       <RhymeFinderForm />
+       <section className="mt-12">
+          <h2 className="text-2xl font-bold font-headline">How to Use This Tool</h2>
+          <div className="prose dark:prose-invert mt-4">
+              <ol>
+                  <li>Enter a single word into the input field.</li>
+                  <li>Click the <strong>Find Rhymes</strong> button.</li>
+                  <li>The AI will generate a list of rhyming words.</li>
+                  <li>Click on any rhyming word in the results to copy it to your clipboard.</li>
+                  <li>Click <strong>Copy All</strong> to copy the entire list.</li>
+              </ol>
+          </div>
+      </section>
     </>
   );
 }

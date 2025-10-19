@@ -48,6 +48,19 @@ export default function BudgetPlannerPage() {
         description="Track income, expenses, and visualize your financial health."
       />
       <BudgetPlanner />
+       <section className="mt-12">
+          <h2 className="text-2xl font-bold font-headline">How to Use This Tool</h2>
+          <div className="prose dark:prose-invert mt-4">
+              <ol>
+                  <li>Start by clicking the <strong>Add Transaction</strong> button to open the form.</li>
+                  <li>Select the transaction type (Income or Expense), and fill in the description, amount, date, and category.</li>
+                  <li>Click <strong>Save Transaction</strong> to add it to your list.</li>
+                  <li>Your total income, expenses, and current balance will update automatically in the cards at the top.</li>
+                  <li>The pie charts on the right provide a visual breakdown of your spending and earning by category.</li>
+                  <li>Use the <strong>Import/Export</strong> buttons to save your data as a JSON, CSV, or other file format.</li>
+              </ol>
+          </div>
+      </section>
     </>
   );
 }
