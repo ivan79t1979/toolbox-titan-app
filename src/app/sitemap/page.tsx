@@ -16,7 +16,6 @@ export const metadata: Metadata = {
 const staticPages = [
     { href: '/', title: 'Home' },
     { href: '/about', title: 'About Us' },
-    { href: '/blog', title: 'Blog' },
     { href: '/tips-guides', title: 'Tips & Guides' },
     { href: '/advertisers', title: 'Advertisers' },
     { href: '/privacy-policy', title: 'Privacy Policy' },

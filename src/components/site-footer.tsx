@@ -33,14 +33,6 @@ export function SiteFooter() {
                 </li>
                 <li>
                   <Link
-                    href="/blog"
-                    className="text-slate-300 hover:text-white hover:underline"
-                  >
-                    Blog
-                  </Link>
-                </li>
-                <li>
-                  <Link
                     href="/tips-guides"
                     className="text-slate-300 hover:text-white hover:underline"
                   >
