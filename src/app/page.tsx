@@ -121,7 +121,7 @@ export default function Home() {
           </div>
           <div>
             <h3 className="font-semibold">Who is this for?</h3>
-            <p className="text-muted-foreground">Content creators, writers, designers, developers, and teams that want quick, browser-based utilities.</p>
+            <p className="text-muted-foreground">Content creators, writers, designers, developers, students, and teams that want quick, browser-based utilities.</p>
           </div>
           <div>
             <h3 className="font-semibold">What categories of tools are available?</h3>

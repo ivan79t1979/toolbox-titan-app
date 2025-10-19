@@ -1,3 +1,4 @@
+
 "use client";
 import Link from 'next/link';
 import {
@@ -19,7 +20,7 @@ import {
   SidebarSeparator,
 } from '@/components/ui/sidebar';
 import { toolCategories } from '@/lib/tools';
-import { Home, NotebookText, ChevronsLeft } from 'lucide-react';
+import { Home, NotebookText, ChevronsLeft, BookOpen } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { AdPlaceholder } from './ad-placeholder';
 import { Button } from './ui/button';
@@ -64,6 +65,14 @@ export function SiteSidebar() {
               <Link href="/" onClick={handleLinkClick}>
                 <Home />
                 <span>Dashboard</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+           <SidebarMenuItem>
+            <SidebarMenuButton asChild tooltip="Tips & Guides" isActive={pathname === '/tips-guides'}>
+              <Link href="/tips-guides" onClick={handleLinkClick}>
+                <BookOpen />
+                <span>Tips & Guides</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
