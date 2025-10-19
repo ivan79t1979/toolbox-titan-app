@@ -245,7 +245,7 @@ export const toolCategories: ToolCategory[] = [
       },
       {
         title: 'Resume Builder',
-        description: 'Create a professional resume for free.',
+        description: 'Create a professional resume for free. Customize sections, change labels, add a photo, and download as a PDF.',
         href: '/tools/generators/resume-builder',
         icon: ClipboardList,
       }

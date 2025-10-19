@@ -8,7 +8,7 @@ import { toolCategories } from '@/lib/tools';
 
 const tool = {
   title: 'Resume Builder',
-  description: 'Create a professional resume for free with our easy-to-use online resume builder. Customize sections and download as a PDF.',
+  description: 'Create a professional resume for free. Customize sections, change labels, add a photo, and download as a PDF.',
   path: '/tools/generators/resume-builder',
 };
 
@@ -62,10 +62,11 @@ export default function ResumeBuilderPage() {
           <h2 className="text-2xl font-bold font-headline">How to Use This Tool</h2>
           <div className="prose dark:prose-invert mt-4">
               <ol>
-                  <li>Fill in your <strong>Personal Details</strong> like your name, email, and phone number.</li>
+                  <li>Fill in your <strong>Personal Details</strong> like your name, email, and phone number. You can also upload a photo.</li>
                   <li>Click <strong>Add Experience</strong> to create entries for your work history. Fill in the company, role, dates, and a description for each.</li>
                   <li>Use the <strong>Add Education</strong> button to list your academic qualifications.</li>
                   <li>Add relevant abilities under the <strong>Skills</strong> section.</li>
+                  <li>Customize the resume's section headers (e.g., change "Work Experience" to "Professional History") in the <strong>Settings & Labels</strong> section.</li>
                   <li>As you fill out the form on the left, a live preview of your resume will be generated on the right.</li>
                   <li>When you are finished, click the <strong>Download PDF</strong> button to save your resume.</li>
               </ol>
