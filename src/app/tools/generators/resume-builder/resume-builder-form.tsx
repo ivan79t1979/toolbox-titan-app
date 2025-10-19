@@ -8,17 +8,17 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-  CardDescription,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Download, PlusCircle, Trash2, Mail, Phone, MapPin, Link as LinkIcon, Briefcase, GraduationCap, Star } from 'lucide-react';
+import { Download, PlusCircle, Trash2, Mail, Phone, MapPin, Link as LinkIcon } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
-import { Separator } from '@/components/ui/separator';
+import { format, parseISO } from 'date-fns';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 type ResumeFormData = {
   name: string;
@@ -50,7 +50,14 @@ type ResumeFormData = {
     education: string;
     skills: string;
   };
+  dateFormat: string;
 };
+
+const dateFormats = [
+    { value: 'MMM yyyy', label: 'Month YYYY (e.g., Oct 2023)' },
+    { value: 'MM/yyyy', label: 'MM/YYYY (e.g., 10/2023)' },
+    { value: 'yyyy', label: 'YYYY (e.g., 2023)' },
+];
 
 export function ResumeBuilderForm() {
   const { register, control, handleSubmit, watch } = useForm<ResumeFormData>({
@@ -70,7 +77,8 @@ export function ResumeBuilderForm() {
         experience: 'WORK EXPERIENCE',
         education: 'EDUCATION',
         skills: 'SKILLS',
-      }
+      },
+      dateFormat: 'MMM yyyy',
     },
   });
 
@@ -99,37 +107,51 @@ export function ResumeBuilderForm() {
         const canvasHeight = canvas.height;
         
         const ratio = canvasWidth / canvasHeight;
-        const contentWidth = pdfWidth;
-        const contentHeight = contentWidth / ratio;
+        let contentWidth = pdfWidth;
+        let contentHeight = contentWidth / ratio;
         
+        if (contentHeight > pdfHeight) {
+            contentHeight = pdfHeight;
+            contentWidth = contentHeight * ratio;
+        }
+
         const pdf = new jsPDF({
             orientation: 'portrait',
             unit: 'mm',
             format: 'a4',
         });
 
-        if (contentHeight > pdfHeight) {
-            let position = 0;
-            const pageHeight = pdfHeight;
-            let remainingHeight = contentHeight;
-
-            while (remainingHeight > 0) {
-                pdf.addImage(imgData, 'PNG', 0, -position, contentWidth, contentHeight);
-                remainingHeight -= pageHeight;
-                if (remainingHeight > 0) {
-                    pdf.addPage();
-                    position += pageHeight;
-                }
+        const pageHeightMM = 297;
+        const canvasHeightMM = (canvas.height * pdfWidth) / canvas.width;
+        let position = 0;
+        let remainingHeight = canvasHeightMM;
+        
+        while (remainingHeight > 0) {
+            pdf.addImage(imgData, 'PNG', 0, -position, pdfWidth, canvasHeightMM);
+            remainingHeight -= pageHeightMM;
+            if(remainingHeight > 0) {
+                pdf.addPage();
+                position += pageHeightMM;
             }
-        } else {
-             pdf.addImage(imgData, 'PNG', 0, 0, contentWidth, contentHeight);
         }
-
+        
         pdf.save('resume.pdf');
         toast({ title: 'PDF Exported', description: 'Your resume has been downloaded.' });
     } catch (error) {
         console.error(error);
         toast({ variant: 'destructive', title: 'Export Failed' });
+    }
+  };
+  
+  const formatResumeDate = (dateString: string) => {
+    if (!dateString || dateString.toLowerCase() === 'present') {
+      return 'Present';
+    }
+    try {
+      // Append a day to make parseISO happy
+      return format(parseISO(`${dateString}-02`), formData.dateFormat);
+    } catch (e) {
+      return dateString; // Return original if parsing fails
     }
   };
 
@@ -211,9 +233,26 @@ export function ResumeBuilderForm() {
         </Card>
 
         <Card>
-          <CardHeader><CardTitle>Customize Labels</CardTitle></CardHeader>
+          <CardHeader><CardTitle>Settings & Labels</CardTitle></CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+                <Label>Date Format</Label>
+                <Controller
+                  control={control}
+                  name="dateFormat"
+                  render={({ field }) => (
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {dateFormats.map(df => (
+                          <SelectItem key={df.value} value={df.value}>{df.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+            </div>
+            <div className="grid grid-cols-2 gap-4 pt-4 border-t">
               <div className="space-y-1">
                 <Label>Summary Label</Label>
                 <Input {...register('labels.summary')} />
@@ -270,11 +309,11 @@ export function ResumeBuilderForm() {
                   <div key={index} className="mb-4">
                     <div className="flex justify-between items-baseline">
                       <h3 className="text-md font-semibold">{exp.role}</h3>
-                      <p className="text-xs text-gray-600">{exp.startDate} - {exp.endDate}</p>
+                      <p className="text-xs text-gray-600">{formatResumeDate(exp.startDate)} - {formatResumeDate(exp.endDate)}</p>
                     </div>
                     <p className="text-sm font-medium text-gray-700">{exp.company}</p>
                     <ul className="list-disc pl-5 mt-1 text-sm space-y-1">
-                      {exp.description.split('\n').map((line, i) => line.trim() && <li key={i}>{line.replace(/^-/, '').trim()}</li>)}
+                      {exp.description.split('\\n').map((line, i) => line.trim() && <li key={i}>{line.replace(/^-/, '').trim()}</li>)}
                     </ul>
                   </div>
                 ))}
@@ -288,7 +327,7 @@ export function ResumeBuilderForm() {
                     <div key={index} className="mb-2">
                     <div className="flex justify-between items-baseline">
                         <h3 className="text-md font-semibold">{edu.school}</h3>
-                        <p className="text-xs text-gray-600">{edu.startDate} - {edu.endDate}</p>
+                        <p className="text-xs text-gray-600">{formatResumeDate(edu.startDate)} - {formatResumeDate(edu.endDate)}</p>
                     </div>
                     <p className="text-sm text-gray-700">{edu.degree}</p>
                     </div>
@@ -313,5 +352,3 @@ export function ResumeBuilderForm() {
     </div>
   );
 }
-
-    
