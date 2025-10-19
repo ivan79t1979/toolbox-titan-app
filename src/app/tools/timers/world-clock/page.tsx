@@ -7,6 +7,9 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
+import Link from 'next/link';
+import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { toolCategories } from '@/lib/tools';
 
 const tool = {
   title: 'World Clock',
@@ -41,6 +44,11 @@ const jsonLd = {
     priceCurrency: 'USD',
   },
 };
+
+const relatedTools = [
+  toolCategories.flatMap(cat => cat.tools).find(t => t.href === '/tools/timers/stopwatch'),
+  toolCategories.flatMap(cat => cat.tools).find(t => t.href === '/tools/timers/countdown-timer'),
+].filter(Boolean) as any[];
 
 export default function WorldClockPage() {
   return (
@@ -99,6 +107,27 @@ export default function WorldClockPage() {
           </AccordionItem>
         </Accordion>
       </div>
+
+      <section className="mt-16">
+        <h2 className="text-2xl font-bold font-headline text-center">Related Tools</h2>
+        <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {relatedTools.map(tool => (
+             <Link href={tool.href} key={tool.href} className="group">
+                <Card className="h-full transition-all duration-200 group-hover:border-primary group-hover:shadow-lg">
+                  <CardHeader>
+                    <CardTitle as="h3" className="font-headline text-lg flex items-center gap-2">
+                      <tool.icon className="h-6 w-6 shrink-0 text-primary" />
+                      {tool.title}
+                    </CardTitle>
+                    <CardDescription className="mt-1 line-clamp-2">
+                      {tool.description}
+                    </CardDescription>
+                  </CardHeader>
+                </Card>
+            </Link>
+          ))}
+        </div>
+      </section>
     </>
   );
 }

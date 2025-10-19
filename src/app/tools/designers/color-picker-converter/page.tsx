@@ -2,6 +2,9 @@ import type { Metadata } from 'next';
 import { PageHeader } from '@/components/page-header';
 import { ColorPickerConverterForm } from './color-picker-converter-form';
 import { AdPlaceholder } from '@/components/ad-placeholder';
+import Link from 'next/link';
+import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { toolCategories } from '@/lib/tools';
 
 const tool = {
   title: 'Color Picker & Converter (HEX, RGB, HSL)',
@@ -37,6 +40,11 @@ const jsonLd = {
   },
 };
 
+const relatedTools = [
+  toolCategories.flatMap(cat => cat.tools).find(t => t.href === '/tools/designers/color-palette-extractor'),
+  toolCategories.flatMap(cat => cat.tools).find(t => t.href === '/tools/designers/gradient-maker'),
+].filter(Boolean) as any[];
+
 export default function ColorPickerConverterPage() {
   return (
     <>
@@ -65,6 +73,27 @@ export default function ColorPickerConverterPage() {
                   <li>Click the copy icon next to any value (HEX, RGB, HSL) to copy it to your clipboard.</li>
               </ol>
           </div>
+      </section>
+
+      <section className="mt-16">
+        <h2 className="text-2xl font-bold font-headline text-center">Related Tools</h2>
+        <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {relatedTools.map(tool => (
+             <Link href={tool.href} key={tool.href} className="group">
+                <Card className="h-full transition-all duration-200 group-hover:border-primary group-hover:shadow-lg">
+                  <CardHeader>
+                    <CardTitle as="h3" className="font-headline text-lg flex items-center gap-2">
+                      <tool.icon className="h-6 w-6 shrink-0 text-primary" />
+                      {tool.title}
+                    </CardTitle>
+                    <CardDescription className="mt-1 line-clamp-2">
+                      {tool.description}
+                    </CardDescription>
+                  </CardHeader>
+                </Card>
+            </Link>
+          ))}
+        </div>
       </section>
     </>
   );

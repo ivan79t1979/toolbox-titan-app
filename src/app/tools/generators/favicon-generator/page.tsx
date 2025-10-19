@@ -1,14 +1,14 @@
 import type { Metadata } from 'next';
 import { PageHeader } from '@/components/page-header';
-import { UuidGeneratorForm } from './uuid-generator-form';
+import { FaviconGeneratorForm } from './favicon-generator-form';
 import Link from 'next/link';
 import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { toolCategories } from '@/lib/tools';
 
 const tool = {
-  title: 'UUID Generator',
-  description: 'Generate one or multiple universally unique identifiers (UUIDs) in Version 4 format, with or without hyphens.',
-  path: '/tools/generators/uuid-generator',
+  title: 'Favicon Generator',
+  description: 'Create a complete set of favicons for your website from a single image. Includes sizes for all modern browsers and devices.',
+  path: '/tools/developers/favicon-generator',
 };
 
 export const metadata: Metadata = {
@@ -40,11 +40,11 @@ const jsonLd = {
 };
 
 const relatedTools = [
-  toolCategories.flatMap(cat => cat.tools).find(t => t.href === '/tools/generators/hash-generator'),
-  toolCategories.flatMap(cat => cat.tools).find(t => t.href === '/tools/generators/qr-code-generator'),
+  toolCategories.flatMap(cat => cat.tools).find(t => t.href === '/tools/designers/image-resizer'),
+  toolCategories.flatMap(cat => cat.tools).find(t => t.href === '/tools/designers/image-compressor'),
 ].filter(Boolean) as any[];
 
-export default function UuidGeneratorPage() {
+export default function FaviconGeneratorPage() {
   return (
     <>
       <script
@@ -52,19 +52,19 @@ export default function UuidGeneratorPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <PageHeader
-        title="UUID Generator"
-        description="Generate unique Version 4 UUIDs."
+        title="Favicon Generator"
+        description="Create favicons for your website from an image."
       />
-      <UuidGeneratorForm />
+      <FaviconGeneratorForm />
        <section className="mt-12">
           <h2 className="text-2xl font-bold font-headline">How to Use This Tool</h2>
           <div className="prose dark:prose-invert mt-4">
               <ol>
-                  <li>Enter the <strong>Number of UUIDs</strong> you want to generate (up to 1000).</li>
-                  <li>Check or uncheck <strong>Include Hyphens</strong> to format the UUIDs.</li>
-                  <li>Check or uncheck <strong>Uppercase</strong> to control the letter casing.</li>
-                  <li>Click the <strong>Generate</strong> button to create new UUIDs based on your settings.</li>
-                  <li>The results will appear in the text box below, where you can click <strong>Copy All</strong> to copy them.</li>
+                  <li>Click the upload area to select a source image (a square image of 512x512px is recommended).</li>
+                  <li>The tool will automatically generate favicons in various standard sizes (16x16, 32x32, apple-touch-icon, etc.).</li>
+                  <li>Review the generated icon previews.</li>
+                  <li>Click <strong>Download All (.zip)</strong> to get all the icons in a single file.</li>
+                  <li>Copy the provided HTML code and paste it into the <code>&lt;head&gt;</code> section of your website.</li>
               </ol>
           </div>
       </section>
