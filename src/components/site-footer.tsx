@@ -33,6 +33,37 @@ export function SiteFooter() {
                 </li>
                 <li>
                   <Link
+                    href="/blog"
+                    className="text-slate-300 hover:text-white hover:underline"
+                  >
+                    Blog
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/tips-guides"
+                    className="text-slate-300 hover:text-white hover:underline"
+                  >
+                    Tips & Guides
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/advertisers"
+                    className="text-slate-300 hover:text-white hover:underline"
+                  >
+                    Advertisers
+                  </Link>
+                </li>
+              </ul>
+            </div>
+            <div>
+              <h3 className="font-headline text-lg font-semibold">
+                Legal
+              </h3>
+              <ul className="mt-4 space-y-2">
+                 <li>
+                  <Link
                     href="/privacy-policy"
                     className="text-slate-300 hover:text-white hover:underline"
                   >
@@ -45,21 +76,6 @@ export function SiteFooter() {
                     className="text-slate-300 hover:text-white hover:underline"
                   >
                     Terms Of Service
-                  </Link>
-                </li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="font-headline text-lg font-semibold text-slate-900">
-                .
-              </h3>
-              <ul className="mt-4 space-y-2">
-                <li>
-                  <Link
-                    href="/blog"
-                    className="text-slate-300 hover:text-white hover:underline"
-                  >
-                    Blog
                   </Link>
                 </li>
                 <li>
