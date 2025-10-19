@@ -1,3 +1,4 @@
+
 import type { Metadata } from 'next';
 import { PageHeader } from '@/components/page-header';
 import { CaseConverterForm } from './case-converter-form';
@@ -42,7 +43,7 @@ const jsonLd = {
 
 const relatedTools = [
   toolCategories.flatMap(cat => cat.tools).find(t => t.href === '/tools/writers/word-counter'),
-  toolCategories.flatMap(cat => cat.tools).find(t => t-href === '/tools/writers/text-diff'),
+  toolCategories.flatMap(cat => cat.tools).find(t => t.href === '/tools/writers/text-diff'),
 ].filter(Boolean) as any[];
 
 
