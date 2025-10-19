@@ -1,3 +1,4 @@
+
 import type { Metadata } from 'next';
 import { PageHeader } from '@/components/page-header';
 import { FaviconGeneratorForm } from './favicon-generator-form';
@@ -8,7 +9,7 @@ import { toolCategories } from '@/lib/tools';
 const tool = {
   title: 'Favicon Generator',
   description: 'Create a complete set of favicons for your website from a single image. Includes sizes for all modern browsers and devices.',
-  path: '/tools/developers/favicon-generator',
+  path: '/tools/designers/favicon-generator',
 };
 
 export const metadata: Metadata = {

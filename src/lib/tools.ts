@@ -185,7 +185,7 @@ export const toolCategories: ToolCategory[] = [
       {
         title: 'Favicon Generator',
         description: 'Generate favicons for your website.',
-        href: '/tools/developers/favicon-generator',
+        href: '/tools/designers/favicon-generator',
         icon: ImageIcon,
       },
     ],
