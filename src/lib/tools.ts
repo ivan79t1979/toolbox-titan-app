@@ -182,6 +182,12 @@ export const toolCategories: ToolCategory[] = [
         href: '/tools/designers/css-shadow-generator',
         icon: PanelBottom,
       },
+      {
+        title: 'Favicon Generator',
+        description: 'Generate favicons for your website.',
+        href: '/tools/developers/favicon-generator',
+        icon: ImageIcon,
+      },
     ],
   },
   {
@@ -189,12 +195,6 @@ export const toolCategories: ToolCategory[] = [
     icon: Wand2,
     description: 'Our generator tools provide instant solutions for common needs. Create secure passwords, generate unique UUIDs, get QR codes for your links, and much more in just a few clicks.',
     tools: [
-       {
-        title: 'Favicon Generator',
-        description: 'Generate favicons for your website.',
-        href: '/tools/developers/favicon-generator',
-        icon: ImageIcon,
-      },
       {
         title: 'Text to Speech',
         description: 'Convert text to spoken audio.',
