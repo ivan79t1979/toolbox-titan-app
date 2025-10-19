@@ -1,0 +1,267 @@
+
+'use client';
+
+import { useState, useRef } from 'react';
+import { useForm, useFieldArray, Controller } from 'react-hook-form';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Download, PlusCircle, Trash2, Mail, Phone, MapPin, Link as LinkIcon, Briefcase, GraduationCap, Star } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
+import { Separator } from '@/components/ui/separator';
+
+type ResumeFormData = {
+  name: string;
+  title: string;
+  email: string;
+  phone: string;
+  address: string;
+  website: string;
+  summary: string;
+  experience: {
+    company: string;
+    role: string;
+    startDate: string;
+    endDate: string;
+    description: string;
+  }[];
+  education: {
+    school: string;
+    degree: string;
+    startDate: string;
+    endDate: string;
+  }[];
+  skills: {
+    skill: string;
+  }[];
+};
+
+export function ResumeBuilderForm() {
+  const { register, control, handleSubmit, watch } = useForm<ResumeFormData>({
+    defaultValues: {
+      name: 'Your Name',
+      title: 'Professional Title',
+      email: 'your.email@example.com',
+      phone: '(123) 456-7890',
+      address: 'City, State',
+      website: 'yourportfolio.com',
+      summary: 'A brief professional summary about yourself, highlighting your key skills and career goals.',
+      experience: [{ company: 'Company Name', role: 'Your Role', startDate: '2020-01', endDate: 'Present', description: '- Your key achievement or responsibility' }],
+      education: [{ school: 'University Name', degree: 'Your Degree', startDate: '2016-09', endDate: '2020-05' }],
+      skills: [{ skill: 'A key skill' }, { skill: 'Another skill' }],
+    },
+  });
+
+  const { fields: expFields, append: appendExp, remove: removeExp } = useFieldArray({ control, name: 'experience' });
+  const { fields: eduFields, append: appendEdu, remove: removeEdu } = useFieldArray({ control, name: 'education' });
+  const { fields: skillFields, append: appendSkill, remove: removeSkill } = useFieldArray({ control, name: 'skills' });
+  
+  const formData = watch();
+  const { toast } = useToast();
+  const resumeRef = useRef<HTMLDivElement>(null);
+
+  const exportPDF = async () => {
+    if (!resumeRef.current) return;
+    try {
+      const canvas = await html2canvas(resumeRef.current, { scale: 2 });
+      const imgData = canvas.toDataURL('image/png');
+      
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'px',
+        format: 'a4',
+      });
+
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+      const canvasWidth = canvas.width;
+      const canvasHeight = canvas.height;
+      const ratio = canvasWidth / canvasHeight;
+      const width = pdfWidth;
+      const height = width / ratio;
+
+      // If content is larger than one page, split it
+      if (height > pdfHeight) {
+          let position = 0;
+          let pageCanvas: HTMLCanvasElement = document.createElement('canvas');
+          let pageCtx = pageCanvas.getContext('2d');
+          pageCanvas.width = canvasWidth;
+          pageCanvas.height = canvasHeight * (pdfHeight/height);
+          let pageHeightOnCanvas = pageCanvas.height;
+
+          while (position < canvasHeight) {
+              if (position > 0) pdf.addPage();
+              pageCtx?.clearRect(0,0, pageCanvas.width, pageCanvas.height);
+              pageCtx?.drawImage(canvas, 0, position, canvasWidth, pageHeightOnCanvas, 0, 0, pageCanvas.width, pageCanvas.height);
+              pdf.addImage(pageCanvas.toDataURL('image/png'), 'PNG', 0, 0, pdfWidth, pdfHeight);
+              position += pageHeightOnCanvas;
+          }
+      } else {
+        pdf.addImage(imgData, 'PNG', 0, 0, width, height);
+      }
+      
+      pdf.save('resume.pdf');
+      toast({ title: 'PDF Exported', description: 'Your resume has been downloaded.' });
+    } catch (error) {
+      toast({ variant: 'destructive', title: 'Export Failed' });
+    }
+  };
+
+
+  return (
+    <div className="grid gap-8 lg:grid-cols-2">
+      <div className="space-y-6 overflow-y-auto max-h-[80vh] p-2 no-scrollbar">
+        <Card>
+          <CardHeader><CardTitle>Personal Details</CardTitle></CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1"><Label>Full Name</Label><Input {...register('name')} /></div>
+              <div className="space-y-1"><Label>Title</Label><Input {...register('title')} /></div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+               <div className="space-y-1"><Label>Email</Label><Input type="email" {...register('email')} /></div>
+               <div className="space-y-1"><Label>Phone</Label><Input type="tel" {...register('phone')} /></div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+               <div className="space-y-1"><Label>Address</Label><Input {...register('address')} /></div>
+               <div className="space-y-1"><Label>Website/Portfolio</Label><Input {...register('website')} /></div>
+            </div>
+             <div className="space-y-1"><Label>Summary</Label><Textarea {...register('summary')} rows={4}/></div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader><CardTitle>Experience</CardTitle></CardHeader>
+          <CardContent className="space-y-4">
+            {expFields.map((field, index) => (
+              <div key={field.id} className="p-4 border rounded-md space-y-2 relative">
+                <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1"><Label>Company</Label><Input {...register(`experience.${index}.company`)} /></div>
+                    <div className="space-y-1"><Label>Role</Label><Input {...register(`experience.${index}.role`)} /></div>
+                </div>
+                 <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1"><Label>Start Date</Label><Input type="month" {...register(`experience.${index}.startDate`)} /></div>
+                    <div className="space-y-1"><Label>End Date</Label><Input type="text" placeholder="Present or YYYY-MM" {...register(`experience.${index}.endDate`)} /></div>
+                </div>
+                <div className="space-y-1"><Label>Description</Label><Textarea {...register(`experience.${index}.description`)} rows={3}/></div>
+                <Button variant="ghost" size="icon" className="absolute top-1 right-1" onClick={() => removeExp(index)}><Trash2 className="h-4 w-4"/></Button>
+              </div>
+            ))}
+            <Button variant="outline" onClick={() => appendExp({ company: '', role: '', startDate: '', endDate: '', description: '' })}><PlusCircle className="mr-2 h-4 w-4"/>Add Experience</Button>
+          </CardContent>
+        </Card>
+
+         <Card>
+          <CardHeader><CardTitle>Education</CardTitle></CardHeader>
+          <CardContent className="space-y-4">
+            {eduFields.map((field, index) => (
+              <div key={field.id} className="p-4 border rounded-md space-y-2 relative">
+                <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1"><Label>School</Label><Input {...register(`education.${index}.school`)} /></div>
+                    <div className="space-y-1"><Label>Degree</Label><Input {...register(`education.${index}.degree`)} /></div>
+                </div>
+                 <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1"><Label>Start Date</Label><Input type="month" {...register(`education.${index}.startDate`)} /></div>
+                    <div className="space-y-1"><Label>End Date</Label><Input type="month" {...register(`education.${index}.endDate`)} /></div>
+                </div>
+                 <Button variant="ghost" size="icon" className="absolute top-1 right-1" onClick={() => removeEdu(index)}><Trash2 className="h-4 w-4"/></Button>
+              </div>
+            ))}
+            <Button variant="outline" onClick={() => appendEdu({ school: '', degree: '', startDate: '', endDate: '' })}><PlusCircle className="mr-2 h-4 w-4"/>Add Education</Button>
+          </CardContent>
+        </Card>
+        
+         <Card>
+          <CardHeader><CardTitle>Skills</CardTitle></CardHeader>
+          <CardContent className="space-y-4">
+            {skillFields.map((field, index) => (
+                <div key={field.id} className="flex items-center gap-2">
+                    <Input {...register(`skills.${index}.skill`)} placeholder="e.g., JavaScript" />
+                    <Button variant="ghost" size="icon" onClick={() => removeSkill(index)}><Trash2 className="h-4 w-4"/></Button>
+                </div>
+            ))}
+            <Button variant="outline" onClick={() => appendSkill({ skill: '' })}><PlusCircle className="mr-2 h-4 w-4"/>Add Skill</Button>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="space-y-4 sticky top-4 self-start">
+        <Button onClick={exportPDF} size="lg" className="w-full">
+          <Download className="mr-2 h-4 w-4" /> Download PDF
+        </Button>
+        <Card className="shadow-lg">
+          <CardContent
+            ref={resumeRef}
+            className="p-8 bg-white text-black aspect-[1/1.414] min-h-[842px] overflow-auto"
+            style={{ fontFamily: 'sans-serif' }}
+          >
+            <header className="text-center mb-8">
+              <h1 className="text-4xl font-bold tracking-tight">{formData.name}</h1>
+              <p className="text-lg text-gray-600">{formData.title}</p>
+              <div className="flex justify-center gap-4 text-xs mt-2 text-gray-500">
+                {formData.email && <span className="flex items-center gap-1"><Mail className="w-3 h-3"/>{formData.email}</span>}
+                {formData.phone && <span className="flex items-center gap-1"><Phone className="w-3 h-3"/>{formData.phone}</span>}
+                {formData.address && <span className="flex items-center gap-1"><MapPin className="w-3 h-3"/>{formData.address}</span>}
+                {formData.website && <span className="flex items-center gap-1"><LinkIcon className="w-3 h-3"/>{formData.website}</span>}
+              </div>
+            </header>
+
+            <section>
+              <h2 className="text-lg font-bold border-b-2 border-gray-300 pb-1 mb-2">PROFESSIONAL SUMMARY</h2>
+              <p className="text-sm">{formData.summary}</p>
+            </section>
+            
+            <section className="mt-6">
+              <h2 className="text-lg font-bold border-b-2 border-gray-300 pb-1 mb-2">WORK EXPERIENCE</h2>
+              {formData.experience.map((exp, index) => (
+                <div key={index} className="mb-4">
+                  <div className="flex justify-between items-baseline">
+                    <h3 className="text-md font-semibold">{exp.role}</h3>
+                    <p className="text-xs text-gray-600">{exp.startDate} - {exp.endDate}</p>
+                  </div>
+                  <p className="text-sm font-medium text-gray-700">{exp.company}</p>
+                  <ul className="list-disc pl-5 mt-1 text-sm">
+                    {exp.description.split('\n').map((line, i) => line.trim() && <li key={i}>{line.replace(/^-/, '').trim()}</li>)}
+                  </ul>
+                </div>
+              ))}
+            </section>
+            
+             <section className="mt-6">
+              <h2 className="text-lg font-bold border-b-2 border-gray-300 pb-1 mb-2">EDUCATION</h2>
+              {formData.education.map((edu, index) => (
+                <div key={index} className="mb-2">
+                  <div className="flex justify-between items-baseline">
+                    <h3 className="text-md font-semibold">{edu.school}</h3>
+                     <p className="text-xs text-gray-600">{edu.startDate} - {edu.endDate}</p>
+                  </div>
+                  <p className="text-sm text-gray-700">{edu.degree}</p>
+                </div>
+              ))}
+            </section>
+
+             <section className="mt-6">
+              <h2 className="text-lg font-bold border-b-2 border-gray-300 pb-1 mb-2">SKILLS</h2>
+              <div className="flex flex-wrap gap-2">
+                {formData.skills.map((skill, index) => skill.skill && (
+                    <span key={index} className="bg-gray-200 text-gray-800 text-xs font-medium px-2.5 py-0.5 rounded-full">{skill.skill}</span>
+                ))}
+              </div>
+            </section>
+
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}

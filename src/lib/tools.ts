@@ -243,6 +243,12 @@ export const toolCategories: ToolCategory[] = [
         href: '/tools/generators/dataset-generator',
         icon: Database,
       },
+      {
+        title: 'Resume Builder',
+        description: 'Create a professional resume for free.',
+        href: '/tools/generators/resume-builder',
+        icon: ClipboardList,
+      }
     ],
   },
   {
