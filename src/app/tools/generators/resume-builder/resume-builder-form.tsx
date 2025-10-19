@@ -73,47 +73,48 @@ export function ResumeBuilderForm() {
   const exportPDF = async () => {
     if (!resumeRef.current) return;
     try {
-      const canvas = await html2canvas(resumeRef.current, { scale: 2 });
-      const imgData = canvas.toDataURL('image/png');
-      
-      const pdf = new jsPDF({
-        orientation: 'portrait',
-        unit: 'px',
-        format: 'a4',
-      });
+        const canvas = await html2canvas(resumeRef.current, { scale: 2 });
+        const imgData = canvas.toDataURL('image/png');
 
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = pdf.internal.pageSize.getHeight();
-      const canvasWidth = canvas.width;
-      const canvasHeight = canvas.height;
-      const ratio = canvasWidth / canvasHeight;
-      const width = pdfWidth;
-      const height = width / ratio;
+        // A4 page in px at 96 DPI: 794 x 1123
+        const pdfWidth = 794;
+        const pdfHeight = 1123;
+        
+        const canvasWidth = canvas.width;
+        const canvasHeight = canvas.height;
+        
+        const ratio = canvasWidth / canvasHeight;
+        
+        const pdf = new jsPDF({
+            orientation: 'portrait',
+            unit: 'px',
+            format: 'a4',
+        });
+        
+        const contentWidth = pdf.internal.pageSize.getWidth();
+        const contentHeight = canvasHeight * contentWidth / canvasWidth;
 
-      // If content is larger than one page, split it
-      if (height > pdfHeight) {
-          let position = 0;
-          let pageCanvas: HTMLCanvasElement = document.createElement('canvas');
-          let pageCtx = pageCanvas.getContext('2d');
-          pageCanvas.width = canvasWidth;
-          pageCanvas.height = canvasHeight * (pdfHeight/height);
-          let pageHeightOnCanvas = pageCanvas.height;
+        if (contentHeight > pdfHeight) {
+            let position = 0;
+            const pageHeight = pdfHeight;
+            let remainingHeight = contentHeight;
 
-          while (position < canvasHeight) {
-              if (position > 0) pdf.addPage();
-              pageCtx?.clearRect(0,0, pageCanvas.width, pageCanvas.height);
-              pageCtx?.drawImage(canvas, 0, position, canvasWidth, pageHeightOnCanvas, 0, 0, pageCanvas.width, pageCanvas.height);
-              pdf.addImage(pageCanvas.toDataURL('image/png'), 'PNG', 0, 0, pdfWidth, pdfHeight);
-              position += pageHeightOnCanvas;
-          }
-      } else {
-        pdf.addImage(imgData, 'PNG', 0, 0, width, height);
-      }
-      
-      pdf.save('resume.pdf');
-      toast({ title: 'PDF Exported', description: 'Your resume has been downloaded.' });
+            while (remainingHeight > 0) {
+                if (position > 0) {
+                    pdf.addPage();
+                }
+                pdf.addImage(imgData, 'PNG', 0, -position, contentWidth, contentHeight);
+                position += pageHeight;
+                remainingHeight -= pageHeight;
+            }
+        } else {
+             pdf.addImage(imgData, 'PNG', 0, 0, contentWidth, contentHeight);
+        }
+
+        pdf.save('resume.pdf');
+        toast({ title: 'PDF Exported', description: 'Your resume has been downloaded.' });
     } catch (error) {
-      toast({ variant: 'destructive', title: 'Export Failed' });
+        toast({ variant: 'destructive', title: 'Export Failed' });
     }
   };
 
