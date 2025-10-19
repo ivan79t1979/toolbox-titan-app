@@ -45,11 +45,32 @@ type ResumeFormData = {
   skills: {
     skill: string;
   }[];
+  projects: {
+      name: string;
+      description: string;
+  }[];
+  languages: {
+      language: string;
+      fluency: string;
+  }[];
+  certifications: {
+      name: string;
+      issuer: string;
+      date: string;
+  }[];
+  customSections: {
+      id: string;
+      title: string;
+      content: string;
+  }[];
   labels: {
     summary: string;
     experience: string;
     education: string;
     skills: string;
+    projects: string;
+    languages: string;
+    certifications: string;
   };
   dateFormat: string;
 };
@@ -63,7 +84,7 @@ const dateFormats = [
 export function ResumeBuilderForm() {
   const [photo, setPhoto] = useState<string | null>(null);
 
-  const { register, control, handleSubmit, watch } = useForm<ResumeFormData>({
+  const { register, control, handleSubmit, watch, getValues, setValue } = useForm<ResumeFormData>({
     defaultValues: {
       name: 'Your Name',
       title: 'Professional Title',
@@ -75,11 +96,18 @@ export function ResumeBuilderForm() {
       experience: [{ company: 'Company Name', role: 'Your Role', startDate: '2020-01', endDate: 'Present', description: '- Your key achievement or responsibility' }],
       education: [{ school: 'University Name', degree: 'Your Degree', startDate: '2016-09', endDate: '2020-05' }],
       skills: [{ skill: 'A key skill' }, { skill: 'Another skill' }],
+      projects: [],
+      languages: [],
+      certifications: [],
+      customSections: [],
       labels: {
         summary: 'PROFESSIONAL SUMMARY',
         experience: 'WORK EXPERIENCE',
         education: 'EDUCATION',
         skills: 'SKILLS',
+        projects: 'PROJECTS',
+        languages: 'LANGUAGES',
+        certifications: 'CERTIFICATIONS'
       },
       dateFormat: 'MMM yyyy',
     },
@@ -88,6 +116,10 @@ export function ResumeBuilderForm() {
   const { fields: expFields, append: appendExp, remove: removeExp } = useFieldArray({ control, name: 'experience' });
   const { fields: eduFields, append: appendEdu, remove: removeEdu } = useFieldArray({ control, name: 'education' });
   const { fields: skillFields, append: appendSkill, remove: removeSkill } = useFieldArray({ control, name: 'skills' });
+  const { fields: projectFields, append: appendProject, remove: removeProject } = useFieldArray({ control, name: 'projects' });
+  const { fields: langFields, append: appendLang, remove: removeLang } = useFieldArray({ control, name: 'languages' });
+  const { fields: certFields, append: appendCert, remove: removeCert } = useFieldArray({ control, name: 'certifications' });
+  const { fields: customFields, append: appendCustom, remove: removeCustom } = useFieldArray({ control, name: 'customSections' });
   
   const formData = watch();
   const { toast } = useToast();
@@ -96,55 +128,43 @@ export function ResumeBuilderForm() {
   const exportPDF = async () => {
     if (!resumeRef.current) return;
     try {
-        const canvas = await html2canvas(resumeRef.current, { 
-            scale: 2, 
-            windowWidth: resumeRef.current.scrollWidth,
-            windowHeight: resumeRef.current.scrollHeight
-        });
-        const imgData = canvas.toDataURL('image/png');
-        
-        const pdfWidth = 210; // A4 width in mm
-        const pdfHeight = 297; // A4 height in mm
-        
-        const canvasWidth = canvas.width;
-        const canvasHeight = canvas.height;
-        
-        const ratio = canvasWidth / canvasHeight;
-        let contentWidth = pdfWidth;
-        let contentHeight = contentWidth / ratio;
-        
-        if (contentHeight > pdfHeight) {
-            contentHeight = pdfHeight;
-            contentWidth = contentHeight * ratio;
-        }
+      const canvas = await html2canvas(resumeRef.current, {
+        scale: 2,
+        windowWidth: resumeRef.current.scrollWidth,
+        windowHeight: resumeRef.current.scrollHeight,
+      });
+      const imgData = canvas.toDataURL('image/png');
 
-        const pdf = new jsPDF({
-            orientation: 'portrait',
-            unit: 'mm',
-            format: 'a4',
-        });
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'pt',
+        format: 'a4',
+      });
 
-        const pageHeightMM = pdf.internal.pageSize.getHeight();
-        const canvasHeightMM = (canvas.height * pdfWidth) / canvas.width;
-        let position = 0;
-        let remainingHeight = canvasHeightMM;
-        
-        let page = 1;
-        while (remainingHeight > 0) {
-            if (page > 1) {
-              pdf.addPage();
-            }
-            pdf.addImage(imgData, 'PNG', 0, -position, pdfWidth, canvasHeightMM);
-            remainingHeight -= pageHeightMM;
-            position += pageHeightMM;
-            page++;
-        }
-        
-        pdf.save('resume.pdf');
-        toast({ title: 'PDF Exported', description: 'Your resume has been downloaded.' });
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+      const canvasWidth = canvas.width;
+      const canvasHeight = canvas.height;
+      const ratio = canvasWidth / canvasHeight;
+      const imgHeight = pdfWidth / ratio;
+      let heightLeft = imgHeight;
+      let position = 0;
+
+      pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
+      heightLeft -= pdfHeight;
+
+      while (heightLeft >= 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
+        heightLeft -= pdfHeight;
+      }
+      
+      pdf.save('resume.pdf');
+      toast({ title: 'PDF Exported', description: 'Your resume has been downloaded.' });
     } catch (error) {
-        console.error(error);
-        toast({ variant: 'destructive', title: 'Export Failed' });
+      console.error(error);
+      toast({ variant: 'destructive', title: 'Export Failed' });
     }
   };
   
@@ -254,6 +274,66 @@ export function ResumeBuilderForm() {
             <Button variant="outline" onClick={() => appendSkill({ skill: '' })}><PlusCircle className="mr-2 h-4 w-4"/>Add Skill</Button>
           </CardContent>
         </Card>
+        
+        <Card>
+          <CardHeader><CardTitle>Projects</CardTitle></CardHeader>
+          <CardContent className="space-y-4">
+            {projectFields.map((field, index) => (
+              <div key={field.id} className="p-4 border rounded-md space-y-2 relative">
+                <div className="space-y-1"><Label>Project Name</Label><Input {...register(`projects.${index}.name`)} /></div>
+                <div className="space-y-1"><Label>Description</Label><Textarea {...register(`projects.${index}.description`)} rows={3}/></div>
+                <Button variant="ghost" size="icon" className="absolute top-1 right-1" onClick={() => removeProject(index)}><Trash2 className="h-4 w-4"/></Button>
+              </div>
+            ))}
+            <Button variant="outline" onClick={() => appendProject({ name: '', description: '' })}><PlusCircle className="mr-2 h-4 w-4"/>Add Project</Button>
+          </CardContent>
+        </Card>
+
+        <Card>
+            <CardHeader><CardTitle>Languages</CardTitle></CardHeader>
+            <CardContent className="space-y-4">
+                {langFields.map((field, index) => (
+                    <div key={field.id} className="grid grid-cols-[1fr,1fr,auto] gap-2 items-end">
+                        <div className="space-y-1"><Label>Language</Label><Input {...register(`languages.${index}.language`)} /></div>
+                        <div className="space-y-1"><Label>Fluency</Label><Input {...register(`languages.${index}.fluency`)} placeholder="e.g., Fluent" /></div>
+                        <Button variant="ghost" size="icon" onClick={() => removeLang(index)}><Trash2 className="h-4 w-4"/></Button>
+                    </div>
+                ))}
+                <Button variant="outline" onClick={() => appendLang({ language: '', fluency: '' })}><PlusCircle className="mr-2 h-4 w-4"/>Add Language</Button>
+            </CardContent>
+        </Card>
+        
+        <Card>
+            <CardHeader><CardTitle>Certifications</CardTitle></CardHeader>
+            <CardContent className="space-y-4">
+                {certFields.map((field, index) => (
+                    <div key={field.id} className="p-4 border rounded-md space-y-2 relative">
+                        <div className="space-y-1"><Label>Certification Name</Label><Input {...register(`certifications.${index}.name`)} /></div>
+                        <div className="grid grid-cols-2 gap-4">
+                           <div className="space-y-1"><Label>Issuer</Label><Input {...register(`certifications.${index}.issuer`)} /></div>
+                           <div className="space-y-1"><Label>Date</Label><Input type="month" {...register(`certifications.${index}.date`)} /></div>
+                        </div>
+                         <Button variant="ghost" size="icon" className="absolute top-1 right-1" onClick={() => removeCert(index)}><Trash2 className="h-4 w-4"/></Button>
+                    </div>
+                ))}
+                 <Button variant="outline" onClick={() => appendCert({ name: '', issuer: '', date: '' })}><PlusCircle className="mr-2 h-4 w-4"/>Add Certification</Button>
+            </CardContent>
+        </Card>
+
+        <Card>
+            <CardHeader><CardTitle>Custom Sections</CardTitle></CardHeader>
+            <CardContent className="space-y-4">
+                {customFields.map((field, index) => (
+                    <div key={field.id} className="p-4 border rounded-md space-y-2 relative">
+                        <div className="space-y-1"><Label>Section Title</Label><Input {...register(`customSections.${index}.title`)} /></div>
+                        <div className="space-y-1"><Label>Content</Label><Textarea {...register(`customSections.${index}.content`)} rows={4}/></div>
+                        <Button variant="ghost" size="icon" className="absolute top-1 right-1" onClick={() => removeCustom(index)}><Trash2 className="h-4 w-4"/></Button>
+                    </div>
+                ))}
+                <Button variant="outline" onClick={() => appendCustom({ id: `custom-${Date.now()}`, title: 'New Section', content: '' })}><PlusCircle className="mr-2 h-4 w-4"/>Add Custom Section</Button>
+            </CardContent>
+        </Card>
+
 
         <Card>
           <CardHeader><CardTitle>Settings & Labels</CardTitle></CardHeader>
@@ -276,22 +356,12 @@ export function ResumeBuilderForm() {
                 />
             </div>
             <div className="grid grid-cols-2 gap-4 pt-4 border-t">
-              <div className="space-y-1">
-                <Label>Summary Label</Label>
-                <Input {...register('labels.summary')} />
-              </div>
-              <div className="space-y-1">
-                <Label>Experience Label</Label>
-                <Input {...register('labels.experience')} />
-              </div>
-              <div className="space-y-1">
-                <Label>Education Label</Label>
-                <Input {...register('labels.education')} />
-              </div>
-              <div className="space-y-1">
-                <Label>Skills Label</Label>
-                <Input {...register('labels.skills')} />
-              </div>
+              {(Object.keys(formData.labels) as Array<keyof typeof formData.labels>).map(key => (
+                  <div className="space-y-1" key={key}>
+                      <Label className="capitalize text-xs text-muted-foreground">{key.replace(/([A-Z])/g, ' $1')}</Label>
+                      <Input {...register(`labels.${key}`)} />
+                  </div>
+              ))}
             </div>
           </CardContent>
         </Card>
@@ -371,14 +441,56 @@ export function ResumeBuilderForm() {
 
              {formData.skills?.length > 0 && formData.skills.some(s => s.skill) && (
                 <section className="mt-6">
-                <h2 className="text-lg font-bold border-b-2 border-gray-300 pb-1 mb-2">{formData.labels.skills}</h2>
-                <ul className="list-disc pl-5 mt-1 text-sm space-y-1">
-                    {formData.skills.map((skill, index) => skill.skill && (
-                        <li key={index}>{skill.skill}</li>
-                    ))}
-                </ul>
+                    <h2 className="text-lg font-bold border-b-2 border-gray-300 pb-1 mb-2">{formData.labels.skills}</h2>
+                    <ul className="list-disc pl-5 mt-1 text-sm space-y-1">
+                        {formData.skills.map((skill, index) => skill.skill && (
+                            <li key={index}>{skill.skill}</li>
+                        ))}
+                    </ul>
                 </section>
              )}
+            
+            {formData.projects?.length > 0 && formData.projects.some(p => p.name) && (
+                <section className="mt-6">
+                    <h2 className="text-lg font-bold border-b-2 border-gray-300 pb-1 mb-2">{formData.labels.projects}</h2>
+                    {formData.projects.map((proj, index) => proj.name && (
+                        <div key={index} className="mb-2">
+                            <h3 className="text-md font-semibold">{proj.name}</h3>
+                            <p className="text-sm text-gray-700 whitespace-pre-wrap">{proj.description}</p>
+                        </div>
+                    ))}
+                </section>
+            )}
+
+            {formData.languages?.length > 0 && formData.languages.some(l => l.language) && (
+                <section className="mt-6">
+                    <h2 className="text-lg font-bold border-b-2 border-gray-300 pb-1 mb-2">{formData.labels.languages}</h2>
+                    {formData.languages.map((lang, index) => lang.language && (
+                        <p key={index} className="text-sm text-gray-700">
+                            <strong>{lang.language}:</strong> {lang.fluency}
+                        </p>
+                    ))}
+                </section>
+            )}
+
+            {formData.certifications?.length > 0 && formData.certifications.some(c => c.name) && (
+                <section className="mt-6">
+                    <h2 className="text-lg font-bold border-b-2 border-gray-300 pb-1 mb-2">{formData.labels.certifications}</h2>
+                    {formData.certifications.map((cert, index) => cert.name && (
+                        <div key={index} className="mb-2">
+                            <h3 className="text-md font-semibold">{cert.name}</h3>
+                            <p className="text-sm text-gray-700">{cert.issuer} - {cert.date ? formatResumeDate(cert.date) : ''}</p>
+                        </div>
+                    ))}
+                </section>
+            )}
+            
+            {formData.customSections?.map((section) => (
+                <section key={section.id} className="mt-6">
+                    <h2 className="text-lg font-bold border-b-2 border-gray-300 pb-1 mb-2">{section.title}</h2>
+                    <p className="text-sm whitespace-pre-wrap">{section.content}</p>
+                </section>
+            ))}
 
           </CardContent>
         </Card>
