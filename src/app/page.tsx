@@ -18,7 +18,7 @@ export default function Home() {
     <div className="container mx-auto">
       <PageHeader
         title="Welcome to Modern Online Tools"
-        description="Your one-stop suite of free, browser-based utilities designed for creators, developers, and professionals. Whether you need to write better content, design stunning graphics, manage projects, or perform quick calculations, our tools are built to streamline your workflow without any downloads or subscriptions."
+        description="Your one-stop suite of free, browser-based utilities designed for creators, developers, students and professionals. Whether you need to write better content, design stunning graphics, manage projects, or perform quick calculations, our tools are built to streamline your workflow without any downloads or subscriptions."
       />
 
       <div className="mb-8 hidden justify-center md:flex">
