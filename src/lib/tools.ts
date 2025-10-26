@@ -65,7 +65,7 @@ export const toolCategories: ToolCategory[] = [
   {
     name: 'Online writing tools',
     icon: Pencil,
-    description: 'Whether you\'re drafting an article, checking for errors, or need placeholder text, our free writing tools are here to help. Improve clarity, count words, and analyze readability in seconds.',
+    description: 'Whether you\'\'\'re drafting an article, checking for errors, or need placeholder text, our free writing tools are here to help. Improve clarity, count words, and analyze readability in seconds.',
     tools: [
       {
         title: 'AI Writing Assistant',
@@ -196,9 +196,15 @@ export const toolCategories: ToolCategory[] = [
     description: 'Our generator tools provide instant solutions for common needs. Create secure passwords, generate unique UUIDs, get QR codes for your links, and much more in just a few clicks.',
     tools: [
       {
-        title: 'Text to Speech',
+        title: 'Text to Speech v1',
         description: 'Convert text to spoken audio.',
-        href: '/tools/generators/text-to-speech',
+        href: '/tools/generators/text-to-speech-v1',
+        icon: AudioLines,
+      },
+      {
+        title: 'Text to Speech v2',
+        description: 'Advanced text to spoken audio.',
+        href: '/tools/generators/text-to-speech-v2',
         icon: AudioLines,
       },
       {
