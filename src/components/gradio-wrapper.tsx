@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useTheme } from '@/components/theme-provider';
@@ -66,6 +67,7 @@ export function GradioWrapper({ appSrc, scriptSrc }: { appSrc: string, scriptSrc
 
   return (
     <gradio-app
+      key={effectiveTheme}
       src={appSrc}
       theme={effectiveTheme === 'dark' ? 'dark' : 'light'}
     ></gradio-app>
