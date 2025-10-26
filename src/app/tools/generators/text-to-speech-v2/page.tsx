@@ -58,7 +58,7 @@ export default function TextToSpeechV2Page() {
         description="Convert text to spoken audio with advanced voice options."
       />
       <div className="mt-8">
-        <GradioWrapper appSrc="https://timemaster-voxcpm.hf.space" scriptSrc="https://gradio.s3-us-west-2.amazonaws.com/5.46.1/gradio.js" />
+        <GradioWrapper appSrc="https://timemaster-multilingual-tts-v2.hf.space" scriptSrc="https://gradio.s3-us-west-2.amazonaws.com/5.49.1/gradio.js" />
       </div>
       <ElevenLabsBanner />
        <section className="mt-12">
