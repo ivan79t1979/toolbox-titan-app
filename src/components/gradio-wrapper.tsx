@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useTheme } from '@/components/theme-provider';
@@ -23,12 +22,18 @@ export function GradioWrapper({ appSrc, scriptSrc }: { appSrc: string, scriptSrc
   const [isScriptLoaded, setIsScriptLoaded] = useState(false);
 
   useEffect(() => {
+    const scriptId = `gradio-script-${scriptSrc}`;
+    
+    if (document.getElementById(scriptId)) {
+      setIsScriptLoaded(true);
+      return;
+    }
+
     const gradioVersion = scriptSrc.split('/')[4];
     if (!gradioVersion) return;
-
-    // Manually add the CSS link tag to prevent Next.js preloading errors
+    
     const cssUrl = `https://gradio.s3-us-west-2.amazonaws.com/${gradioVersion}/gradio.css`;
-    const cssLinkId = 'gradio-css';
+    const cssLinkId = `gradio-css-${gradioVersion}`;
 
     if (!document.getElementById(cssLinkId)) {
       const link = document.createElement('link');
@@ -36,12 +41,6 @@ export function GradioWrapper({ appSrc, scriptSrc }: { appSrc: string, scriptSrc
       link.rel = 'stylesheet';
       link.href = cssUrl;
       document.head.appendChild(link);
-    }
-    
-    const scriptId = `gradio-script-${scriptSrc}`;
-    if (document.getElementById(scriptId)) {
-      setIsScriptLoaded(true);
-      return;
     }
 
     const script = document.createElement('script');
@@ -52,7 +51,7 @@ export function GradioWrapper({ appSrc, scriptSrc }: { appSrc: string, scriptSrc
       setIsScriptLoaded(true);
     };
     script.onerror = () => {
-      console.error('Gradio script failed to load.');
+      console.error(`Gradio script failed to load: ${scriptSrc}`);
     };
 
     document.head.appendChild(script);
