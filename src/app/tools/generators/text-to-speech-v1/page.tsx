@@ -58,7 +58,7 @@ export default function TextToSpeechPage() {
         description="Convert text to spoken audio (multilingual)."
       />
       <div className="mt-8">
-        <GradioWrapper appSrc="https://timemaster-multilingual-tts.hf.space" scriptSrc="https://gradio.s3-us-west-2.amazonaws.com/5.35.0/gradio.js" />
+        <GradioWrapper appSrc="https://mohamedrashad-multilingual-tts.hf.space" scriptSrc="https://gradio.s3-us-west-2.amazonaws.com/5.25.1/gradio.js" />
       </div>
       <ElevenLabsBanner />
        <section className="mt-12">
