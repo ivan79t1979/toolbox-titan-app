@@ -76,7 +76,7 @@ export function GradioWrapper({ appSrc, scriptSrc }: { appSrc: string, scriptSrc
 
   return (
     <gradio-app
-      key={effectiveTheme}
+      key={`${appSrc}-${effectiveTheme}`}
       src={appSrc}
       theme={effectiveTheme === 'dark' ? 'dark' : 'light'}
     ></gradio-app>
