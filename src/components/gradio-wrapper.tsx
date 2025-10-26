@@ -23,14 +23,26 @@ export function GradioWrapper({ appSrc, scriptSrc }: { appSrc: string, scriptSrc
   const [isScriptLoaded, setIsScriptLoaded] = useState(false);
 
   useEffect(() => {
+    const gradioVersion = scriptSrc.split('/')[4];
+    if (!gradioVersion) return;
+
+    // Manually add the CSS link tag to prevent Next.js preloading errors
+    const cssUrl = `https://gradio.s3-us-west-2.amazonaws.com/${gradioVersion}/gradio.css`;
+    const cssLinkId = 'gradio-css';
+
+    if (!document.getElementById(cssLinkId)) {
+      const link = document.createElement('link');
+      link.id = cssLinkId;
+      link.rel = 'stylesheet';
+      link.href = cssUrl;
+      document.head.appendChild(link);
+    }
+    
     const scriptId = `gradio-script-${scriptSrc}`;
     if (document.getElementById(scriptId)) {
       setIsScriptLoaded(true);
       return;
     }
-
-    // Clean up any old script versions
-    document.querySelectorAll('script[id^="gradio-script-"]').forEach(el => el.remove());
 
     const script = document.createElement('script');
     script.id = scriptId;
@@ -45,13 +57,6 @@ export function GradioWrapper({ appSrc, scriptSrc }: { appSrc: string, scriptSrc
 
     document.head.appendChild(script);
 
-    return () => {
-      const existingScript = document.getElementById(scriptId);
-      if (existingScript) {
-        // In some strict modes, the script might be removed and re-added.
-        // To be safe, we check before removing.
-      }
-    };
   }, [scriptSrc]);
 
   const effectiveTheme =
@@ -62,7 +67,11 @@ export function GradioWrapper({ appSrc, scriptSrc }: { appSrc: string, scriptSrc
       : theme;
 
   if (!isScriptLoaded) {
-    return <div>Loading Tool...</div>;
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        Loading Tool...
+      </div>
+    );
   }
 
   return (
