@@ -9,7 +9,7 @@ import { toolCategories } from '@/lib/tools';
 
 const tool = {
   title: 'Text to Speech Converter v2',
-  description: 'Convert text into high-quality speech with various voice options using our advanced AI voice generator.',
+  description: 'Convert text into speech with various voice options using Google TTS.',
   path: '/tools/generators/text-to-speech-v2',
 };
 
@@ -55,7 +55,7 @@ export default function TextToSpeechV2Page() {
       />
       <PageHeader
         title="Text to Speech v2"
-        description="Convert text to spoken audio with advanced voice options."
+        description="Convert text to spoken audio."
       />
       <div className="mt-8">
         <GradioWrapper appSrc="https://timemaster-multilingual-tts-v2.hf.space" scriptSrc="https://gradio.s3-us-west-2.amazonaws.com/5.49.1/gradio.js" />
