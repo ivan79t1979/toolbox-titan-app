@@ -65,10 +65,10 @@ export default function TextToSpeechV2Page() {
           <h2 className="text-2xl font-bold font-headline">How to Use This Tool</h2>
           <div className="prose dark:prose-invert mt-4">
               <ol>
-                  <li>Enter the text you wish to convert in the input field.</li>
-                  <li>Select a voice from the available options. You can preview each one.</li>
-                  <li>Click the "Synthesize" or "Generate" button to process the audio.</li>
-                  <li>Use the audio player to listen to the result and download it.</li>
+                  <li><strong>(Optional) Provide a Voice Prompt</strong> - Upload or record an audio clip to provide the desired voice characteristics for synthesis.</li>
+                  <li><strong>(Optional) Enter prompt text</strong> - If you provided a voice prompt, enter the corresponding transcript here (auto-recognition available).</li>
+                  <li><strong>Enter target text</strong> - Type the text you want the model to speak.</li>
+                  <li><strong>Generate Speech</strong> - Click the "Generate" button to create your audio.</li>
               </ol>
           </div>
       </section>
