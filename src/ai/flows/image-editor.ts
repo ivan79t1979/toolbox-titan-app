@@ -26,25 +26,34 @@ const imageEditorFlow = ai.defineFlow(
     outputSchema: ImageEditorOutputSchema,
   },
   async (input) => {
-    const { operation } = await ai.generate({
-        model: 'googleai/gemini-2.5-flash-image-preview',
-        prompt: [
-            {media: {url: input.photoDataUri}},
-            {text: input.prompt},
-        ],
-        config: {
-            responseModalities: ['TEXT', 'IMAGE'],
-        },
-    });
+    try {
+        const { operation } = await ai.generate({
+            model: 'googleai/gemini-2.5-flash-image-preview',
+            prompt: [
+                {media: {url: input.photoDataUri}},
+                {text: input.prompt},
+            ],
+            config: {
+                responseModalities: ['TEXT', 'IMAGE'],
+            },
+        });
 
-    const output = await ai.waitForOperation(operation);
+        const output = await ai.waitForOperation(operation);
 
-    if (output?.message?.content) {
-        const imagePart = output.message.content.find(part => part.media);
-        if (imagePart && imagePart.media?.url) {
-            return { editedPhotoDataUri: imagePart.media.url };
+        if (output?.message?.content) {
+            const imagePart = output.message.content.find(part => part.media);
+            if (imagePart && imagePart.media?.url) {
+                return { editedPhotoDataUri: imagePart.media.url };
+            }
         }
+    } catch (error: any) {
+        if (error.message && error.message.includes('429 Too Many Requests')) {
+            throw new Error('AI rate limit exceeded. Please try again later.');
+        }
+        // Re-throw other errors
+        throw error;
     }
+
 
     throw new Error('AI did not return an edited image.');
   }
