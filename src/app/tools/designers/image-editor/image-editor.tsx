@@ -27,6 +27,7 @@ import {
   Replace,
   RotateCcw,
   FlipHorizontal,
+  CircleDot,
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { default as NextImage } from 'next/image';
@@ -44,6 +45,7 @@ type Adjustments = {
   grayscale: number;
   sepia: number;
   invert: number;
+  vignette: number;
 };
 
 const defaultAdjustments: Adjustments = {
@@ -53,6 +55,7 @@ const defaultAdjustments: Adjustments = {
   grayscale: 0,
   sepia: 0,
   invert: 0,
+  vignette: 0,
 };
 
 export function ImageEditor() {
@@ -111,6 +114,10 @@ export function ImageEditor() {
   const imageStyle: CSSProperties = {
     filter: `brightness(${adjustments.brightness}%) contrast(${adjustments.contrast}%) saturate(${adjustments.saturate}%) grayscale(${adjustments.grayscale}%) sepia(${adjustments.sepia}%) invert(${adjustments.invert}%)`,
     transform: `rotate(${rotation}deg)`,
+  };
+  
+  const vignetteStyle: CSSProperties = {
+    boxShadow: `inset 0 0 ${adjustments.vignette * 2}px ${adjustments.vignette}px rgba(0,0,0,0.5)`,
   };
 
   const handleDownload = () => {
@@ -268,6 +275,14 @@ export function ImageEditor() {
                 min={0}
                 max={100}
               />
+              <AdjustmentSlider
+                icon={CircleDot}
+                label="Vignette"
+                value={adjustments.vignette}
+                onValueChange={(v) => setAdjustments((p) => ({ ...p, vignette: v }))}
+                min={0}
+                max={100}
+              />
             </TabsContent>
             <TabsContent value="crop" className="space-y-4 pt-2">
                 <AdjustmentSlider
@@ -335,7 +350,7 @@ export function ImageEditor() {
                 </div>
             </CardHeader>
             <CardContent className="p-4">
-              <div className="relative w-full flex items-center justify-center bg-muted/20 rounded-md overflow-auto max-h-[70vh]">
+              <div className="relative w-full flex items-center justify-center bg-muted/20 rounded-md overflow-auto max-h-[70vh] resize-both">
                 {isCropMode ? (
                     <ReactCrop
                       crop={crop}
@@ -352,13 +367,19 @@ export function ImageEditor() {
                       />
                     </ReactCrop>
                 ) : (
-                     <img
-                        ref={imageRef}
-                        src={imageSrc}
-                        alt="Editable image"
-                        style={imageStyle}
-                        className="max-w-full max-h-[70vh] object-contain"
-                      />
+                    <div className="relative">
+                         <img
+                            ref={imageRef}
+                            src={imageSrc}
+                            alt="Editable image"
+                            style={imageStyle}
+                            className="max-w-full max-h-[calc(70vh-2rem)] object-contain"
+                          />
+                          <div
+                            className="absolute inset-0 pointer-events-none"
+                            style={vignetteStyle}
+                          />
+                    </div>
                 )}
               </div>
             </CardContent>

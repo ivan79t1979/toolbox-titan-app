@@ -63,12 +63,12 @@ export default function ImageEditorPage() {
           <div className="prose dark:prose-invert mt-4">
               <ol>
                   <li><strong>Upload Your Image:</strong> Drag and drop an image file onto the upload area, or click it to select a file from your device.</li>
-                  <li><strong>Make Adjustments:</strong> Use the sliders in the "Adjust" tab to change the brightness, contrast, saturation, and other filters. The preview will update live.</li>
+                  <li><strong>Make Adjustments:</strong> Use the sliders in the "Adjust" tab to change brightness, contrast, saturation, vignette, and other filters.</li>
                   <li><strong>Crop &amp; Rotate Your Image:</strong>
                     <ul className="list-[circle]">
                         <li>Switch to the "Crop &amp; Rotate" tab. Use the slider to rotate your image to the desired angle.</li>
                         <li>Click <strong>Enter Crop Mode</strong>.</li>
-                        <li>Drag the handles on the preview to select your desired area.</li>
+                        <li>Drag the handles on the preview to select your desired area. You can resize the preview window using the handle in the bottom-right corner.</li>
                         <li>Click <strong>Apply Crop</strong> to confirm the changes.</li>
                     </ul>
                   </li>
