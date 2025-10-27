@@ -45,6 +45,7 @@ import {
   Database,
   Code,
   ImageIcon,
+  Image as ImageIcon_Lucide,
 } from 'lucide-react';
 
 export type Tool = {
@@ -128,6 +129,12 @@ export const toolCategories: ToolCategory[] = [
     icon: Palette,
     description: 'A perfect suite of free online design tools for professionals and hobbyists. From removing backgrounds to generating color palettes and resizing images, everything you need is right here.',
     tools: [
+      {
+        title: 'Advanced Image Editor',
+        description: 'A full-featured editor with filters, adjustments, cropping, and AI-powered editing.',
+        href: '/tools/designers/image-editor',
+        icon: ImageIcon_Lucide,
+      },
       {
         title: 'Background Remover',
         description: 'Removes the background from an image.',
