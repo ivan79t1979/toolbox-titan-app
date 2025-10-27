@@ -63,15 +63,16 @@ export default function ImageEditorPage() {
           <div className="prose dark:prose-invert mt-4">
               <ol>
                   <li><strong>Upload Your Image:</strong> Drag and drop an image file onto the upload area, or click it to select a file from your device.</li>
-                  <li><strong>Make Adjustments:</strong> Use the sliders in the "Adjust" tab to change the brightness, contrast, saturation, and rotation angle. The preview will update live.</li>
-                  <li><strong>Crop Your Image:</strong>
+                  <li><strong>Make Adjustments:</strong> Use the sliders in the "Adjust" tab to change the brightness, contrast, saturation, and other filters. The preview will update live.</li>
+                  <li><strong>Crop &amp; Rotate Your Image:</strong>
                     <ul className="list-[circle]">
-                        <li>Switch to the "Crop" tab and click <strong>Enter Crop Mode</strong>.</li>
+                        <li>Switch to the "Crop &amp; Rotate" tab. Use the slider to rotate your image to the desired angle.</li>
+                        <li>Click <strong>Enter Crop Mode</strong>.</li>
                         <li>Drag the handles on the preview to select your desired area.</li>
                         <li>Click <strong>Apply Crop</strong> to confirm the changes.</li>
                     </ul>
                   </li>
-                  <li><strong>Undo & Reset:</strong> Made a mistake? Click <strong>Undo</strong> to revert the last crop or click <strong>Reset All</strong> to start over with the original image.</li>
+                  <li><strong>Undo &amp; Reset:</strong> Made a mistake? Click <strong>Undo</strong> to revert the last crop or click <strong>Reset All</strong> to start over with the original image.</li>
                   <li><strong>Download:</strong> When you're happy with your edits, click the <strong>Download Image</strong> button to save your work.</li>
               </ol>
           </div>
@@ -99,3 +100,5 @@ export default function ImageEditorPage() {
     </>
   );
 }
+
+    

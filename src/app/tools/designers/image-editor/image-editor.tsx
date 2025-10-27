@@ -7,7 +7,6 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-  CardDescription,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -118,7 +117,7 @@ export function ImageEditor() {
 
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
-    const img = new Image();
+    const img = new (window as any).Image();
     img.crossOrigin = 'anonymous';
     img.src = imageSrc;
 
@@ -217,7 +216,7 @@ export function ImageEditor() {
           <Tabs defaultValue="adjust">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="adjust">Adjust</TabsTrigger>
-              <TabsTrigger value="crop">Crop & Rotate</TabsTrigger>
+              <TabsTrigger value="crop">Crop &amp; Rotate</TabsTrigger>
             </TabsList>
             <TabsContent value="adjust" className="space-y-4 pt-2">
               <AdjustmentSlider
@@ -245,15 +244,6 @@ export function ImageEditor() {
                 max={200}
               />
               <AdjustmentSlider
-                icon={RotateCcw}
-                label="Rotation"
-                value={rotation}
-                onValueChange={setRotation}
-                min={-180}
-                max={180}
-                step={1}
-              />
-              <AdjustmentSlider
                 icon={Droplets}
                 label="Grayscale"
                 value={adjustments.grayscale}
@@ -271,6 +261,15 @@ export function ImageEditor() {
               />
             </TabsContent>
             <TabsContent value="crop" className="space-y-4 pt-2">
+                <AdjustmentSlider
+                  icon={RotateCcw}
+                  label="Rotation"
+                  value={rotation}
+                  onValueChange={setRotation}
+                  min={-180}
+                  max={180}
+                  step={1}
+                />
                 <Button variant="outline" className="w-full" onClick={toggleCropMode}>
                     <Crop className="mr-2"/> {isCropMode ? 'Cancel Crop' : 'Enter Crop Mode'}
                 </Button>
@@ -304,7 +303,7 @@ export function ImageEditor() {
                     <div className="flex flex-col items-center justify-center pt-5 pb-6">
                     <Upload className="w-10 h-10 mb-4 text-muted-foreground" />
                     <p className="mb-2 text-lg">
-                        <span className="font-semibold">Click to upload</span> or drag & drop
+                        <span className="font-semibold">Click to upload</span> or drag &amp; drop
                     </p>
                     <p className="text-sm text-muted-foreground">PNG, JPG, WEBP, etc.</p>
                     </div>
