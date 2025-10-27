@@ -88,7 +88,7 @@ export function SiteFooter() {
                 </li>
                  <li>
                   <Link
-                    href="/sitemap"
+                    href="/site-map"
                     className="text-slate-300 hover:text-white hover:underline"
                   >
                     Sitemap

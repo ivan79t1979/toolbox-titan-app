@@ -1,4 +1,5 @@
 
+
 import { PageHeader } from '@/components/page-header';
 import { toolCategories } from '@/lib/tools';
 import Link from 'next/link';
@@ -9,7 +10,7 @@ export const metadata: Metadata = {
   title: 'Sitemap',
   description: 'A complete list of all tools and pages available on Modern Online Tools.',
   alternates: {
-    canonical: '/sitemap',
+    canonical: '/site-map',
   },
 };
 
@@ -57,3 +58,4 @@ export default function SitemapPage() {
     </div>
   );
 }
+
