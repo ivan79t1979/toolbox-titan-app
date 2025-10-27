@@ -22,6 +22,9 @@ import {
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import Image from 'next/image';
+import ReactCrop, { type Crop as CropType, centerCrop, makeAspectCrop } from 'react-image-crop';
+import 'react-image-crop/dist/ReactCrop.css';
+
 
 type Adjustments = {
   brightness: number;
@@ -46,7 +49,8 @@ export function ImageEditor() {
   const [history, setHistory] = useState<string[]>([]);
   const [adjustments, setAdjustments] = useState<Adjustments>(defaultAdjustments);
   const [rotation, setRotation] = useState(0);
-  const [isCropping, setIsCropping] = useState(false);
+  const [crop, setCrop] = useState<CropType>();
+  const [completedCrop, setCompletedCrop] = useState<CropType>();
 
   const imageRef = useRef<HTMLImageElement>(null);
   const { toast } = useToast();
@@ -68,7 +72,8 @@ export function ImageEditor() {
   const resetAll = () => {
     setAdjustments(defaultAdjustments);
     setRotation(0);
-    setIsCropping(false);
+    setCrop(undefined);
+    setCompletedCrop(undefined);
   };
   
   const undo = () => {
@@ -111,6 +116,60 @@ export function ImageEditor() {
     }
   };
 
+  function onImageLoad(e: React.SyntheticEvent<HTMLImageElement>) {
+    const { width, height } = e.currentTarget;
+    const crop = centerCrop(
+      makeAspectCrop(
+        {
+          unit: '%',
+          width: 90,
+        },
+        1,
+        width,
+        height
+      ),
+      width,
+      height
+    );
+    setCrop(crop);
+    setCompletedCrop(crop);
+  }
+
+  const applyCrop = () => {
+    if (!completedCrop || !imageRef.current) {
+        return;
+    }
+    const image = imageRef.current;
+    const canvas = document.createElement('canvas');
+    const scaleX = image.naturalWidth / image.width;
+    const scaleY = image.naturalHeight / image.height;
+    
+    canvas.width = completedCrop.width * scaleX;
+    canvas.height = completedCrop.height * scaleY;
+    
+    const ctx = canvas.getContext('2d');
+    if (!ctx) {
+      return;
+    }
+
+    ctx.drawImage(
+      image,
+      completedCrop.x * scaleX,
+      completedCrop.y * scaleY,
+      completedCrop.width * scaleX,
+      completedCrop.height * scaleY,
+      0,
+      0,
+      canvas.width,
+      canvas.height
+    );
+
+    const newSrc = canvas.toDataURL('image/png');
+    setImageSrc(newSrc);
+    setHistory([...history, newSrc]);
+    setCrop(undefined); // Exit crop mode
+  };
+
   return (
     <div className="grid gap-8 lg:grid-cols-[400px_1fr]">
       <Card>
@@ -128,9 +187,8 @@ export function ImageEditor() {
                     <AdjustmentSlider icon={Droplets} label="Sepia" value={adjustments.sepia} onValueChange={(v) => setAdjustments(p => ({...p, sepia: v}))} min={0} max={100} />
                 </TabsContent>
                 <TabsContent value="crop" className="space-y-4 pt-2">
-                     <p className="text-sm text-muted-foreground">Crop functionality is coming soon!</p>
                      <div className="flex gap-2">
-                        <Button variant="outline" className="w-full" disabled><Crop className="mr-2"/>Enter Crop Mode</Button>
+                        <Button variant="outline" className="w-full" onClick={applyCrop} disabled={!completedCrop}><Crop className="mr-2"/>Apply Crop</Button>
                      </div>
                      <div className="flex justify-center gap-2">
                         <Button variant="outline" size="icon" onClick={() => setRotation(r => r - 90)}><RotateCcw /></Button>
@@ -163,13 +221,20 @@ export function ImageEditor() {
           <Card>
             <CardContent className="p-4">
                 <div className="relative w-full aspect-video bg-muted/20 flex items-center justify-center overflow-hidden rounded-md">
-                    <img
-                        ref={imageRef}
-                        src={imageSrc}
-                        alt="Editable image"
-                        style={imageStyle}
-                        className="max-w-full max-h-full object-contain"
-                    />
+                    <ReactCrop
+                      crop={crop}
+                      onChange={c => setCrop(c)}
+                      onComplete={c => setCompletedCrop(c)}
+                    >
+                      <img
+                          ref={imageRef}
+                          src={imageSrc}
+                          alt="Editable image"
+                          style={imageStyle}
+                          className="max-w-full max-h-full object-contain"
+                          onLoad={onImageLoad}
+                      />
+                    </ReactCrop>
                 </div>
             </CardContent>
             <CardHeader className="pt-0">
