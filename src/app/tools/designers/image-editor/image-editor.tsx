@@ -31,10 +31,10 @@ import {
   Undo2,
   RefreshCw,
   Trash2,
-  Replace,
   RotateCcw,
   FlipHorizontal,
   CircleDot,
+  Wand,
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { default as NextImage } from 'next/image';
@@ -56,6 +56,7 @@ type Adjustments = {
 
 type VignetteSettings = {
     size: number;
+    softness: number;
     color: string;
     shape: 'circle' | 'rectangle';
 }
@@ -71,6 +72,7 @@ const defaultAdjustments: Adjustments = {
 
 const defaultVignette: VignetteSettings = {
     size: 0,
+    softness: 50,
     color: '#000000',
     shape: 'rectangle',
 }
@@ -137,10 +139,10 @@ export function ImageEditor() {
   
   const vignetteStyle: CSSProperties = {
     boxShadow: vignette.shape === 'rectangle' && vignette.size > 0
-        ? `inset 0 0 ${vignette.size * 2.5}px ${vignette.size}px ${vignette.color}`
+        ? `inset 0 0 ${vignette.size * (vignette.softness / 20)}px ${vignette.size}px ${vignette.color}`
         : 'none',
     backgroundImage: vignette.shape === 'circle' && vignette.size > 0
-        ? `radial-gradient(ellipse at center, transparent ${100 - (vignette.size * 1.5)}%, ${vignette.color} 100%)`
+        ? `radial-gradient(ellipse at center, transparent ${100 - vignette.size}%, ${vignette.color} ${100 - vignette.size + (vignette.softness / 4)}%)`
         : 'none',
   };
 
@@ -169,7 +171,7 @@ export function ImageEditor() {
             ctx.resetTransform(); // reset rotation to draw vignette correctly
              if (vignette.shape === 'circle') {
                 const gradient = ctx.createRadialGradient(
-                    canvas.width / 2, canvas.height / 2, canvas.width * (1 - vignette.size / 100) / 2,
+                    canvas.width / 2, canvas.height / 2, canvas.width * (1 - vignette.size / 100 - (vignette.softness / 400)) / 2,
                     canvas.width / 2, canvas.height / 2, canvas.width / 2
                 );
                 gradient.addColorStop(0, 'rgba(0,0,0,0)');
@@ -177,14 +179,20 @@ export function ImageEditor() {
                 ctx.fillStyle = gradient;
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
             } else {
-                 // For box-shadow, we'd need a more complex multi-layer drawing which is tricky.
-                 // A simpler approximation:
-                ctx.globalCompositeOperation = 'source-atop';
-                ctx.fillStyle = vignette.color;
-                ctx.globalAlpha = vignette.size / 100;
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-                ctx.globalAlpha = 1;
+                 // We can't perfectly replicate box-shadow on canvas, so we approximate
                 ctx.globalCompositeOperation = 'source-over';
+                const outerRadius = Math.max(canvas.width, canvas.height);
+                const gradient = ctx.createRadialGradient(
+                    canvas.width/2, canvas.height/2, 0,
+                    canvas.width/2, canvas.height/2, outerRadius
+                );
+
+                const stop1 = 1 - (vignette.size * 2 / outerRadius);
+                const stop2 = stop1 + (vignette.softness * 2 / outerRadius);
+                gradient.addColorStop(Math.max(0, stop1), 'rgba(0,0,0,0)');
+                gradient.addColorStop(Math.min(1, stop2), vignette.color);
+                ctx.fillStyle = gradient;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
             }
         }
       }
@@ -329,6 +337,14 @@ export function ImageEditor() {
                     label="Vignette Size"
                     value={vignette.size}
                     onValueChange={(v) => setVignette(p => ({...p, size: v}))}
+                    min={0}
+                    max={100}
+                  />
+                  <AdjustmentSlider
+                    icon={Wand}
+                    label="Vignette Softness"
+                    value={vignette.softness}
+                    onValueChange={(v) => setVignette(p => ({...p, softness: v}))}
                     min={0}
                     max={100}
                   />
