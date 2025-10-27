@@ -130,8 +130,8 @@ export const toolCategories: ToolCategory[] = [
     description: 'A perfect suite of free online design tools for professionals and hobbyists. From removing backgrounds to generating color palettes and resizing images, everything you need is right here.',
     tools: [
       {
-        title: 'Advanced Image Editor',
-        description: 'A full-featured editor with filters, adjustments, cropping, and AI-powered editing.',
+        title: 'Image Editor',
+        description: 'A full-featured editor with filters, adjustments, and cropping.',
         href: '/tools/designers/image-editor',
         icon: ImageIcon_Lucide,
       },
