@@ -38,6 +38,10 @@ const imageEditorFlow = ai.defineFlow(
             },
         });
 
+        if (!operation) {
+            throw new Error('AI operation could not be started.');
+        }
+
         const output = await ai.waitForOperation(operation);
 
         if (output?.message?.content) {
