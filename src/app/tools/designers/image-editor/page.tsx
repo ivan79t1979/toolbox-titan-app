@@ -58,6 +58,24 @@ export default function ImageEditorPage() {
         description="Edit your images with filters, adjustments, and cropping."
       />
       <ImageEditor />
+      <section className="mt-12">
+          <h2 className="text-2xl font-bold font-headline">How to Use This Tool</h2>
+          <div className="prose dark:prose-invert mt-4">
+              <ol>
+                  <li><strong>Upload Your Image:</strong> Drag and drop an image file onto the upload area, or click it to select a file from your device.</li>
+                  <li><strong>Make Adjustments:</strong> Use the sliders in the "Adjust" tab to change the brightness, contrast, saturation, and rotation angle. The preview will update live.</li>
+                  <li><strong>Crop Your Image:</strong>
+                    <ul className="list-[circle]">
+                        <li>Switch to the "Crop" tab and click <strong>Enter Crop Mode</strong>.</li>
+                        <li>Drag the handles on the preview to select your desired area.</li>
+                        <li>Click <strong>Apply Crop</strong> to confirm the changes.</li>
+                    </ul>
+                  </li>
+                  <li><strong>Undo & Reset:</strong> Made a mistake? Click <strong>Undo</strong> to revert the last crop or click <strong>Reset All</strong> to start over with the original image.</li>
+                  <li><strong>Download:</strong> When you're happy with your edits, click the <strong>Download Image</strong> button to save your work.</li>
+              </ol>
+          </div>
+      </section>
       <section className="mt-16">
         <h2 className="text-2xl font-bold font-headline text-center">Related Tools</h2>
         <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
