@@ -29,7 +29,7 @@ import {
   RotateCcw,
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import Image from 'next/image';
+import { default as NextImage } from 'next/image';
 import ReactCrop, {
   type Crop as CropType,
   centerCrop,
@@ -327,7 +327,7 @@ export function ImageEditor() {
                 </div>
             </CardHeader>
             <CardContent className="p-4">
-              <div className="relative w-full flex items-center justify-center bg-muted/20 rounded-md overflow-auto">
+              <div className="relative w-full flex items-center justify-center bg-muted/20 rounded-md overflow-auto max-h-[70vh]">
                 {isCropMode ? (
                     <ReactCrop
                       crop={crop}
@@ -339,7 +339,7 @@ export function ImageEditor() {
                         src={imageSrc}
                         alt="Editable image"
                         style={imageStyle}
-                        className="max-w-full max-h-[70vh] object-contain"
+                        className="max-w-none"
                         onLoad={onImageLoad}
                       />
                     </ReactCrop>
@@ -403,3 +403,5 @@ function AdjustmentSlider({
     </div>
   );
 }
+
+    
