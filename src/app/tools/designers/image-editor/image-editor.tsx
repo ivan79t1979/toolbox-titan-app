@@ -14,6 +14,13 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Slider } from '@/components/ui/slider';
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
   Upload,
   Download,
   Crop,
@@ -45,8 +52,13 @@ type Adjustments = {
   grayscale: number;
   sepia: number;
   invert: number;
-  vignette: number;
 };
+
+type VignetteSettings = {
+    size: number;
+    color: string;
+    shape: 'circle' | 'rectangle';
+}
 
 const defaultAdjustments: Adjustments = {
   brightness: 100,
@@ -55,13 +67,19 @@ const defaultAdjustments: Adjustments = {
   grayscale: 0,
   sepia: 0,
   invert: 0,
-  vignette: 0,
 };
+
+const defaultVignette: VignetteSettings = {
+    size: 0,
+    color: '#000000',
+    shape: 'rectangle',
+}
 
 export function ImageEditor() {
   const [imageSrc, setImageSrc] = useState<string | null>(null);
   const [history, setHistory] = useState<string[]>([]);
   const [adjustments, setAdjustments] = useState<Adjustments>(defaultAdjustments);
+  const [vignette, setVignette] = useState<VignetteSettings>(defaultVignette);
   const [rotation, setRotation] = useState(0);
   const [crop, setCrop] = useState<CropType>();
   const [completedCrop, setCompletedCrop] = useState<CropType>();
@@ -94,6 +112,7 @@ export function ImageEditor() {
 
   const resetAll = () => {
     setAdjustments(defaultAdjustments);
+    setVignette(defaultVignette);
     setRotation(0);
     setCrop(undefined);
     setCompletedCrop(undefined);
@@ -117,7 +136,12 @@ export function ImageEditor() {
   };
   
   const vignetteStyle: CSSProperties = {
-    boxShadow: `inset 0 0 ${adjustments.vignette * 2}px ${adjustments.vignette}px rgba(0,0,0,0.5)`,
+      boxShadow: vignette.shape === 'rectangle' 
+        ? `inset 0 0 ${vignette.size * 2.5}px ${vignette.size}px ${vignette.color}`
+        : 'none',
+      backgroundImage: vignette.shape === 'circle'
+        ? `radial-gradient(ellipse at center, transparent 0%, ${vignette.color} ${100-vignette.size}%)`
+        : 'none'
   };
 
   const handleDownload = () => {
@@ -139,6 +163,30 @@ export function ImageEditor() {
         ctx.translate(canvas.width / 2, canvas.height / 2);
         ctx.rotate((rotation * Math.PI) / 180);
         ctx.drawImage(img, -img.naturalWidth / 2, -img.naturalHeight / 2);
+        
+        // Vignette is applied on top, so it needs to be drawn on the canvas after the image
+        if(vignette.size > 0) {
+            ctx.resetTransform(); // reset rotation to draw vignette correctly
+             if (vignette.shape === 'circle') {
+                const gradient = ctx.createRadialGradient(
+                    canvas.width / 2, canvas.height / 2, canvas.width * (1 - vignette.size / 100) / 2,
+                    canvas.width / 2, canvas.height / 2, canvas.width / 2
+                );
+                gradient.addColorStop(0, 'rgba(0,0,0,0)');
+                gradient.addColorStop(1, vignette.color);
+                ctx.fillStyle = gradient;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+            } else {
+                 // For box-shadow, we'd need a more complex multi-layer drawing which is tricky.
+                 // A simpler approximation:
+                ctx.globalCompositeOperation = 'source-atop';
+                ctx.fillStyle = vignette.color;
+                ctx.globalAlpha = vignette.size / 100;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.globalAlpha = 1;
+                ctx.globalCompositeOperation = 'source-over';
+            }
+        }
       }
 
       const link = document.createElement('a');
@@ -275,14 +323,32 @@ export function ImageEditor() {
                 min={0}
                 max={100}
               />
-              <AdjustmentSlider
-                icon={CircleDot}
-                label="Vignette"
-                value={adjustments.vignette}
-                onValueChange={(v) => setAdjustments((p) => ({ ...p, vignette: v }))}
-                min={0}
-                max={100}
-              />
+              <div className="pt-4 border-t">
+                  <AdjustmentSlider
+                    icon={CircleDot}
+                    label="Vignette Size"
+                    value={vignette.size}
+                    onValueChange={(v) => setVignette(p => ({...p, size: v}))}
+                    min={0}
+                    max={100}
+                  />
+                  <div className="grid grid-cols-2 gap-4 mt-2">
+                    <div className="space-y-2">
+                        <Label htmlFor="vignette-color">Vignette Color</Label>
+                        <Input id="vignette-color" type="color" value={vignette.color} onChange={e => setVignette(p => ({...p, color: e.target.value}))} className="h-10 w-full p-1"/>
+                    </div>
+                     <div className="space-y-2">
+                        <Label htmlFor="vignette-shape">Vignette Shape</Label>
+                        <Select value={vignette.shape} onValueChange={(v: 'circle' | 'rectangle') => setVignette(p => ({...p, shape: v}))}>
+                            <SelectTrigger id="vignette-shape"><SelectValue/></SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="rectangle">Rectangle</SelectItem>
+                                <SelectItem value="circle">Circle</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+                  </div>
+              </div>
             </TabsContent>
             <TabsContent value="crop" className="space-y-4 pt-2">
                 <AdjustmentSlider
@@ -350,7 +416,7 @@ export function ImageEditor() {
                 </div>
             </CardHeader>
             <CardContent className="p-4">
-              <div className="relative w-full flex items-center justify-center bg-muted/20 rounded-md overflow-auto max-h-[70vh] resize-both">
+              <div className="relative w-full flex items-center justify-center bg-muted/20 rounded-md overflow-auto resize-both min-h-[300px] min-w-[300px]">
                 {isCropMode ? (
                     <ReactCrop
                       crop={crop}
