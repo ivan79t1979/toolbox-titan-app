@@ -26,6 +26,7 @@ import {
   Trash2,
   Replace,
   RotateCcw,
+  FlipHorizontal,
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { default as NextImage } from 'next/image';
@@ -259,6 +260,14 @@ export function ImageEditor() {
                 min={0}
                 max={100}
               />
+               <AdjustmentSlider
+                icon={FlipHorizontal}
+                label="Invert"
+                value={adjustments.invert}
+                onValueChange={(v) => setAdjustments((p) => ({ ...p, invert: v }))}
+                min={0}
+                max={100}
+              />
             </TabsContent>
             <TabsContent value="crop" className="space-y-4 pt-2">
                 <AdjustmentSlider
@@ -402,5 +411,3 @@ function AdjustmentSlider({
     </div>
   );
 }
-
-    
