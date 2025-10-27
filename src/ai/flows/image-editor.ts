@@ -26,7 +26,7 @@ const imageEditorFlow = ai.defineFlow(
     outputSchema: ImageEditorOutputSchema,
   },
   async (input) => {
-    const {media} = await ai.generate({
+    const { operation } = await ai.generate({
         model: 'googleai/gemini-2.5-flash-image-preview',
         prompt: [
             {media: {url: input.photoDataUri}},
@@ -37,10 +37,15 @@ const imageEditorFlow = ai.defineFlow(
         },
     });
 
-    if (!media || !media.url) {
-      throw new Error('AI did not return an edited image.');
+    const output = await ai.waitForOperation(operation);
+
+    if (output?.message?.content) {
+        const imagePart = output.message.content.find(part => part.media);
+        if (imagePart && imagePart.media?.url) {
+            return { editedPhotoDataUri: imagePart.media.url };
+        }
     }
 
-    return { editedPhotoDataUri: media.url };
+    throw new Error('AI did not return an edited image.');
   }
 );
