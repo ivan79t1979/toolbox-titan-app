@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -196,21 +197,44 @@ export function InvoiceGenerator() {
   const exportPDF = async () => {
     if (!invoiceRef.current) return;
     try {
-        const canvas = await html2canvas(invoiceRef.current, { scale: 2 });
-        const imgData = canvas.toDataURL('image/png');
-        
-        const pdf = new jsPDF({
-            orientation: 'portrait',
-            unit: 'px',
-            format: [canvas.width, canvas.height]
-        });
-
-        pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
-        pdf.save(`invoice-${invoiceMeta.number}.pdf`);
-
-        toast({ title: 'PDF Exported', description: 'Your invoice has been downloaded.' });
+      const canvas = await html2canvas(invoiceRef.current, {
+        scale: 2,
+        windowWidth: invoiceRef.current.scrollWidth,
+        windowHeight: invoiceRef.current.scrollHeight,
+      });
+      const imgData = canvas.toDataURL('image/png');
+  
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'pt',
+        format: 'a4',
+      });
+  
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+      const canvasWidth = canvas.width;
+      const canvasHeight = canvas.height;
+      const ratio = canvasWidth / canvasHeight;
+  
+      const imgHeight = pdfWidth / ratio;
+      let heightLeft = imgHeight;
+      let position = 0;
+  
+      pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
+      heightLeft -= pdfHeight;
+  
+      while (heightLeft > 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
+        heightLeft -= pdfHeight;
+      }
+  
+      pdf.save(`invoice-${invoiceMeta.number}.pdf`);
+      toast({ title: 'PDF Exported', description: 'Your invoice has been downloaded.' });
     } catch (error) {
-        toast({ variant: 'destructive', title: 'Export Failed', description: 'Could not export as PDF.' });
+      console.error("PDF Export Error:", error);
+      toast({ variant: 'destructive', title: 'Export Failed', description: 'Could not export as PDF.' });
     }
   };
 
