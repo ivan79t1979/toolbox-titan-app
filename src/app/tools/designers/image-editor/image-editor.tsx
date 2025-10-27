@@ -220,7 +220,7 @@ export function ImageEditor() {
         {imageSrc && (
           <Card>
             <CardContent className="p-4">
-                <div className="relative w-full aspect-video bg-muted/20 flex items-center justify-center overflow-hidden rounded-md">
+                <div className="relative w-full flex items-center justify-center bg-muted/20 rounded-md">
                     <ReactCrop
                       crop={crop}
                       onChange={c => setCrop(c)}
@@ -231,7 +231,7 @@ export function ImageEditor() {
                           src={imageSrc}
                           alt="Editable image"
                           style={imageStyle}
-                          className="max-w-full max-h-full object-contain"
+                          className="max-w-full max-h-[70vh] object-contain"
                           onLoad={onImageLoad}
                       />
                     </ReactCrop>
