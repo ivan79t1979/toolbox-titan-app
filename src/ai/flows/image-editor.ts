@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview An AI-powered image editing flow.
@@ -53,7 +54,6 @@ const imageEditorFlow = ai.defineFlow(
         throw new Error('AI did not return an edited image.');
     } catch (error: any) {
         if (error.message && error.message.includes('429 Too Many Requests')) {
-            // Instead of throwing, we let the frontend handle this expected error.
             throw new Error('AI rate limit exceeded. Please try again later.');
         }
         // Re-throw other unexpected errors

@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useRef, useCallback, CSSProperties } from 'react';
@@ -17,12 +18,10 @@ import {
   Contrast,
   Palette,
   Droplets,
-  Wand2,
-  Loader2,
   Undo2,
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { editImage } from '@/ai/flows/image-editor';
+import Image from 'next/image';
 
 type Adjustments = {
   brightness: number;
@@ -48,9 +47,6 @@ export function ImageEditor() {
   const [adjustments, setAdjustments] = useState<Adjustments>(defaultAdjustments);
   const [rotation, setRotation] = useState(0);
   const [isCropping, setIsCropping] = useState(false);
-  const [crop, setCrop] = useState({ x: 0, y: 0, width: 0, height: 0 });
-  const [isAiEditing, setIsAiEditing] = useState(false);
-  const [aiPrompt, setAiPrompt] = useState('');
 
   const imageRef = useRef<HTMLImageElement>(null);
   const { toast } = useToast();
@@ -115,30 +111,14 @@ export function ImageEditor() {
     }
   };
 
-  const handleAiEdit = async () => {
-    if (!imageSrc || !aiPrompt) return;
-    setIsAiEditing(true);
-    try {
-        const result = await editImage({ photoDataUri: imageSrc, prompt: aiPrompt });
-        setImageSrc(result.editedPhotoDataUri);
-        setHistory(prev => [...prev, result.editedPhotoDataUri]);
-    } catch(e) {
-        console.error(e);
-        toast({ variant: 'destructive', title: 'AI Edit Failed', description: 'Could not apply AI edit. Please try again.' });
-    } finally {
-        setIsAiEditing(false);
-    }
-  }
-
   return (
     <div className="grid gap-8 lg:grid-cols-[400px_1fr]">
       <Card>
         <CardContent className="p-4 space-y-4">
             <Tabs defaultValue="adjust">
-                <TabsList className="grid w-full grid-cols-3">
+                <TabsList className="grid w-full grid-cols-2">
                     <TabsTrigger value="adjust">Adjust</TabsTrigger>
-                    <TabsTrigger value="crop">Crop</TabsTrigger>
-                    <TabsTrigger value="ai">AI Edit</TabsTrigger>
+                    <TabsTrigger value="crop">Crop & Rotate</TabsTrigger>
                 </TabsList>
                 <TabsContent value="adjust" className="space-y-4 pt-2">
                     <AdjustmentSlider icon={Sun} label="Brightness" value={adjustments.brightness} onValueChange={(v) => setAdjustments(p => ({...p, brightness: v}))} min={0} max={200} />
@@ -148,7 +128,7 @@ export function ImageEditor() {
                     <AdjustmentSlider icon={Droplets} label="Sepia" value={adjustments.sepia} onValueChange={(v) => setAdjustments(p => ({...p, sepia: v}))} min={0} max={100} />
                 </TabsContent>
                 <TabsContent value="crop" className="space-y-4 pt-2">
-                     <p className="text-sm text-muted-foreground">Crop and rotate functionality is coming soon!</p>
+                     <p className="text-sm text-muted-foreground">Crop functionality is coming soon!</p>
                      <div className="flex gap-2">
                         <Button variant="outline" className="w-full" disabled><Crop className="mr-2"/>Enter Crop Mode</Button>
                      </div>
@@ -156,16 +136,6 @@ export function ImageEditor() {
                         <Button variant="outline" size="icon" onClick={() => setRotation(r => r - 90)}><RotateCcw /></Button>
                         <Button variant="outline" size="icon" onClick={() => setRotation(r => r + 90)}><RotateCw /></Button>
                      </div>
-                </TabsContent>
-                <TabsContent value="ai" className="space-y-4 pt-2">
-                     <div className="space-y-2">
-                        <Label htmlFor="ai-prompt">Prompt</Label>
-                        <Input id="ai-prompt" placeholder="e.g., make the background a sunny beach" value={aiPrompt} onChange={e => setAiPrompt(e.target.value)} />
-                     </div>
-                     <Button onClick={handleAiEdit} disabled={isAiEditing} className="w-full">
-                        {isAiEditing ? <Loader2 className="mr-2 animate-spin"/> : <Wand2 className="mr-2"/>}
-                        Apply AI Edit
-                    </Button>
                 </TabsContent>
             </Tabs>
             <div className="flex items-center gap-2 pt-4 border-t">
@@ -200,12 +170,6 @@ export function ImageEditor() {
                         style={imageStyle}
                         className="max-w-full max-h-full object-contain"
                     />
-                     {isAiEditing && (
-                        <div className="absolute inset-0 bg-background/70 flex flex-col items-center justify-center gap-2">
-                            <Loader2 className="w-8 h-8 animate-spin text-primary" />
-                            <p className="text-muted-foreground">AI is editing...</p>
-                        </div>
-                    )}
                 </div>
             </CardContent>
             <CardHeader className="pt-0">
