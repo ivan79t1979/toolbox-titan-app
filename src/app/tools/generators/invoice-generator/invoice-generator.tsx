@@ -88,6 +88,8 @@ const dateFormats = [
     { value: 'MMMM d, yyyy', label: 'Month D, YYYY (e.g., October 26, 2023)'},
 ];
 
+let nextId = 0;
+
 export function InvoiceGenerator() {
   const [yourDetails, setYourDetails] = useState('Your Company\n123 Street\nCity, ST 12345');
   const [clientDetails, setClientDetails] = useState('Client Company\n456 Avenue\nCity, ST 67890');
@@ -121,7 +123,7 @@ export function InvoiceGenerator() {
   });
 
   const [lineItems, setLineItems] = useState<LineItem[]>([
-    { id: `item-${Date.now()}`, description: 'Website Design', quantity: 1, rate: 2500 },
+    { id: `item-${nextId++}`, description: 'Website Design', quantity: 1, rate: 2500 },
   ]);
 
   const { toast } = useToast();
@@ -142,7 +144,7 @@ export function InvoiceGenerator() {
   const addLineItem = () => {
     setLineItems([
       ...lineItems,
-      { id: `item-${Date.now()}`, description: '', quantity: 1, rate: 0 },
+      { id: `item-${nextId++}`, description: '', quantity: 1, rate: 0 },
     ]);
   };
 
@@ -167,7 +169,7 @@ export function InvoiceGenerator() {
   };
   
   const addCustomField = () => {
-      setCustomFields([...customFields, { id: `cf-${Date.now()}`, label: 'Custom Field', value: '' }]);
+      setCustomFields([...customFields, { id: `cf-${nextId++}`, label: 'Custom Field', value: '' }]);
   }
 
   const removeCustomField = (id: string) => {
@@ -212,21 +214,27 @@ export function InvoiceGenerator() {
   
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = pdf.internal.pageSize.getHeight();
-      const canvasWidth = canvas.width;
-      const canvasHeight = canvas.height;
-      const ratio = canvasWidth / canvasHeight;
-  
-      const imgHeight = pdfWidth / ratio;
-      let heightLeft = imgHeight;
+      const canvasAspectRatio = canvas.width / canvas.height;
+      const pdfAspectRatio = pdfWidth / pdfHeight;
+      
+      let imgWidth = pdfWidth;
+      let imgHeight = pdfWidth / canvasAspectRatio;
+
+      if (canvasAspectRatio < pdfAspectRatio) {
+        imgHeight = pdfHeight;
+        imgWidth = pdfHeight * canvasAspectRatio;
+      }
+      
+      let heightLeft = canvas.height * (imgWidth / canvas.width);
       let position = 0;
-  
-      pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
+      
+      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, heightLeft);
       heightLeft -= pdfHeight;
-  
+
       while (heightLeft > 0) {
-        position = heightLeft - imgHeight;
+        position -= pdfHeight;
         pdf.addPage();
-        pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
+        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, heightLeft);
         heightLeft -= pdfHeight;
       }
   
