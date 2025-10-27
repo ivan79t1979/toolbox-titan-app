@@ -136,12 +136,12 @@ export function ImageEditor() {
   };
   
   const vignetteStyle: CSSProperties = {
-      boxShadow: vignette.shape === 'rectangle' 
+    boxShadow: vignette.shape === 'rectangle' && vignette.size > 0
         ? `inset 0 0 ${vignette.size * 2.5}px ${vignette.size}px ${vignette.color}`
         : 'none',
-      backgroundImage: vignette.shape === 'circle'
-        ? `radial-gradient(ellipse at center, transparent 0%, ${vignette.color} ${100-vignette.size}%)`
-        : 'none'
+    backgroundImage: vignette.shape === 'circle' && vignette.size > 0
+        ? `radial-gradient(ellipse at center, transparent ${100 - (vignette.size * 1.5)}%, ${vignette.color} 100%)`
+        : 'none',
   };
 
   const handleDownload = () => {
@@ -406,9 +406,6 @@ export function ImageEditor() {
                 <div className="flex justify-between items-center">
                     <CardTitle>Image Preview</CardTitle>
                     <div className="flex gap-2">
-                        <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
-                            <Replace className="mr-2" /> Change
-                        </Button>
                         <Button variant="destructive" size="sm" onClick={removeImage}>
                             <Trash2 className="mr-2" /> Remove
                         </Button>
@@ -416,7 +413,7 @@ export function ImageEditor() {
                 </div>
             </CardHeader>
             <CardContent className="p-4">
-              <div className="relative w-full flex items-center justify-center bg-muted/20 rounded-md overflow-auto resize-both min-h-[300px] min-w-[300px]">
+              <div className="relative w-full flex items-center justify-center bg-muted/20 rounded-md overflow-auto resize min-h-[300px] min-w-[300px]">
                 {isCropMode ? (
                     <ReactCrop
                       crop={crop}
