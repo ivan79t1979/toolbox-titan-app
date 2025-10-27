@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { createContext, useContext, useEffect, useState, useCallback } from "react";
@@ -27,37 +28,26 @@ export function ThemeProvider({
   defaultTheme = "system",
   storageKey = "ui-theme",
 }: ThemeProviderProps) {
-  const [theme, setTheme] = useState<Theme>("system");
+  const [theme, setTheme] = useState<Theme>(() => {
+    if (typeof window !== 'undefined') {
+      return (localStorage.getItem(storageKey) as Theme) || defaultTheme;
+    }
+    return defaultTheme;
+  });
 
   useEffect(() => {
-    const storedTheme = (localStorage.getItem(storageKey) as Theme) || defaultTheme;
-    setTheme(storedTheme);
-  }, [defaultTheme, storageKey]);
-
-  const applyTheme = useCallback((themeToApply: Theme) => {
     const root = window.document.documentElement;
     root.classList.remove("light", "dark");
-    
-    let effectiveTheme = themeToApply;
-    if (effectiveTheme === "system") {
-      effectiveTheme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+
+    let effectiveTheme = theme;
+    if (theme === "system") {
+      effectiveTheme = window.matchMedia("(prefers-color-scheme: dark)").matches
+        ? "dark"
+        : "light";
     }
     
     root.classList.add(effectiveTheme);
-  }, []);
-
-  useEffect(() => {
-    applyTheme(theme);
-
-    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-    const handleChange = () => {
-      if (theme === "system") {
-        applyTheme("system");
-      }
-    };
-    mediaQuery.addEventListener("change", handleChange);
-    return () => mediaQuery.removeEventListener("change", handleChange);
-  }, [theme, applyTheme]);
+  }, [theme]);
 
   const value = {
     theme,
