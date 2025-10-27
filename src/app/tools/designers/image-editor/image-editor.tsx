@@ -57,6 +57,7 @@ type Adjustments = {
 type VignetteSettings = {
     size: number;
     softness: number;
+    innerSmoothness: number;
     color: string;
     shape: 'circle' | 'rectangle';
 }
@@ -73,6 +74,7 @@ const defaultAdjustments: Adjustments = {
 const defaultVignette: VignetteSettings = {
     size: 0,
     softness: 50,
+    innerSmoothness: 50,
     color: '#000000',
     shape: 'rectangle',
 }
@@ -142,7 +144,7 @@ export function ImageEditor() {
         ? `inset 0 0 ${vignette.size * (vignette.softness / 20)}px ${vignette.size}px ${vignette.color}`
         : 'none',
     backgroundImage: vignette.shape === 'circle' && vignette.size > 0
-        ? `radial-gradient(ellipse at center, transparent ${100 - vignette.size}%, ${vignette.color} ${100 - vignette.size + (vignette.softness / 4)}%)`
+        ? `radial-gradient(ellipse at center, transparent ${vignette.innerSmoothness * 0.5}%, ${vignette.color} ${100 - vignette.size + (vignette.softness / 4)}%)`
         : 'none',
   };
 
@@ -171,11 +173,12 @@ export function ImageEditor() {
             ctx.resetTransform(); // reset rotation to draw vignette correctly
              if (vignette.shape === 'circle') {
                 const gradient = ctx.createRadialGradient(
-                    canvas.width / 2, canvas.height / 2, canvas.width * (1 - vignette.size / 100 - (vignette.softness / 400)) / 2,
+                    canvas.width / 2, canvas.height / 2, canvas.width * (vignette.innerSmoothness * 0.5 / 100),
                     canvas.width / 2, canvas.height / 2, canvas.width / 2
                 );
                 gradient.addColorStop(0, 'rgba(0,0,0,0)');
-                gradient.addColorStop(1, vignette.color);
+                const colorStop = 1 - (vignette.size / 100) + (vignette.softness / 400);
+                gradient.addColorStop(Math.min(1, colorStop), vignette.color);
                 ctx.fillStyle = gradient;
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
             } else {
@@ -340,11 +343,19 @@ export function ImageEditor() {
                     min={0}
                     max={100}
                   />
-                  <AdjustmentSlider
+                   <AdjustmentSlider
                     icon={Wand}
                     label="Vignette Softness"
                     value={vignette.softness}
                     onValueChange={(v) => setVignette(p => ({...p, softness: v}))}
+                    min={0}
+                    max={100}
+                  />
+                  <AdjustmentSlider
+                    icon={Wand}
+                    label="Vignette Inner Smoothness"
+                    value={vignette.innerSmoothness}
+                    onValueChange={(v) => setVignette(p => ({...p, innerSmoothness: v}))}
                     min={0}
                     max={100}
                   />
