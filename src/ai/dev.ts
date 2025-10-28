@@ -1,3 +1,4 @@
+
 'use server';
 import { config } from 'dotenv';
 config();
@@ -11,3 +12,4 @@ import '@/ai/flows/rhyme-finder.ts';
 import '@/ai/flows/rhyme-finder-types.ts';
 import '@/ai/flows/dataset-generator.ts';
 import '@/ai/flows/image-editor.ts';
+import '@/ai/flows/text-to-speech.ts';

@@ -1,3 +1,4 @@
+
 import type { Metadata } from 'next';
 import { PageHeader } from '@/components/page-header';
 import { GradioWrapper } from '@/components/gradio-wrapper';
@@ -5,6 +6,7 @@ import { ElevenLabsBanner } from '@/components/elevenlabs-banner';
 import Link from 'next/link';
 import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { toolCategories } from '@/lib/tools';
+import { TextToSpeechForm } from './text-to-speech-form';
 
 const tool = {
   title: 'Text to Speech Converter',
@@ -57,7 +59,7 @@ export default function TextToSpeechPage() {
         description="Convert text to spoken audio."
       />
       <div className="mt-8">
-        <GradioWrapper appSrc="https://timemaster-multilingual-tts.hf.space" scriptSrc="https://gradio.s3-us-west-2.amazonaws.com/5.35.0/gradio.js" />
+        <TextToSpeechForm />
       </div>
       <ElevenLabsBanner />
        <section className="mt-12">
