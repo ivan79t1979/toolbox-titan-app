@@ -278,7 +278,80 @@ export function ImageEditor() {
 
   return (
     <div className="flex flex-col md:grid md:gap-8 md:grid-cols-[1fr_400px]">
-      <div className="order-2 md:order-1">
+      <div className="order-1 md:order-2 space-y-4">
+        {!imageSrc ? (
+            <div className="flex items-center justify-center w-full">
+                <label
+                    htmlFor="image-upload"
+                    className="flex flex-col items-center justify-center w-full h-96 border-2 border-dashed rounded-lg cursor-pointer hover:bg-muted/50"
+                >
+                    <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                    <Upload className="w-10 h-10 mb-4 text-muted-foreground" />
+                    <p className="mb-2 text-lg">
+                        <span className="font-semibold">Click to upload</span> or drag &amp; drop
+                    </p>
+                    <p className="text-sm text-muted-foreground">PNG, JPG, WEBP, etc.</p>
+                    </div>
+                    <Input id="image-upload" type="file" accept="image/*" className="hidden" onChange={handleImageUpload} ref={fileInputRef}/>
+                </label>
+            </div>
+        ) : (
+          <Card>
+            <CardHeader>
+                <div className="flex justify-between items-center">
+                    <CardTitle>Image Preview</CardTitle>
+                    <div className="flex gap-2">
+                        <Button variant="destructive" size="sm" onClick={removeImage}>
+                            <Trash2 className="mr-2" /> Remove
+                        </Button>
+                    </div>
+                </div>
+            </CardHeader>
+            <CardContent className="p-4">
+              <div className="relative w-full flex items-center justify-center bg-muted/20 rounded-md overflow-auto resize min-h-[300px] min-w-[300px]">
+                {isCropMode ? (
+                    <ReactCrop
+                      crop={crop}
+                      onChange={(c) => setCrop(c)}
+                      onComplete={(c) => setCompletedCrop(c)}
+                    >
+                      <img
+                        ref={imageRef}
+                        src={imageSrc}
+                        alt="Editable image"
+                        style={imageStyle}
+                        className="max-w-none"
+                        onLoad={onImageLoad}
+                      />
+                    </ReactCrop>
+                ) : (
+                    <div className="relative">
+                         <img
+                            ref={imageRef}
+                            src={imageSrc}
+                            alt="Editable image"
+                            style={imageStyle}
+                            className="max-w-full max-h-[calc(70vh-2rem)] object-contain"
+                          />
+                          <div
+                            className="absolute inset-0 pointer-events-none"
+                            style={vignetteStyle}
+                          />
+                    </div>
+                )}
+              </div>
+            </CardContent>
+            <CardHeader className="pt-0">
+              <Button onClick={handleDownload} className="w-full" size="lg">
+                <Download className="mr-2" />
+                Download Image
+              </Button>
+            </CardHeader>
+          </Card>
+        )}
+      </div>
+
+       <div className="order-2 md:order-1">
         <Card>
             <CardContent className="p-4 space-y-4">
             <Tabs defaultValue="adjust">
@@ -410,79 +483,6 @@ export function ImageEditor() {
             </div>
             </CardContent>
         </Card>
-      </div>
-
-      <div className="order-1 md:order-2 space-y-4">
-        {!imageSrc ? (
-            <div className="flex items-center justify-center w-full">
-                <label
-                    htmlFor="image-upload"
-                    className="flex flex-col items-center justify-center w-full h-96 border-2 border-dashed rounded-lg cursor-pointer hover:bg-muted/50"
-                >
-                    <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                    <Upload className="w-10 h-10 mb-4 text-muted-foreground" />
-                    <p className="mb-2 text-lg">
-                        <span className="font-semibold">Click to upload</span> or drag &amp; drop
-                    </p>
-                    <p className="text-sm text-muted-foreground">PNG, JPG, WEBP, etc.</p>
-                    </div>
-                    <Input id="image-upload" type="file" accept="image/*" className="hidden" onChange={handleImageUpload} ref={fileInputRef}/>
-                </label>
-            </div>
-        ) : (
-          <Card>
-            <CardHeader>
-                <div className="flex justify-between items-center">
-                    <CardTitle>Image Preview</CardTitle>
-                    <div className="flex gap-2">
-                        <Button variant="destructive" size="sm" onClick={removeImage}>
-                            <Trash2 className="mr-2" /> Remove
-                        </Button>
-                    </div>
-                </div>
-            </CardHeader>
-            <CardContent className="p-4">
-              <div className="relative w-full flex items-center justify-center bg-muted/20 rounded-md overflow-auto resize min-h-[300px] min-w-[300px]">
-                {isCropMode ? (
-                    <ReactCrop
-                      crop={crop}
-                      onChange={(c) => setCrop(c)}
-                      onComplete={(c) => setCompletedCrop(c)}
-                    >
-                      <img
-                        ref={imageRef}
-                        src={imageSrc}
-                        alt="Editable image"
-                        style={imageStyle}
-                        className="max-w-none"
-                        onLoad={onImageLoad}
-                      />
-                    </ReactCrop>
-                ) : (
-                    <div className="relative">
-                         <img
-                            ref={imageRef}
-                            src={imageSrc}
-                            alt="Editable image"
-                            style={imageStyle}
-                            className="max-w-full max-h-[calc(70vh-2rem)] object-contain"
-                          />
-                          <div
-                            className="absolute inset-0 pointer-events-none"
-                            style={vignetteStyle}
-                          />
-                    </div>
-                )}
-              </div>
-            </CardContent>
-            <CardHeader className="pt-0">
-              <Button onClick={handleDownload} className="w-full" size="lg">
-                <Download className="mr-2" />
-                Download Image
-              </Button>
-            </CardHeader>
-          </Card>
-        )}
       </div>
     </div>
   );

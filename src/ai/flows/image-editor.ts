@@ -28,7 +28,8 @@ const imageEditorFlow = ai.defineFlow(
   },
   async (input) => {
     try {
-        const { output } = await ai.run('googleai/gemini-2.5-flash-image-preview', {
+        const { media } = await ai.generate({
+            model: 'googleai/gemini-2.5-flash-image-preview',
             prompt: [
                 {media: {url: input.photoDataUri}},
                 {text: input.prompt},
@@ -38,12 +39,10 @@ const imageEditorFlow = ai.defineFlow(
             },
         });
 
-        if (output?.content) {
-            const imagePart = output.content.find(part => part.media);
-            if (imagePart && imagePart.media?.url) {
-                return { editedPhotoDataUri: imagePart.media.url };
-            }
+        if (media?.url) {
+            return { editedPhotoDataUri: media.url };
         }
+        
         throw new Error('AI did not return an edited image.');
     } catch (error: any) {
         if (error.message && error.message.includes('429 Too Many Requests')) {
