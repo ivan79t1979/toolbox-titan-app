@@ -28,8 +28,7 @@ const imageEditorFlow = ai.defineFlow(
   },
   async (input) => {
     try {
-        const { operation } = await ai.generate({
-            model: 'googleai/gemini-2.5-flash-image-preview',
+        const { output } = await ai.run('googleai/gemini-2.5-flash-image-preview', {
             prompt: [
                 {media: {url: input.photoDataUri}},
                 {text: input.prompt},
@@ -39,14 +38,8 @@ const imageEditorFlow = ai.defineFlow(
             },
         });
 
-        if (!operation) {
-            throw new Error('AI operation could not be started.');
-        }
-
-        const output = await ai.waitForOperation(operation);
-
-        if (output?.message?.content) {
-            const imagePart = output.message.content.find(part => part.media);
+        if (output?.content) {
+            const imagePart = output.content.find(part => part.media);
             if (imagePart && imagePart.media?.url) {
                 return { editedPhotoDataUri: imagePart.media.url };
             }
