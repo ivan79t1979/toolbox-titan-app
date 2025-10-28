@@ -16,7 +16,9 @@ import {
 export async function extractColorPalette(
   input: ColorPaletteExtractorInput
 ): Promise<ColorPaletteExtractorOutput> {
-  return colorPaletteExtractorFlow(input);
+  return ai.run('colorPaletteExtractorFlow', () =>
+    colorPaletteExtractorFlow(input)
+  );
 }
 
 const prompt = ai.definePrompt({

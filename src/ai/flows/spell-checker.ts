@@ -16,7 +16,7 @@ import {
 export async function spellCheck(
   input: SpellCheckInput
 ): Promise<SpellCheckOutput> {
-  return spellCheckFlow(input);
+  return ai.run('spellCheckFlow', () => spellCheckFlow(input));
 }
 
 const prompt = ai.definePrompt({

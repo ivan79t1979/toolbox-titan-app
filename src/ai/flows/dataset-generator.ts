@@ -16,7 +16,7 @@ import {
 export async function generateDataset(
   input: DatasetGeneratorInput
 ): Promise<DatasetGeneratorOutput> {
-  return datasetGeneratorFlow(input);
+  return ai.run('datasetGeneratorFlow', () => datasetGeneratorFlow(input));
 }
 
 const prompt = ai.definePrompt({

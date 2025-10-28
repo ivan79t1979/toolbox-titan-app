@@ -15,7 +15,7 @@ import {
 } from './rhyme-finder-types';
 
 export async function findRhymes(input: RhymeFinderInput): Promise<RhymeFinderOutput> {
-  return rhymeFinderFlow(input);
+  return ai.run('rhymeFinderFlow', () => rhymeFinderFlow(input));
 }
 
 const prompt = ai.definePrompt({

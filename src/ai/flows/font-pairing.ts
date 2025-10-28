@@ -17,7 +17,7 @@ import {
 export async function fontPairing(
   input: FontPairingInput
 ): Promise<FontPairingOutput> {
-  return fontPairingFlow(input);
+  return ai.run('fontPairingFlow', () => fontPairingFlow(input));
 }
 
 const prompt = ai.definePrompt({

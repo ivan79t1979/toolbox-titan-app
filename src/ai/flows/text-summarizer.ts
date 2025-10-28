@@ -16,7 +16,7 @@ import {
 export async function textSummarizer(
   input: TextSummarizerInput
 ): Promise<TextSummarizerOutput> {
-  return textSummarizerFlow(input);
+  return ai.run('textSummarizerFlow', () => textSummarizerFlow(input));
 }
 
 const prompt = ai.definePrompt({

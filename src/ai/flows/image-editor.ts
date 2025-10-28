@@ -1,4 +1,3 @@
-
 'use server';
 /**
  * @fileOverview An AI-powered image editing flow.
@@ -17,7 +16,7 @@ import {
 export async function editImage(
   input: ImageEditorInput
 ): Promise<ImageEditorOutput> {
-  return imageEditorFlow(input);
+  return ai.run('imageEditorFlow', () => imageEditorFlow(input));
 }
 
 const imageEditorFlow = ai.defineFlow(
@@ -26,30 +25,27 @@ const imageEditorFlow = ai.defineFlow(
     inputSchema: ImageEditorInputSchema,
     outputSchema: ImageEditorOutputSchema,
   },
-  async (input) => {
+  async input => {
     try {
-        const { media } = await ai.generate({
-            model: 'googleai/gemini-2.5-flash-image-preview',
-            prompt: [
-                {media: {url: input.photoDataUri}},
-                {text: input.prompt},
-            ],
-            config: {
-                responseModalities: ['TEXT', 'IMAGE'],
-            },
-        });
+      const {media} = await ai.generate({
+        model: 'googleai/gemini-2.5-flash-image-preview',
+        prompt: [{media: {url: input.photoDataUri}}, {text: input.prompt}],
+        config: {
+          responseModalities: ['TEXT', 'IMAGE'],
+        },
+      });
 
-        if (media?.url) {
-            return { editedPhotoDataUri: media.url };
-        }
-        
-        throw new Error('AI did not return an edited image.');
+      if (media?.url) {
+        return {editedPhotoDataUri: media.url};
+      }
+
+      throw new Error('AI did not return an edited image.');
     } catch (error: any) {
-        if (error.message && error.message.includes('429 Too Many Requests')) {
-            throw new Error('AI rate limit exceeded. Please try again later.');
-        }
-        // Re-throw other unexpected errors
-        throw error;
+      if (error.message && error.message.includes('429 Too Many Requests')) {
+        throw new Error('AI rate limit exceeded. Please try again later.');
+      }
+      // Re-throw other unexpected errors
+      throw error;
     }
   }
 );

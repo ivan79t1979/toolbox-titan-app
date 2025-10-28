@@ -25,7 +25,7 @@ const AiWritingAssistantOutputSchema = z.object({
 export type AiWritingAssistantOutput = z.infer<typeof AiWritingAssistantOutputSchema>;
 
 export async function aiWritingAssistant(input: AiWritingAssistantInput): Promise<AiWritingAssistantOutput> {
-  return aiWritingAssistantFlow(input);
+  return ai.run('aiWritingAssistantFlow', () => aiWritingAssistantFlow(input));
 }
 
 const prompt = ai.definePrompt({

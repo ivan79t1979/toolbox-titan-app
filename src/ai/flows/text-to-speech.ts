@@ -27,7 +27,7 @@ const TextToSpeechOutputSchema = z.object({
 export type TextToSpeechOutput = z.infer<typeof TextToSpeechOutputSchema>;
 
 export async function textToSpeech(input: TextToSpeechInput): Promise<TextToSpeechOutput> {
-  return textToSpeechFlow(input);
+  return ai.run('textToSpeechFlow', () => textToSpeechFlow(input));
 }
 
 const textToSpeechFlow = ai.defineFlow(
