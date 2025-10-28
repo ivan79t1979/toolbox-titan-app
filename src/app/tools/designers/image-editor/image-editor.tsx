@@ -277,140 +277,142 @@ export function ImageEditor() {
   }
 
   return (
-    <div className="grid gap-8 lg:grid-cols-[400px_1fr]">
-      <Card>
-        <CardContent className="p-4 space-y-4">
-          <Tabs defaultValue="adjust">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="adjust">Adjust</TabsTrigger>
-              <TabsTrigger value="crop">Crop &amp; Rotate</TabsTrigger>
-            </TabsList>
-            <TabsContent value="adjust" className="space-y-4 pt-2">
-              <AdjustmentSlider
-                icon={Sun}
-                label="Brightness"
-                value={adjustments.brightness}
-                onValueChange={(v) => setAdjustments((p) => ({ ...p, brightness: v }))}
-                min={0}
-                max={200}
-              />
-              <AdjustmentSlider
-                icon={Contrast}
-                label="Contrast"
-                value={adjustments.contrast}
-                onValueChange={(v) => setAdjustments((p) => ({ ...p, contrast: v }))}
-                min={0}
-                max={200}
-              />
-              <AdjustmentSlider
-                icon={Palette}
-                label="Saturation"
-                value={adjustments.saturate}
-                onValueChange={(v) => setAdjustments((p) => ({ ...p, saturate: v }))}
-                min={0}
-                max={200}
-              />
-              <AdjustmentSlider
-                icon={Droplets}
-                label="Grayscale"
-                value={adjustments.grayscale}
-                onValueChange={(v) => setAdjustments((p) => ({ ...p, grayscale: v }))}
-                min={0}
-                max={100}
-              />
-              <AdjustmentSlider
-                icon={Droplets}
-                label="Sepia"
-                value={adjustments.sepia}
-                onValueChange={(v) => setAdjustments((p) => ({ ...p, sepia: v }))}
-                min={0}
-                max={100}
-              />
-               <AdjustmentSlider
-                icon={FlipHorizontal}
-                label="Invert"
-                value={adjustments.invert}
-                onValueChange={(v) => setAdjustments((p) => ({ ...p, invert: v }))}
-                min={0}
-                max={100}
-              />
-              <div className="pt-4 border-t">
-                  <AdjustmentSlider
-                    icon={CircleDot}
-                    label="Vignette Size"
-                    value={vignette.size}
-                    onValueChange={(v) => setVignette(p => ({...p, size: v}))}
-                    min={0}
-                    max={100}
-                  />
-                   <AdjustmentSlider
-                    icon={Wand}
-                    label="Vignette Softness"
-                    value={vignette.softness}
-                    onValueChange={(v) => setVignette(p => ({...p, softness: v}))}
-                    min={0}
-                    max={100}
-                  />
-                  <AdjustmentSlider
-                    icon={Wand}
-                    label="Vignette Inner Smoothness"
-                    value={vignette.innerSmoothness}
-                    onValueChange={(v) => setVignette(p => ({...p, innerSmoothness: v}))}
-                    min={0}
-                    max={100}
-                  />
-                  <div className="grid grid-cols-2 gap-4 mt-2">
-                    <div className="space-y-2">
-                        <Label htmlFor="vignette-color">Vignette Color</Label>
-                        <Input id="vignette-color" type="color" value={vignette.color} onChange={e => setVignette(p => ({...p, color: e.target.value}))} className="h-10 w-full p-1"/>
-                    </div>
-                     <div className="space-y-2">
-                        <Label htmlFor="vignette-shape">Vignette Shape</Label>
-                        <Select value={vignette.shape} onValueChange={(v: 'circle' | 'rectangle') => setVignette(p => ({...p, shape: v}))}>
-                            <SelectTrigger id="vignette-shape"><SelectValue/></SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="rectangle">Rectangle</SelectItem>
-                                <SelectItem value="circle">Circle</SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
-                  </div>
-              </div>
-            </TabsContent>
-            <TabsContent value="crop" className="space-y-4 pt-2">
+    <div className="flex flex-col md:grid md:gap-8 md:grid-cols-[1fr_400px]">
+      <div className="order-2 md:order-1">
+        <Card>
+            <CardContent className="p-4 space-y-4">
+            <Tabs defaultValue="adjust">
+                <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="adjust">Adjust</TabsTrigger>
+                <TabsTrigger value="crop">Crop &amp; Rotate</TabsTrigger>
+                </TabsList>
+                <TabsContent value="adjust" className="space-y-4 pt-2">
                 <AdjustmentSlider
-                  icon={RotateCcw}
-                  label="Rotation"
-                  value={rotation}
-                  onValueChange={setRotation}
-                  min={-180}
-                  max={180}
-                  step={1}
+                    icon={Sun}
+                    label="Brightness"
+                    value={adjustments.brightness}
+                    onValueChange={(v) => setAdjustments((p) => ({ ...p, brightness: v }))}
+                    min={0}
+                    max={200}
                 />
-                <Button variant="outline" className="w-full" onClick={toggleCropMode}>
-                    <Crop className="mr-2"/> {isCropMode ? 'Cancel Crop' : 'Enter Crop Mode'}
-                </Button>
-                {isCropMode && (
-                    <Button className="w-full" onClick={applyCrop} disabled={!completedCrop}>
-                        Apply Crop
+                <AdjustmentSlider
+                    icon={Contrast}
+                    label="Contrast"
+                    value={adjustments.contrast}
+                    onValueChange={(v) => setAdjustments((p) => ({ ...p, contrast: v }))}
+                    min={0}
+                    max={200}
+                />
+                <AdjustmentSlider
+                    icon={Palette}
+                    label="Saturation"
+                    value={adjustments.saturate}
+                    onValueChange={(v) => setAdjustments((p) => ({ ...p, saturate: v }))}
+                    min={0}
+                    max={200}
+                />
+                <AdjustmentSlider
+                    icon={Droplets}
+                    label="Grayscale"
+                    value={adjustments.grayscale}
+                    onValueChange={(v) => setAdjustments((p) => ({ ...p, grayscale: v }))}
+                    min={0}
+                    max={100}
+                />
+                <AdjustmentSlider
+                    icon={Droplets}
+                    label="Sepia"
+                    value={adjustments.sepia}
+                    onValueChange={(v) => setAdjustments((p) => ({ ...p, sepia: v }))}
+                    min={0}
+                    max={100}
+                />
+                <AdjustmentSlider
+                    icon={FlipHorizontal}
+                    label="Invert"
+                    value={adjustments.invert}
+                    onValueChange={(v) => setAdjustments((p) => ({ ...p, invert: v }))}
+                    min={0}
+                    max={100}
+                />
+                <div className="pt-4 border-t">
+                    <AdjustmentSlider
+                        icon={CircleDot}
+                        label="Vignette Size"
+                        value={vignette.size}
+                        onValueChange={(v) => setVignette(p => ({...p, size: v}))}
+                        min={0}
+                        max={100}
+                    />
+                    <AdjustmentSlider
+                        icon={Wand}
+                        label="Vignette Softness"
+                        value={vignette.softness}
+                        onValueChange={(v) => setVignette(p => ({...p, softness: v}))}
+                        min={0}
+                        max={100}
+                    />
+                    <AdjustmentSlider
+                        icon={Wand}
+                        label="Vignette Inner Smoothness"
+                        value={vignette.innerSmoothness}
+                        onValueChange={(v) => setVignette(p => ({...p, innerSmoothness: v}))}
+                        min={0}
+                        max={100}
+                    />
+                    <div className="grid grid-cols-2 gap-4 mt-2">
+                        <div className="space-y-2">
+                            <Label htmlFor="vignette-color">Vignette Color</Label>
+                            <Input id="vignette-color" type="color" value={vignette.color} onChange={e => setVignette(p => ({...p, color: e.target.value}))} className="h-10 w-full p-1"/>
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="vignette-shape">Vignette Shape</Label>
+                            <Select value={vignette.shape} onValueChange={(v: 'circle' | 'rectangle') => setVignette(p => ({...p, shape: v}))}>
+                                <SelectTrigger id="vignette-shape"><SelectValue/></SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="rectangle">Rectangle</SelectItem>
+                                    <SelectItem value="circle">Circle</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    </div>
+                </div>
+                </TabsContent>
+                <TabsContent value="crop" className="space-y-4 pt-2">
+                    <AdjustmentSlider
+                    icon={RotateCcw}
+                    label="Rotation"
+                    value={rotation}
+                    onValueChange={setRotation}
+                    min={-180}
+                    max={180}
+                    step={1}
+                    />
+                    <Button variant="outline" className="w-full" onClick={toggleCropMode}>
+                        <Crop className="mr-2"/> {isCropMode ? 'Cancel Crop' : 'Enter Crop Mode'}
                     </Button>
-                )}
-            </TabsContent>
-          </Tabs>
-          <div className="flex items-center gap-2 pt-4 border-t">
-            <Button onClick={undo} variant="outline" disabled={history.length <= 1} className="w-full">
-              <Undo2 className="mr-2" />
-              Undo
-            </Button>
-            <Button onClick={resetAll} variant="destructive" className="w-full">
-              <RefreshCw className="mr-2" />
-              Reset All
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+                    {isCropMode && (
+                        <Button className="w-full" onClick={applyCrop} disabled={!completedCrop}>
+                            Apply Crop
+                        </Button>
+                    )}
+                </TabsContent>
+            </Tabs>
+            <div className="flex items-center gap-2 pt-4 border-t">
+                <Button onClick={undo} variant="outline" disabled={history.length <= 1} className="w-full">
+                <Undo2 className="mr-2" />
+                Undo
+                </Button>
+                <Button onClick={resetAll} variant="destructive" className="w-full">
+                <RefreshCw className="mr-2" />
+                Reset All
+                </Button>
+            </div>
+            </CardContent>
+        </Card>
+      </div>
 
-      <div className="space-y-4">
+      <div className="order-1 md:order-2 space-y-4">
         {!imageSrc ? (
             <div className="flex items-center justify-center w-full">
                 <label

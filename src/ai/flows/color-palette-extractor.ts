@@ -37,7 +37,7 @@ const colorPaletteExtractorFlow = ai.defineFlow(
     outputSchema: ColorPaletteExtractorOutputSchema,
   },
   async input => {
-    const {output} = await ai.run(prompt, input);
+    const {output} = await prompt(input);
     return output!;
   }
 );
