@@ -3,11 +3,27 @@
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { cva } from 'class-variance-authority';
-import { Id, Task, Column, Priority } from './kanban-types';
+import { Id, Task, Column, Priority, Attachment, AttachmentType } from './kanban-types';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { GripVertical, PlusCircle, Trash2, CalendarIcon, Flag, Move } from 'lucide-react';
-import React, { useState } from 'react';
+import {
+  GripVertical,
+  PlusCircle,
+  Trash2,
+  CalendarIcon,
+  Flag,
+  Move,
+  Edit,
+  Paperclip,
+  Image as ImageIcon,
+  AudioWaveform,
+  Video,
+  File as FileIcon,
+  MapPin,
+  Download,
+  Upload
+} from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   SortableContext,
   verticalListSortingStrategy,
@@ -25,7 +41,14 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSub,
+  DropdownMenuSubTrigger,
+  DropdownMenuSubContent,
+  DropdownMenuPortal,
 } from '@/components/ui/dropdown-menu';
+import { useToast } from '@/hooks/use-toast';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import Image from 'next/image';
 
 interface ColumnProps {
   column: Column;
@@ -100,17 +123,21 @@ export function KanbanColumn({
       >
         <div className="flex items-center gap-2">
             {!isMobile && <GripVertical className="text-muted-foreground" />}
-            {!editMode && <div onClick={() => setEditMode(true)} className="flex-1">{column.title}</div>}
-            {editMode && (
-            <Input
-                value={column.title}
-                onChange={(e) => updateColumnTitle(column.id, e.target.value)}
-                autoFocus
-                onBlur={() => setEditMode(false)}
-                onKeyDown={(e) => {
-                if (e.key === 'Enter') setEditMode(false);
-                }}
-            />
+            {!editMode ? (
+              <div onClick={() => setEditMode(true)} className="flex items-center gap-2 flex-1">
+                {column.title}
+                <Edit className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+              </div>
+            ) : (
+              <Input
+                  value={column.title}
+                  onChange={(e) => updateColumnTitle(column.id, e.target.value)}
+                  autoFocus
+                  onBlur={() => setEditMode(false)}
+                  onKeyDown={(e) => {
+                  if (e.key === 'Enter') setEditMode(false);
+                  }}
+              />
             )}
         </div>
         <Button
@@ -168,6 +195,50 @@ const priorityConfig: Record<Priority, { label: string; color: string; iconColor
     urgent: { label: 'Urgent', color: 'bg-red-500/20 text-red-700 dark:text-red-400', iconColor: 'text-red-500' },
 }
 
+const attachmentConfig: Record<AttachmentType, { icon: React.FC<any> }> = {
+    IMAGE: { icon: ImageIcon },
+    AUDIO: { icon: AudioWaveform },
+    VIDEO: { icon: Video },
+    DOCUMENT: { icon: FileIcon },
+    FILE: { icon: FileIcon },
+    LOCATION: { icon: MapPin },
+};
+
+function AttachmentBadge({ attachment }: { attachment: Attachment }) {
+    const Icon = attachmentConfig[attachment.type].icon;
+    const isLocation = attachment.type === 'LOCATION';
+    const isMedia = ['IMAGE', 'AUDIO', 'VIDEO'].includes(attachment.type);
+
+    const handleClick = (e: React.MouseEvent) => {
+        if (isLocation || isMedia) {
+            e.stopPropagation();
+            window.open(attachment.url, '_blank');
+        }
+    };
+    
+    const handleDownload = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        const link = document.createElement('a');
+        link.href = attachment.url;
+        link.download = attachment.name;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
+    return (
+        <Badge variant="secondary" className="group/attachment items-center gap-1.5 cursor-pointer" onClick={handleClick}>
+            <Icon className="h-3 w-3" />
+            <span className="truncate max-w-[100px]">{attachment.name}</span>
+            {!isLocation && (
+              <button onClick={handleDownload} className="ml-1 opacity-0 group-hover/attachment:opacity-100 transition-opacity">
+                <Download className="h-3 w-3" />
+              </button>
+            )}
+        </Badge>
+    )
+}
+
 export function KanbanTaskCard({
   task,
   deleteTask,
@@ -177,6 +248,29 @@ export function KanbanTaskCard({
 }: TaskCardProps) {
   const [mouseIsOver, setMouseIsOver] = useState(false);
   const [editMode, setEditMode] = useState(false);
+  const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const { toast } = useToast();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  useEffect(() => {
+    if (editMode) {
+      const getPermissions = async () => {
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+          setHasCameraPermission(true);
+          if (videoRef.current) {
+            videoRef.current.srcObject = stream;
+          }
+        } catch (error) {
+          console.error('Error accessing media devices:', error);
+          setHasCameraPermission(false);
+        }
+      };
+      getPermissions();
+    }
+  }, [editMode]);
+
 
   const {
     setNodeRef,
@@ -204,6 +298,37 @@ export function KanbanTaskCard({
     setMouseIsOver(false);
   };
   
+  const handleAddAttachment = (attachment: Attachment) => {
+    if (!updateTask) return;
+    const newAttachments = [...(task.attachments || []), attachment];
+    updateTask(task.id, { attachments: newAttachments });
+  }
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, type: AttachmentType) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const url = event.target?.result as string;
+        handleAddAttachment({ id: `att-${Date.now()}`, type, name: file.name, url });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+  
+  const handleLocationAdd = () => {
+    const location = prompt("Enter a location or address:");
+    if (location) {
+        handleAddAttachment({
+            id: `att-${Date.now()}`,
+            type: 'LOCATION',
+            name: location,
+            url: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(location)}`
+        });
+    }
+  };
+
+
   const cardStyles = cva("group/item relative flex flex-col cursor-grab p-2.5 text-left gap-2", {
       variants: {
         dragging: {
@@ -229,8 +354,6 @@ export function KanbanTaskCard({
       <div
         ref={setNodeRef}
         style={style}
-        {...attributes}
-        {...listeners}
         className={cn(cardStyles({ dragging: "base" }), 'cursor-default')}
       >
         <Textarea
@@ -273,6 +396,41 @@ export function KanbanTaskCard({
                 </SelectContent>
             </Select>
         </div>
+        
+        {/* Attachments */}
+        <div className="space-y-2">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm"><Paperclip className="w-4 h-4 mr-2" /> Add Attachment</Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuSub>
+                  <DropdownMenuSubTrigger><ImageIcon className="mr-2 h-4 w-4" />Image</DropdownMenuSubTrigger>
+                  <DropdownMenuPortal>
+                    <DropdownMenuSubContent>
+                      <DropdownMenuItem onClick={() => fileInputRef.current?.click()}>
+                        <Upload className="mr-2 h-4 w-4" /> Upload
+                        <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={(e) => handleFileChange(e, 'IMAGE')} />
+                      </DropdownMenuItem>
+                    </DropdownMenuSubContent>
+                  </DropdownMenuPortal>
+              </DropdownMenuSub>
+              <DropdownMenuItem onClick={() => handleLocationAdd()}><MapPin className="mr-2 h-4 w-4"/>Location</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          {hasCameraPermission === false && (
+            <Alert variant="destructive">
+              <AlertTitle>Media Access Required</AlertTitle>
+              <AlertDescription>Please allow camera and microphone access to use recording features.</AlertDescription>
+            </Alert>
+          )}
+
+          <div className="flex flex-wrap gap-2">
+              {task.attachments?.map(att => <AttachmentBadge key={att.id} attachment={att} />)}
+          </div>
+        </div>
+
         <Button onClick={toggleEditMode} size="sm" className="mt-2">Done</Button>
       </div>
     );
@@ -292,6 +450,7 @@ export function KanbanTaskCard({
       <p className="my-auto h-auto w-full overflow-y-auto overflow-x-hidden whitespace-pre-wrap">
         {task.content}
       </p>
+      
       <div className="flex items-center gap-2 flex-wrap">
           {task.priority && (
               <Badge variant="outline" className={cn('gap-1.5', priorityConfig[task.priority].color)}>
@@ -305,6 +464,7 @@ export function KanbanTaskCard({
                   {format(parseISO(task.dueDate), 'MMM d')}
               </Badge>
           )}
+          {task.attachments?.map(att => <AttachmentBadge key={att.id} attachment={att} />)}
       </div>
 
       {(mouseIsOver || isMobile) && (
