@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useSortable } from '@dnd-kit/sortable';
@@ -251,7 +252,7 @@ export function KanbanTaskCard({
   const [mouseIsOver, setMouseIsOver] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
-  const videoRef = useRef<HTMLVideoElement>(null);
+  
   const { toast } = useToast();
   const fileInputRefImage = useRef<HTMLInputElement>(null);
   const fileInputRefAudio = useRef<HTMLInputElement>(null);
@@ -259,25 +260,6 @@ export function KanbanTaskCard({
   const fileInputRefDoc = useRef<HTMLInputElement>(null);
   const fileInputRefFile = useRef<HTMLInputElement>(null);
   
-  useEffect(() => {
-    if (editMode) {
-      const getPermissions = async () => {
-        try {
-          const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-          setHasCameraPermission(true);
-          if (videoRef.current) {
-            videoRef.current.srcObject = stream;
-          }
-        } catch (error) {
-          console.error('Error accessing media devices:', error);
-          setHasCameraPermission(false);
-        }
-      };
-      getPermissions();
-    }
-  }, [editMode]);
-
-
   const {
     setNodeRef,
     attributes,
@@ -457,13 +439,6 @@ export function KanbanTaskCard({
               <DropdownMenuItem onClick={() => handleLocationAdd()}><MapPin className="mr-2 h-4 w-4"/>Location</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-
-          {hasCameraPermission === false && (
-            <Alert variant="destructive">
-              <AlertTitle>Media Access Required</AlertTitle>
-              <AlertDescription>Please allow camera and microphone access to use recording features.</AlertDescription>
-            </Alert>
-          )}
 
           <div className="flex flex-wrap gap-2">
               {task.attachments?.map(att => <AttachmentBadge key={att.id} attachment={att} />)}
