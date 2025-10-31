@@ -251,7 +251,6 @@ export function KanbanTaskCard({
 }: TaskCardProps) {
   const [mouseIsOver, setMouseIsOver] = useState(false);
   const [editMode, setEditMode] = useState(false);
-  const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
   
   const { toast } = useToast();
   const fileInputRefImage = useRef<HTMLInputElement>(null);
