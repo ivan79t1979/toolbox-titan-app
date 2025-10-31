@@ -26,7 +26,7 @@ import {
   Camera,
   Mic,
 } from 'lucide-react';
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   SortableContext,
   verticalListSortingStrategy,
@@ -50,7 +50,6 @@ import {
   DropdownMenuPortal,
 } from '@/components/ui/dropdown-menu';
 import { useToast } from '@/hooks/use-toast';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import Image from 'next/image';
 
 interface ColumnProps {
@@ -124,7 +123,7 @@ export function KanbanColumn({
         {...listeners}
         className="p-3 font-semibold border-b flex flex-row items-center justify-between cursor-grab group"
       >
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-1">
             {!isMobile && <GripVertical className="text-muted-foreground" />}
             {!editMode ? (
               <div onClick={() => setEditMode(true)} className="flex items-center gap-2 flex-1">
@@ -213,9 +212,11 @@ function AttachmentBadge({ attachment }: { attachment: Attachment }) {
     const isMedia = ['IMAGE', 'AUDIO', 'VIDEO'].includes(attachment.type);
 
     const handleClick = (e: React.MouseEvent) => {
+        e.stopPropagation(); // Prevent card edit mode
         if (isLocation || isMedia) {
-            e.stopPropagation();
             window.open(attachment.url, '_blank');
+        } else {
+            handleDownload(e);
         }
     };
     
@@ -253,11 +254,13 @@ export function KanbanTaskCard({
   const [editMode, setEditMode] = useState(false);
   
   const { toast } = useToast();
-  const fileInputRefImage = useRef<HTMLInputElement>(null);
-  const fileInputRefAudio = useRef<HTMLInputElement>(null);
-  const fileInputRefVideo = useRef<HTMLInputElement>(null);
-  const fileInputRefDoc = useRef<HTMLInputElement>(null);
-  const fileInputRefFile = useRef<HTMLInputElement>(null);
+  const fileInputRefs = {
+    IMAGE: useRef<HTMLInputElement>(null),
+    AUDIO: useRef<HTMLInputElement>(null),
+    VIDEO: useRef<HTMLInputElement>(null),
+    DOCUMENT: useRef<HTMLInputElement>(null),
+    FILE: useRef<HTMLInputElement>(null),
+  };
   
   const {
     setNodeRef,
@@ -314,7 +317,6 @@ export function KanbanTaskCard({
         });
     }
   };
-
 
   const cardStyles = cva("group/item relative flex flex-col cursor-grab p-2.5 text-left gap-2", {
       variants: {
@@ -384,7 +386,6 @@ export function KanbanTaskCard({
             </Select>
         </div>
         
-        {/* Attachments */}
         <div className="space-y-2">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -395,9 +396,9 @@ export function KanbanTaskCard({
                   <DropdownMenuSubTrigger><ImageIcon className="mr-2 h-4 w-4" />Image</DropdownMenuSubTrigger>
                   <DropdownMenuPortal>
                     <DropdownMenuSubContent>
-                      <DropdownMenuItem onClick={() => fileInputRefImage.current?.click()}>
+                      <DropdownMenuItem onClick={() => fileInputRefs.IMAGE.current?.click()}>
                         <Upload className="mr-2 h-4 w-4" /> Upload
-                        <input type="file" ref={fileInputRefImage} className="hidden" accept="image/*" onChange={(e) => handleFileChange(e, 'IMAGE')} />
+                        <input type="file" ref={fileInputRefs.IMAGE} className="hidden" accept="image/*" onChange={(e) => handleFileChange(e, 'IMAGE')} />
                       </DropdownMenuItem>
                        <DropdownMenuItem onClick={() => toast({title: "Coming soon!"})}><Camera className="mr-2 h-4 w-4" />Capture</DropdownMenuItem>
                     </DropdownMenuSubContent>
@@ -407,9 +408,9 @@ export function KanbanTaskCard({
                   <DropdownMenuSubTrigger><AudioWaveform className="mr-2 h-4 w-4" />Audio</DropdownMenuSubTrigger>
                   <DropdownMenuPortal>
                     <DropdownMenuSubContent>
-                      <DropdownMenuItem onClick={() => fileInputRefAudio.current?.click()}>
+                      <DropdownMenuItem onClick={() => fileInputRefs.AUDIO.current?.click()}>
                         <Upload className="mr-2 h-4 w-4" /> Upload
-                        <input type="file" ref={fileInputRefAudio} className="hidden" accept="audio/*" onChange={(e) => handleFileChange(e, 'AUDIO')} />
+                        <input type="file" ref={fileInputRefs.AUDIO} className="hidden" accept="audio/*" onChange={(e) => handleFileChange(e, 'AUDIO')} />
                       </DropdownMenuItem>
                        <DropdownMenuItem onClick={() => toast({title: "Coming soon!"})}><Mic className="mr-2 h-4 w-4" />Record</DropdownMenuItem>
                     </DropdownMenuSubContent>
@@ -419,21 +420,21 @@ export function KanbanTaskCard({
                   <DropdownMenuSubTrigger><Video className="mr-2 h-4 w-4" />Video</DropdownMenuSubTrigger>
                   <DropdownMenuPortal>
                     <DropdownMenuSubContent>
-                      <DropdownMenuItem onClick={() => fileInputRefVideo.current?.click()}>
+                      <DropdownMenuItem onClick={() => fileInputRefs.VIDEO.current?.click()}>
                         <Upload className="mr-2 h-4 w-4" /> Upload
-                        <input type="file" ref={fileInputRefVideo} className="hidden" accept="video/*" onChange={(e) => handleFileChange(e, 'VIDEO')} />
+                        <input type="file" ref={fileInputRefs.VIDEO} className="hidden" accept="video/*" onChange={(e) => handleFileChange(e, 'VIDEO')} />
                       </DropdownMenuItem>
                        <DropdownMenuItem onClick={() => toast({title: "Coming soon!"})}><Camera className="mr-2 h-4 w-4" />Record</DropdownMenuItem>
                     </DropdownMenuSubContent>
                   </DropdownMenuPortal>
               </DropdownMenuSub>
-              <DropdownMenuItem onClick={() => fileInputRefDoc.current?.click()}>
+              <DropdownMenuItem onClick={() => fileInputRefs.DOCUMENT.current?.click()}>
                 <FileIcon className="mr-2 h-4 w-4"/> Document
-                <input type="file" ref={fileInputRefDoc} className="hidden" accept=".pdf,.doc,.docx,.txt" onChange={(e) => handleFileChange(e, 'DOCUMENT')} />
+                <input type="file" ref={fileInputRefs.DOCUMENT} className="hidden" accept=".pdf,.doc,.docx,.txt" onChange={(e) => handleFileChange(e, 'DOCUMENT')} />
               </DropdownMenuItem>
-               <DropdownMenuItem onClick={() => fileInputRefFile.current?.click()}>
+               <DropdownMenuItem onClick={() => fileInputRefs.FILE.current?.click()}>
                 <FileIcon className="mr-2 h-4 w-4"/> Other File
-                <input type="file" ref={fileInputRefFile} className="hidden" onChange={(e) => handleFileChange(e, 'FILE')} />
+                <input type="file" ref={fileInputRefs.FILE} className="hidden" onChange={(e) => handleFileChange(e, 'FILE')} />
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => handleLocationAdd()}><MapPin className="mr-2 h-4 w-4"/>Location</DropdownMenuItem>
             </DropdownMenuContent>
