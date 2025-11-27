@@ -32,6 +32,12 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
   PlusCircle,
   Trash2,
   Download,
@@ -78,6 +84,16 @@ type Labels = {
     total: string;
     notes: string;
 }
+
+type InvoiceTemplate = {
+  yourDetails: string;
+  logo: string | null;
+  notes: string;
+  taxRate: number;
+  customFields: CustomField[];
+  labels: Labels;
+  dateFormat: string;
+};
 
 const dateFormats = [
     { value: 'PPP', label: 'Month D, YYYY (e.g., Oct 26, 2023)' },
@@ -128,6 +144,7 @@ export function InvoiceGenerator() {
 
   const { toast } = useToast();
   const invoiceRef = useRef<HTMLDivElement>(null);
+  const templateInputRef = useRef<HTMLInputElement>(null);
 
   const subtotal = useMemo(() => {
     return lineItems.reduce((acc, item) => acc + item.quantity * item.rate, 0);
@@ -244,6 +261,70 @@ export function InvoiceGenerator() {
       console.error("PDF Export Error:", error);
       toast({ variant: 'destructive', title: 'Export Failed', description: 'Could not export as PDF.' });
     }
+  };
+
+  const exportTemplate = () => {
+    const template: InvoiceTemplate = {
+      yourDetails,
+      logo,
+      notes,
+      taxRate,
+      customFields,
+      labels,
+      dateFormat,
+    };
+    const blob = new Blob([JSON.stringify(template, null, 2)], { type: 'application/json' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'invoice-template.ingt';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(link.href);
+    toast({ title: 'Template Exported' });
+  };
+
+  const importTemplate = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const result = e.target?.result;
+        if (typeof result !== 'string') {
+          throw new Error('File content is not valid.');
+        }
+        const template: InvoiceTemplate = JSON.parse(result);
+
+        // Validate template structure
+        if (!template.yourDetails || !template.labels || !template.dateFormat) {
+          throw new Error('Invalid template file structure.');
+        }
+
+        setYourDetails(template.yourDetails);
+        setLogo(template.logo);
+        setNotes(template.notes);
+        setTaxRate(template.taxRate);
+        setCustomFields(template.customFields || []);
+        setLabels(template.labels);
+        setDateFormat(template.dateFormat);
+
+        toast({ title: 'Template Imported Successfully' });
+      } catch (error) {
+        toast({
+          variant: 'destructive',
+          title: 'Import Failed',
+          description: 'The selected file is not a valid invoice template.',
+        });
+      } finally {
+        // Reset file input to allow re-uploading the same file
+        if (templateInputRef.current) {
+          templateInputRef.current.value = '';
+        }
+      }
+    };
+    reader.readAsText(file);
   };
 
 
@@ -383,6 +464,30 @@ export function InvoiceGenerator() {
       </div>
       
       <div className="space-y-4 sticky top-4 self-start">
+         <div className="grid grid-cols-2 gap-2">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="w-full">
+                <Upload className="mr-2 h-4 w-4" /> Import Template
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuItem onClick={() => templateInputRef.current?.click()}>
+                <FileJson className="mr-2 h-4 w-4" /> From .ingt file
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <Button onClick={exportTemplate} variant="outline" className="w-full">
+            <Download className="mr-2 h-4 w-4" /> Export Template
+          </Button>
+          <input
+            type="file"
+            ref={templateInputRef}
+            className="hidden"
+            accept=".ingt"
+            onChange={importTemplate}
+          />
+        </div>
         <Button onClick={exportPDF} size="lg" className="w-full">
             <Download className="mr-2 h-4 w-4"/> Download Invoice PDF
         </Button>
