@@ -32,21 +32,11 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import {
   PlusCircle,
   Trash2,
   Download,
   Upload,
-  FileJson,
-  FileText,
-  FileSpreadsheet,
   Image as ImageIcon,
-  Printer,
   Edit,
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -465,26 +455,17 @@ export function InvoiceGenerator() {
       
       <div className="space-y-4 sticky top-4 self-start">
          <div className="grid grid-cols-2 gap-2">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="w-full">
+            <Button variant="outline" className="w-full" onClick={() => templateInputRef.current?.click()}>
                 <Upload className="mr-2 h-4 w-4" /> Import Template
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              <DropdownMenuItem onClick={() => templateInputRef.current?.click()}>
-                <FileJson className="mr-2 h-4 w-4" /> From .ingt file
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-          <Button onClick={exportTemplate} variant="outline" className="w-full">
-            <Download className="mr-2 h-4 w-4" /> Export Template
-          </Button>
+            </Button>
+            <Button onClick={exportTemplate} variant="outline" className="w-full">
+                <Download className="mr-2 h-4 w-4" /> Export Template
+            </Button>
           <input
             type="file"
             ref={templateInputRef}
             className="hidden"
-            accept=".ingt"
+            accept=".ingt,application/json"
             onChange={importTemplate}
           />
         </div>
