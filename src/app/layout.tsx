@@ -56,6 +56,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        <script id="aclib" type="text/javascript" src="//acscdn.com/script/aclib.js"></script>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link
           rel="preconnect"
