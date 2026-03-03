@@ -1,4 +1,3 @@
-
 import { toolCategories } from '@/lib/tools';
 import Link from 'next/link';
 import {
@@ -11,7 +10,7 @@ import { PageHeader } from '@/components/page-header';
 import { AdPlaceholder } from '@/components/ad-placeholder';
 
 export default function Home() {
-  const adIndices = [2, 7, 12, 17, 22];
+  const adIndices: number[] = [];
   let toolCounter = 0;
 
   return (

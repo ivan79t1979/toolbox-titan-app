@@ -1,4 +1,3 @@
-
 "use client";
 import Link from 'next/link';
 import {
@@ -122,11 +121,6 @@ export function SiteSidebar() {
       </SidebarContent>
       <SidebarFooter>
         <SidebarSeparator />
-        {!isCollapsed && (
-          <div className="p-4 flex justify-center">
-            <AdPlaceholder width={160} height={160} />
-          </div>
-        )}
       </SidebarFooter>
     </Sidebar>
   );
