@@ -18,27 +18,34 @@ export function AdPlaceholder({
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Only handle the 728x90 banners as requested
-    if (width === 728 && height === 90 && typeof window !== 'undefined' && containerRef.current) {
+    if (typeof window !== 'undefined' && containerRef.current) {
       // Clear existing content to prevent duplicates during re-renders
       containerRef.current.innerHTML = '';
       
-      const script = document.createElement('script');
-      script.type = 'text/javascript';
-      // Injected script text provided by the user
-      script.text = `
-        if (window.aclib) {
-          aclib.runBanner({
-            zoneId: '11031670',
-          });
-        }
-      `;
-      containerRef.current.appendChild(script);
+      let zoneId = '';
+      if (width === 728 && height === 90) {
+        zoneId = '11031670';
+      } else if (width === 300 && height === 250) {
+        zoneId = '11031690';
+      }
+
+      if (zoneId) {
+        const script = document.createElement('script');
+        script.type = 'text/javascript';
+        script.text = `
+          if (window.aclib) {
+            aclib.runBanner({
+              zoneId: '${zoneId}',
+            });
+          }
+        `;
+        containerRef.current.appendChild(script);
+      }
     }
   }, [width, height]);
 
-  // Keep other banner sizes (like 300x250) hidden as per previous "hide advertising" instruction.
-  if (width !== 728 || height !== 90) {
+  // Only allow 728x90 and 300x250 banners
+  if (!((width === 728 && height === 90) || (width === 300 && height === 250))) {
     return null;
   }
 

@@ -10,7 +10,8 @@ import { PageHeader } from '@/components/page-header';
 import { AdPlaceholder } from '@/components/ad-placeholder';
 
 export default function Home() {
-  const adIndices: number[] = [];
+  // Restore ad indices to show 300x250 banners in the grid
+  const adIndices: number[] = [3, 7, 11, 15];
   let toolCounter = 0;
 
   return (
