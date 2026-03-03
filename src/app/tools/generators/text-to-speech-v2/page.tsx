@@ -55,7 +55,7 @@ export default function TextToSpeechV2Page() {
       />
       <PageHeader
         title="Text to Speech v2"
-        description="Convert text to spoken audio.If the tool doesn't load reload the page"
+        description="Convert text to spoken audio. If the tool doesn't load reload the page"
       />
       <div className="mt-8">
         <GradioWrapper appSrc="https://timemaster-multilingual-tts-v2.hf.space" scriptSrc="https://gradio.s3-us-west-2.amazonaws.com/5.49.1/gradio.js" />
