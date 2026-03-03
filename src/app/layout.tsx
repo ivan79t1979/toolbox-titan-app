@@ -1,3 +1,4 @@
+
 import type { Metadata } from 'next';
 import './globals.css';
 import { ThemeProvider } from '@/components/theme-provider';
@@ -100,6 +101,15 @@ export default function RootLayout({
             function gtag(){dataLayer.push(arguments);}
             gtag('js', new Date());
             gtag('config', 'G-HNJZL1GKXC');
+          `}
+        </Script>
+        <Script id="aclib-autotag" strategy="afterInteractive">
+          {`
+            if (window.aclib) {
+              aclib.runAutoTag({
+                  zoneId: 'twdoo6vsa6',
+              });
+            }
           `}
         </Script>
       </body>
